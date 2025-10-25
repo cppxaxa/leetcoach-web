@@ -1,0 +1,167 @@
+/* Dark Theme (VS Code Style) */
+[data-theme="dark"] {
+    --bg-primary: #1e1e1e;
+    --bg-secondary: #1e1e1e;
+    --panel-header-bg: #252526;
+    --text-primary: #d4d4d4;
+    --text-secondary: #858585;
+    --border-color: #2d2d30;
+    --accent-color: #0e639c;
+    --accent-hover: #1177bb;
+    --accent-text: #ffffff;
+    --hover-color: #2a2d2e;
+    --input-bg: #3c3c3c;
+    --code-bg: #1e1e1e;
+    --secondary-color: #3e3e42;
+    --scrollbar-thumb: #424242;
+    --scrollbar-hover: #4e4e4e;
+}
+
+/* Light Theme */
+[data-theme="light"] {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8f8f8;
+    --panel-header-bg: #f0f0f0;
+    --text-primary: #333333;
+    --text-secondary: #666666;
+    --border-color: #e0e0e0;
+    --accent-color: #0078d4;
+    --accent-hover: #106ebe;
+    --accent-text: #ffffff;
+    --hover-color: #f0f0f0;
+    --input-bg: #ffffff;
+    --code-bg: #f5f5f5;
+    --secondary-color: #e0e0e0;
+    --scrollbar-thumb: #c1c1c1;
+    --scrollbar-hover: #a8a8a8;
+}
+
+/* Blue Theme */
+[data-theme="blue"] {
+    --bg-primary: #0e1419;
+    --bg-secondary: #1a2332;
+    --panel-header-bg: #1e2936;
+    --text-primary: #d4d4d4;
+    --text-secondary: #9ca3af;
+    --border-color: #2d3748;
+    --accent-color: #3b82f6;
+    --accent-hover: #2563eb;
+    --accent-text: #ffffff;
+    --hover-color: #2a3441;
+    --input-bg: #2d3748;
+    --code-bg: #1a202c;
+    --secondary-color: #4a5568;
+    --scrollbar-thumb: #4a5568;
+    --scrollbar-hover: #5a6578;
+}
+
+/* High Contrast Theme */
+[data-theme="high-contrast"] {
+    --bg-primary: #000000;
+    --bg-secondary: #000000;
+    --panel-header-bg: #1a1a1a;
+    --text-primary: #ffffff;
+    --text-secondary: #ffffff;
+    --border-color: #ffffff;
+    --accent-color: #ffff00;
+    --accent-hover: #ffff99;
+    --accent-text: #000000;
+    --hover-color: #1a1a1a;
+    --input-bg: #000000;
+    --code-bg: #000000;
+    --secondary-color: #ffffff;
+    --scrollbar-thumb: #ffffff;
+    --scrollbar-hover: #cccccc;
+}
+
+/* Dracula Theme */
+[data-theme="dracula"] {
+    --bg-primary: #282a36;
+    --bg-secondary: #44475a;
+    --panel-header-bg: #44475a;
+    --text-primary: #f8f8f2;
+    --text-secondary: #6272a4;
+    --border-color: #44475a;
+    --accent-color: #bd93f9;
+    --accent-hover: #a580e6;
+    --accent-text: #282a36;
+    --hover-color: #44475a;
+    --input-bg: #44475a;
+    --code-bg: #282a36;
+    --secondary-color: #6272a4;
+    --scrollbar-thumb: #6272a4;
+    --scrollbar-hover: #50fa7b;
+}
+
+/* Monokai Theme */
+[data-theme="monokai"] {
+    --bg-primary: #272822;
+    --bg-secondary: #3e3d32;
+    --panel-header-bg: #3e3d32;
+    --text-primary: #f8f8f2;
+    --text-secondary: #75715e;
+    --border-color: #3e3d32;
+    --accent-color: #a6e22e;
+    --accent-hover: #8dc221;
+    --accent-text: #272822;
+    --hover-color: #3e3d32;
+    --input-bg: #3e3d32;
+    --code-bg: #272822;
+    --secondary-color: #75715e;
+    --scrollbar-thumb: #75715e;
+    --scrollbar-hover: #a6e22e;
+}
+
+/* GitHub Theme */
+[data-theme="github"] {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f6f8fa;
+    --panel-header-bg: #f6f8fa;
+    --text-primary: #24292e;
+    --text-secondary: #586069;
+    --border-color: #e1e4e8;
+    --accent-color: #0366d6;
+    --accent-hover: #0256cc;
+    --accent-text: #ffffff;
+    --hover-color: #f6f8fa;
+    --input-bg: #ffffff;
+    --code-bg: #f6f8fa;
+    --secondary-color: #e1e4e8;
+    --scrollbar-thumb: #d1d5da;
+    --scrollbar-hover: #c6cbd1;
+}
+
+/* Theme Transition Animation */
+* {
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+/* Additional Theme-specific Monaco Editor Integration */
+.monaco-editor {
+    transition: none !important;
+}
+
+/* Theme-specific project difficulty badges adjustments */
+[data-theme="light"] .project-difficulty.easy,
+[data-theme="github"] .project-difficulty.easy {
+    background-color: #28a745;
+}
+
+[data-theme="light"] .project-difficulty.medium,
+[data-theme="github"] .project-difficulty.medium {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+[data-theme="light"] .project-difficulty.hard,
+[data-theme="github"] .project-difficulty.hard {
+    background-color: #dc3545;
+}
+
+/* Dark theme Monaco editor specific styles */
+[data-theme="dark"] .monaco-editor .margin,
+[data-theme="blue"] .monaco-editor .margin,
+[data-theme="dracula"] .monaco-editor .margin,
+[data-theme="monokai"] .monaco-editor .margin {
+    background-color: var(--bg-primary) !important;
+}

@@ -405,6 +405,36 @@ function initializeEventListeners() {
         }
     });
 
+    // Clarify dialog buttons
+    const clarifyBtn = document.getElementById('clarify-btn');
+    const clarifyDialogCloseBtn = document.getElementById('clarify-dialog-close-btn');
+    const clarifySendBtn = document.getElementById('clarify-send-btn');
+    const clarifyStopBtn = document.getElementById('clarify-stop-btn');
+    const clarifyClearBtn = document.getElementById('clarify-clear-btn');
+    const clarifyDialogOverlay = document.getElementById('clarify-dialog-overlay');
+    const clarifyInput = document.getElementById('clarify-input');
+
+    clarifyBtn.addEventListener('click', handleClarifyClick);
+    clarifyDialogCloseBtn.addEventListener('click', handleCloseClarifyDialog);
+    clarifySendBtn.addEventListener('click', handleClarifySend);
+    clarifyStopBtn.addEventListener('click', handleClarifyStop);
+    clarifyClearBtn.addEventListener('click', handleClarifyClearHistory);
+    
+    // Close clarify dialog when clicking overlay
+    clarifyDialogOverlay.addEventListener('click', function(e) {
+        if (e.target === clarifyDialogOverlay) {
+            handleCloseClarifyDialog();
+        }
+    });
+
+    // Clarify input - handle Enter with Ctrl to send
+    clarifyInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && e.ctrlKey) {
+            e.preventDefault();
+            handleClarifySend();
+        }
+    });
+
     // Editor send button
     const editorSendBtn = document.getElementById('editor-send-btn');
     editorSendBtn.addEventListener('click', handleEditorSendClick);
@@ -441,6 +471,100 @@ function initializeEventListeners() {
             handleSidebarToggle();
         }
     });
+
+    // Storage export/import buttons
+    const exportStorageBtn = document.getElementById('export-storage-btn');
+    const importStorageBtn = document.getElementById('import-storage-btn');
+    const importStorageInput = document.getElementById('import-storage-input');
+
+    exportStorageBtn.addEventListener('click', handleExportStorage);
+    importStorageBtn.addEventListener('click', () => importStorageInput.click());
+    importStorageInput.addEventListener('change', handleImportStorage);
+}
+
+// Handle export storage
+function handleExportStorage() {
+    try {
+        // Get all localStorage data
+        const storageData = {};
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            storageData[key] = localStorage.getItem(key);
+        }
+
+        // Create a blob with the data
+        const dataStr = JSON.stringify(storageData, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        
+        // Create download link
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        
+        // Generate filename with timestamp
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+        link.download = `leetcoach-settings-${timestamp}.json`;
+        
+        // Trigger download
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        console.log('Settings exported successfully');
+    } catch (error) {
+        console.error('Error exporting settings:', error);
+        alert('Failed to export settings. Please try again.');
+    }
+}
+
+// Handle import storage
+function handleImportStorage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const importedData = JSON.parse(e.target.result);
+            
+            // Confirm with user before overwriting
+            const confirmMessage = 'This will replace all your current settings and projects. Are you sure you want to continue?';
+            if (!confirm(confirmMessage)) {
+                // Reset file input
+                event.target.value = '';
+                return;
+            }
+
+            // Clear existing localStorage
+            localStorage.clear();
+
+            // Import all data
+            for (const key in importedData) {
+                if (importedData.hasOwnProperty(key)) {
+                    localStorage.setItem(key, importedData[key]);
+                }
+            }
+
+            console.log('Settings imported successfully');
+            alert('Settings imported successfully! The page will now reload.');
+            
+            // Reload the page to apply all settings
+            location.reload();
+        } catch (error) {
+            console.error('Error importing settings:', error);
+            alert('Failed to import settings. Please make sure the file is valid.');
+            event.target.value = '';
+        }
+    };
+
+    reader.onerror = function() {
+        console.error('Error reading file');
+        alert('Failed to read the file. Please try again.');
+        event.target.value = '';
+    };
+
+    reader.readAsText(file);
 }
 
 // Handle theme button click
@@ -1358,6 +1482,151 @@ function deleteProject(projectId) {
     });
     
     console.log(`[Delete] Project ${projectId} deleted successfully`);
+}
+
+// ===== CLARIFY DIALOG HANDLERS =====
+let clarifyChatHistory = [];
+let isClarifyResponding = false;
+
+// Handle clarify button click
+function handleClarifyClick() {
+    const clarifyDialogOverlay = document.getElementById('clarify-dialog-overlay');
+    clarifyDialogOverlay.classList.add('active');
+    
+    // Focus on input
+    setTimeout(() => {
+        document.getElementById('clarify-input').focus();
+    }, 100);
+}
+
+// Handle close clarify dialog
+function handleCloseClarifyDialog() {
+    const clarifyDialogOverlay = document.getElementById('clarify-dialog-overlay');
+    clarifyDialogOverlay.classList.remove('active');
+}
+
+// Handle clarify send
+function handleClarifySend() {
+    const clarifyInput = document.getElementById('clarify-input');
+    const message = clarifyInput.value.trim();
+    
+    if (!message) {
+        return;
+    }
+    
+    // Disable send button and enable stop button
+    isClarifyResponding = true;
+    updateClarifyButtonStates();
+    
+    // Add user message to chat history
+    addClarifyMessage('user', message);
+    
+    // Clear input
+    clarifyInput.value = '';
+    
+    // Simulate LLM response
+    simulateClarifyResponse(message);
+}
+
+// Handle clarify stop
+function handleClarifyStop() {
+    isClarifyResponding = false;
+    updateClarifyButtonStates();
+    
+    // Add stopped message
+    addClarifyMessage('assistant', '(Response stopped by user)', true);
+}
+
+// Handle clear clarify history
+function handleClarifyClearHistory() {
+    if (clarifyChatHistory.length === 0) return;
+    
+    if (confirm('Clear all chat history in this dialog?')) {
+        clarifyChatHistory = [];
+        const chatHistoryDiv = document.getElementById('clarify-chat-history');
+        chatHistoryDiv.innerHTML = `
+            <div class="clarify-welcome">
+                <p>Ask questions to clarify the LLM output. This chat is independent from the main conversation.</p>
+            </div>
+        `;
+    }
+}
+
+// Add message to clarify chat
+function addClarifyMessage(role, content, isSystemMessage = false) {
+    const chatHistoryDiv = document.getElementById('clarify-chat-history');
+    
+    // Remove welcome message if it exists
+    const welcomeMsg = chatHistoryDiv.querySelector('.clarify-welcome');
+    if (welcomeMsg) {
+        welcomeMsg.remove();
+    }
+    
+    // Create message element
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `clarify-message ${role}`;
+    
+    if (isSystemMessage) {
+        messageDiv.innerHTML = `<p style="font-style: italic; opacity: 0.8;">${escapeHtml(content)}</p>`;
+    } else {
+        const roleLabel = role === 'user' ? 'You' : 'Assistant';
+        messageDiv.innerHTML = `
+            <strong>${roleLabel}</strong>
+            <p>${escapeHtml(content)}</p>
+        `;
+    }
+    
+    chatHistoryDiv.appendChild(messageDiv);
+    
+    // Store in history
+    if (!isSystemMessage) {
+        clarifyChatHistory.push({ role, content });
+    }
+    
+    // Scroll to bottom
+    chatHistoryDiv.scrollTop = chatHistoryDiv.scrollHeight;
+}
+
+// Simulate clarify response
+function simulateClarifyResponse(userMessage) {
+    // Simulate typing delay
+    setTimeout(() => {
+        if (!isClarifyResponding) return;
+        
+        let response = '';
+        
+        // Generate contextual response based on user message
+        if (userMessage.toLowerCase().includes('explain')) {
+            response = 'I can help explain the code or concepts from the LLM output. What specific part would you like me to clarify?';
+        } else if (userMessage.toLowerCase().includes('why') || userMessage.toLowerCase().includes('how')) {
+            response = 'That\'s a great question! The approach shown takes advantage of specific algorithmic properties. Would you like me to break down the reasoning step by step?';
+        } else if (userMessage.toLowerCase().includes('alternative') || userMessage.toLowerCase().includes('other way')) {
+            response = 'Yes, there are alternative approaches! Depending on your constraints, you could consider different trade-offs between time and space complexity.';
+        } else if (userMessage.toLowerCase().includes('complexity') || userMessage.toLowerCase().includes('time') || userMessage.toLowerCase().includes('space')) {
+            response = 'The time complexity and space complexity analysis helps us understand the performance characteristics of the solution. Let me explain the specific complexities for this approach.';
+        } else {
+            response = 'I understand your question. This is a clarification dialog to help you better understand the LLM output. In a real implementation, this would connect to an actual LLM service for intelligent responses.';
+        }
+        
+        isClarifyResponding = false;
+        updateClarifyButtonStates();
+        addClarifyMessage('assistant', response);
+        
+    }, 800 + Math.random() * 1200); // Random delay between 0.8-2.0 seconds
+}
+
+// Update clarify button states
+function updateClarifyButtonStates() {
+    const sendBtn = document.getElementById('clarify-send-btn');
+    const stopBtn = document.getElementById('clarify-stop-btn');
+    
+    if (isClarifyResponding) {
+        sendBtn.disabled = true;
+        stopBtn.disabled = false;
+    } else {
+        sendBtn.disabled = false;
+        stopBtn.disabled = true;
+    }
 }
 
 // Simulate dialog response

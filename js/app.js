@@ -1,6 +1,9 @@
+// Initialize Storage
+const storage = new Storage();
+
 // Application State
 let monacoEditor = null;
-let currentProject = 'two-sum';
+let currentProject = null;
 let isLLMResponding = false;
 let isSidebarCollapsed = false;
 let maximizedPanel = null; // Track which panel is maximized
@@ -9,6 +12,10 @@ let panelStates = {
     output: { collapsed: false, originalHeight: null },
     input: { collapsed: false, originalHeight: null }
 };
+
+// Auto-save configuration
+const AUTO_SAVE_INTERVAL = 30000; // 30 seconds
+let autoSaveTimer = null;
 
 // Simple markdown parser fallback (if marked.js doesn't load)
 function simpleMarkdownParse(markdown) {
@@ -132,9 +139,62 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Load saved theme preference
+    const savedTheme = storage.get('preferences:theme') || 'dark';
+    document.body.setAttribute('data-theme', savedTheme);
+    
+    // Update theme button active state
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+        if (btn.getAttribute('data-theme') === savedTheme) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    // Load saved language preference
+    const savedLanguage = storage.get('preferences:language') || 'csharp';
+    document.querySelectorAll('.language-btn').forEach(btn => {
+        if (btn.getAttribute('data-language') === savedLanguage) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    // Load saved sidebar state
+    const savedSidebarState = storage.get('preferences:sidebarCollapsed');
+    if (savedSidebarState === true) {
+        isSidebarCollapsed = true;
+        document.getElementById('sidebar').classList.add('collapsed');
+    }
+    
+    // Don't auto-select any project on launch
+    // User must explicitly select a project from the sidebar
+    
     initializeMonacoEditor();
     initializeEventListeners();
-    loadProject(currentProject);
+    
+    // Restore panel heights if saved
+    const savedPanelHeights = storage.get('preferences:panelHeights');
+    if (savedPanelHeights) {
+        const editorPanel = document.querySelector('.editor-panel');
+        const outputPanel = document.querySelector('.output-panel');
+        const inputPanel = document.querySelector('.input-panel');
+        
+        if (savedPanelHeights.editor) editorPanel.style.height = savedPanelHeights.editor + 'px';
+        if (savedPanelHeights.output) outputPanel.style.height = savedPanelHeights.output + 'px';
+        if (savedPanelHeights.input) inputPanel.style.height = savedPanelHeights.input + 'px';
+    }
+    
+    // No project loaded initially - user must select one
+});
+
+// Save editor content when page is about to unload
+window.addEventListener('beforeunload', function(e) {
+    // Perform final save
+    saveEditorContent();
+    stopPeriodicAutoSave();
 });
 
 // Initialize Monaco Editor
@@ -167,7 +227,69 @@ function initializeMonacoEditor() {
         // Apply current theme
         const currentTheme = document.body.getAttribute('data-theme') || 'light';
         updateMonacoTheme(currentTheme);
+        
+        // Save code on content change (debounced)
+        let saveTimeout;
+        monacoEditor.onDidChangeModelContent(() => {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                const activeLanguageBtn = document.querySelector('.language-btn.active');
+                const currentLanguage = activeLanguageBtn ? activeLanguageBtn.getAttribute('data-language') : 'csharp';
+                const currentCode = monacoEditor.getValue();
+                storage.set(`project:${currentProject}:${currentLanguage}:code`, currentCode);
+            }, 500); // Save after 500ms of no typing
+        });
+        
+        // Save code when editor loses focus
+        monacoEditor.onDidBlurEditorText(() => {
+            saveEditorContent();
+            console.log('[Auto-save] Code saved on editor blur');
+        });
+        
+        // Initialize periodic auto-save
+        startPeriodicAutoSave();
     });
+}
+
+// Periodic auto-save function
+function saveEditorContent() {
+    if (!monacoEditor) return;
+    
+    const activeLanguageBtn = document.querySelector('.language-btn.active');
+    const currentLanguage = activeLanguageBtn ? activeLanguageBtn.getAttribute('data-language') : 'csharp';
+    const currentCode = monacoEditor.getValue();
+    
+    // Save the code
+    storage.set(`project:${currentProject}:${currentLanguage}:code`, currentCode);
+    
+    // Store timestamp of last auto-save
+    storage.set(`project:${currentProject}:${currentLanguage}:lastSave`, new Date().toISOString());
+    
+    console.log(`[Auto-save] Code saved at ${new Date().toLocaleTimeString()}`);
+}
+
+// Start periodic auto-save timer
+function startPeriodicAutoSave() {
+    // Clear any existing timer
+    if (autoSaveTimer) {
+        clearInterval(autoSaveTimer);
+    }
+    
+    // Set up new interval
+    autoSaveTimer = setInterval(() => {
+        saveEditorContent();
+    }, AUTO_SAVE_INTERVAL);
+    
+    console.log(`[Auto-save] Periodic save enabled (every ${AUTO_SAVE_INTERVAL / 1000} seconds)`);
+}
+
+// Stop periodic auto-save timer
+function stopPeriodicAutoSave() {
+    if (autoSaveTimer) {
+        clearInterval(autoSaveTimer);
+        autoSaveTimer = null;
+        console.log('[Auto-save] Periodic save disabled');
+    }
 }
 
 // Initialize event listeners
@@ -209,6 +331,10 @@ function initializeEventListeners() {
     // Sidebar expand button
     const sidebarExpandBtn = document.getElementById('sidebar-expand-btn');
     sidebarExpandBtn.addEventListener('click', handleSidebarExpand);
+
+    // Refresh projects button
+    const refreshBtn = document.getElementById('refresh-projects');
+    refreshBtn.addEventListener('click', handleRefreshProjects);
 
     // Maximize buttons
     const maximizeEditorBtn = document.getElementById('maximize-editor');
@@ -259,8 +385,8 @@ function handleThemeButtonClick(event) {
     document.body.setAttribute('data-theme', selectedTheme);
     updateMonacoTheme(selectedTheme);
     
-    // Save theme preference
-    localStorage.setItem('leetcoach-theme', selectedTheme);
+    // Save theme preference using storage
+    storage.set('preferences:theme', selectedTheme);
 }
 
 // Update theme selector options
@@ -291,16 +417,34 @@ function handleLanguageButtonClick(event) {
     const clickedBtn = event.currentTarget;
     const selectedLanguage = clickedBtn.getAttribute('data-language');
     
+    // Save current code before switching
+    if (monacoEditor) {
+        const currentLanguageBtn = document.querySelector('.language-btn.active');
+        const oldLanguage = currentLanguageBtn ? currentLanguageBtn.getAttribute('data-language') : 'csharp';
+        const currentCode = monacoEditor.getValue();
+        storage.set(`project:${currentProject}:${oldLanguage}:code`, currentCode);
+    }
+    
     // Update active state
     document.querySelectorAll('.language-btn').forEach(btn => {
         btn.classList.remove('active');
     });
     clickedBtn.classList.add('active');
     
-    // Change Monaco Editor language and load template
+    // Save language preference
+    storage.set('preferences:language', selectedLanguage);
+    
+    // Change Monaco Editor language and load code
     if (monacoEditor) {
         monaco.editor.setModelLanguage(monacoEditor.getModel(), selectedLanguage);
-        loadCodeTemplate(currentProject, selectedLanguage);
+        
+        // Try to load saved code for this language
+        const savedCode = storage.get(`project:${currentProject}:${selectedLanguage}:code`);
+        if (savedCode) {
+            monacoEditor.setValue(savedCode);
+        } else {
+            loadCodeTemplate(currentProject, selectedLanguage);
+        }
     }
 }
 
@@ -324,8 +468,19 @@ function handleProjectClick(event) {
     });
     projectItem.classList.add('active');
     
-    // Load project
+    // Load project first
     loadProject(projectId);
+    
+    // Save current code before switching projects
+    if (monacoEditor && currentProject) {
+        const activeLanguageBtn = document.querySelector('.language-btn.active');
+        const currentLanguage = activeLanguageBtn ? activeLanguageBtn.getAttribute('data-language') : 'csharp';
+        const currentCode = monacoEditor.getValue();
+        storage.set(`project:${currentProject}:${currentLanguage}:code`, currentCode);
+    }
+    
+    // Save last active project
+    storage.set('preferences:lastProject', projectId);
 }
 
 // Load project
@@ -333,10 +488,20 @@ function loadProject(projectId) {
     currentProject = projectId;
     const activeLanguageBtn = document.querySelector('.language-btn.active');
     const currentLanguage = activeLanguageBtn ? activeLanguageBtn.getAttribute('data-language') : 'csharp';
-    loadCodeTemplate(projectId, currentLanguage);
     
-    // Clear previous LLM output
-    document.getElementById('markdown-output').innerHTML = '';
+    // Try to load saved code from storage
+    const savedCode = storage.get(`project:${projectId}:${currentLanguage}:code`);
+    if (savedCode && monacoEditor) {
+        monacoEditor.setValue(savedCode);
+    } else {
+        loadCodeTemplate(projectId, currentLanguage);
+    }
+    
+    // Load saved chat history
+    loadChatHistory(projectId);
+    
+    // Update project metadata
+    updateProjectMetadata(projectId);
 }
 
 // Load code template
@@ -384,6 +549,8 @@ function handleStopMessage() {
 // Handle clear output
 function handleClearOutput() {
     document.getElementById('markdown-output').innerHTML = '';
+    // Clear chat history for current project
+    storage.set(`project:${currentProject}:chatHistory`, []);
 }
 
 // Handle sidebar toggle
@@ -397,8 +564,8 @@ function handleSidebarToggle() {
         sidebar.classList.remove('collapsed');
     }
     
-    // Save sidebar state
-    localStorage.setItem('leetcoach-sidebar-collapsed', isSidebarCollapsed.toString());
+    // Save sidebar state using storage
+    storage.set('preferences:sidebarCollapsed', isSidebarCollapsed);
     
     // Trigger Monaco Editor layout update after animation
     setTimeout(() => {
@@ -414,8 +581,8 @@ function handleSidebarExpand() {
     isSidebarCollapsed = false;
     sidebar.classList.remove('collapsed');
     
-    // Save sidebar state
-    localStorage.setItem('leetcoach-sidebar-collapsed', 'false');
+    // Save sidebar state using storage
+    storage.set('preferences:sidebarCollapsed', false);
     
     // Trigger Monaco Editor layout update after animation
     setTimeout(() => {
@@ -423,6 +590,26 @@ function handleSidebarExpand() {
             monacoEditor.layout();
         }
     }, 300);
+}
+
+// Handle refresh projects
+function handleRefreshProjects() {
+    const refreshBtn = document.getElementById('refresh-projects');
+    
+    // Add spinning animation
+    refreshBtn.classList.add('spinning');
+    
+    // Remove spinning class after animation completes
+    setTimeout(() => {
+        refreshBtn.classList.remove('spinning');
+    }, 600);
+    
+    // In a real application, this would fetch updated project data from a server
+    // For now, we'll just provide visual feedback that the refresh occurred
+    console.log('[Refresh] Project list refreshed');
+    
+    // Optional: You could reload project states from storage here
+    // For example, refresh any project metadata that might have changed
 }
 
 // Update button states
@@ -446,6 +633,7 @@ function simulateLLMResponse(userMessage, code, language) {
     `;
     
     outputDiv.innerHTML += userMessageHtml;
+    saveChatMessage(currentProject, userMessageHtml);
     
     // Simulate typing effect
     const responses = [
@@ -523,6 +711,7 @@ Let me know if you'd like me to help implement any of these improvements!`
             `;
             
             outputDiv.innerHTML += assistantMessageHtml;
+            saveChatMessage(currentProject, assistantMessageHtml);
             outputDiv.scrollTop = outputDiv.scrollHeight;
             
             isLLMResponding = false;
@@ -574,24 +763,6 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
-
-// Load saved theme on startup
-document.addEventListener('DOMContentLoaded', function() {
-    const savedTheme = localStorage.getItem('leetcoach-theme') || 'dark';
-    document.body.setAttribute('data-theme', savedTheme);
-    
-    // Update theme button active state
-    document.querySelectorAll('.theme-btn').forEach(btn => {
-        if (btn.getAttribute('data-theme') === savedTheme) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
-    });
-    
-    // Sidebar should remain open by default - don't load saved state
-    isSidebarCollapsed = false;
-});
 
 // Handle window resize for Monaco Editor
 window.addEventListener('resize', function() {
@@ -763,6 +934,17 @@ function initPanelResize() {
                 isResizing = false;
                 document.body.style.cursor = '';
                 document.body.style.userSelect = '';
+                
+                // Save panel heights to storage
+                const editorPanel = document.querySelector('.editor-panel');
+                const outputPanel = document.querySelector('.output-panel');
+                const inputPanel = document.querySelector('.input-panel');
+                
+                storage.set('preferences:panelHeights', {
+                    editor: editorPanel.offsetHeight,
+                    output: outputPanel.offsetHeight,
+                    input: inputPanel.offsetHeight
+                });
             }
         });
     });
@@ -775,13 +957,80 @@ if (document.readyState === 'loading') {
     initPanelResize();
 }
 
+// Load chat history for a project
+function loadChatHistory(projectId) {
+    const outputDiv = document.getElementById('markdown-output');
+    const history = storage.get(`project:${projectId}:chatHistory`);
+    
+    if (history && Array.isArray(history)) {
+        outputDiv.innerHTML = history.join('');
+    } else {
+        outputDiv.innerHTML = '';
+    }
+}
+
+// Save chat message to history
+function saveChatMessage(projectId, messageHtml) {
+    const history = storage.get(`project:${projectId}:chatHistory`) || [];
+    history.push(messageHtml);
+    storage.set(`project:${projectId}:chatHistory`, history);
+}
+
+// Update project metadata
+function updateProjectMetadata(projectId) {
+    const metadata = storage.get(`project:${projectId}:metadata`) || {};
+    metadata.lastAccessed = new Date().toISOString();
+    if (!metadata.firstAccessed) {
+        metadata.firstAccessed = metadata.lastAccessed;
+    }
+    storage.set(`project:${projectId}:metadata`, metadata);
+}
+
+// Mark project as completed
+function markProjectCompleted(projectId, completed = true) {
+    const metadata = storage.get(`project:${projectId}:metadata`) || {};
+    metadata.completed = completed;
+    metadata.completedAt = completed ? new Date().toISOString() : null;
+    storage.set(`project:${projectId}:metadata`, metadata);
+}
+
+// Get project statistics
+function getProjectStats(projectId) {
+    const metadata = storage.get(`project:${projectId}:metadata`) || {};
+    const chatHistory = storage.get(`project:${projectId}:chatHistory`) || [];
+    
+    return {
+        lastAccessed: metadata.lastAccessed,
+        firstAccessed: metadata.firstAccessed,
+        completed: metadata.completed || false,
+        completedAt: metadata.completedAt,
+        chatMessageCount: chatHistory.length
+    };
+}
+
 // Export functions for debugging (optional)
 window.LeetCoach = {
     monacoEditor,
+    storage,
     loadProject,
     handleThemeChange: (theme) => {
         document.body.setAttribute('data-theme', theme);
         updateMonacoTheme(theme);
+    },
+    getProjectStats,
+    markProjectCompleted,
+    // Clear all storage (for debugging)
+    clearAllData: () => {
+        if (confirm('Are you sure you want to clear all saved data?')) {
+            storage.data = {};
+            console.log('All data cleared!');
+            location.reload();
+        }
+    },
+    // Export current data (for debugging)
+    exportData: () => {
+        console.log('Current storage data:', storage.data);
+        return storage.data;
     },
     // Test markdown rendering
     testMarkdown: () => {

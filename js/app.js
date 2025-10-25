@@ -196,9 +196,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Don't auto-select any project on launch
     // User must explicitly select a project from the sidebar
     
-    // Initialize project metadata for all configured projects
-    initializeProjectMetadata();
-    
     initializeMonacoEditor();
     initializeEventListeners();
     
@@ -388,6 +385,23 @@ function initializeEventListeners() {
     dialogOverlay.addEventListener('click', function(e) {
         if (e.target === dialogOverlay) {
             handleCloseDialog();
+        }
+    });
+
+    // Delete dialog buttons
+    const deleteDialogCloseBtn = document.getElementById('delete-dialog-close-btn');
+    const deleteDialogConfirmBtn = document.getElementById('delete-dialog-confirm-btn');
+    const deleteDialogCancelBtn = document.getElementById('delete-dialog-cancel-btn');
+    const deleteDialogOverlay = document.getElementById('delete-dialog-overlay');
+
+    deleteDialogCloseBtn.addEventListener('click', handleCloseDeleteDialog);
+    deleteDialogConfirmBtn.addEventListener('click', handleConfirmDelete);
+    deleteDialogCancelBtn.addEventListener('click', handleCloseDeleteDialog);
+    
+    // Close delete dialog when clicking overlay
+    deleteDialogOverlay.addEventListener('click', function(e) {
+        if (e.target === deleteDialogOverlay) {
+            handleCloseDeleteDialog();
         }
     });
 
@@ -738,12 +752,28 @@ function populateProjectListUI(projects) {
         projectName.className = 'project-name';
         projectName.textContent = project.name;
         
+        const projectInfo = document.createElement('div');
+        projectInfo.className = 'project-info';
+        
         const projectDifficulty = document.createElement('span');
         projectDifficulty.className = `project-difficulty ${project.difficulty}`;
         projectDifficulty.textContent = project.difficulty.charAt(0).toUpperCase() + project.difficulty.slice(1);
         
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'project-delete-btn';
+        deleteBtn.innerHTML = '×';
+        deleteBtn.title = 'Delete project';
+        deleteBtn.setAttribute('data-project-id', project.id);
+        deleteBtn.setAttribute('data-project-name', project.name);
+        
+        // Attach delete handler
+        deleteBtn.addEventListener('click', handleDeleteProjectClick);
+        
+        projectInfo.appendChild(projectDifficulty);
+        projectInfo.appendChild(deleteBtn);
+        
         projectItem.appendChild(projectName);
-        projectItem.appendChild(projectDifficulty);
+        projectItem.appendChild(projectInfo);
         
         // Re-attach click handler
         projectItem.addEventListener('click', handleProjectClick);
@@ -1138,35 +1168,6 @@ function updateProjectMetadata(projectId) {
     storage.set(`project:${projectId}:metadata`, metadata);
 }
 
-// Initialize project metadata for all configured projects
-function initializeProjectMetadata() {
-    Object.keys(projectConfig).forEach(projectId => {
-        // Register the project ID in our master list
-        registerProjectId(projectId);
-        
-        const existingMetadata = storage.get(`project:${projectId}:metadata`);
-        
-        // If metadata doesn't exist or is missing name/difficulty, update it
-        if (!existingMetadata || !existingMetadata.name || !existingMetadata.difficulty) {
-            const metadata = existingMetadata || {};
-            metadata.name = projectConfig[projectId].name;
-            metadata.difficulty = projectConfig[projectId].difficulty;
-            
-            // Don't overwrite existing timestamps
-            if (!metadata.firstAccessed) {
-                metadata.firstAccessed = new Date().toISOString();
-            }
-            if (!metadata.lastAccessed) {
-                metadata.lastAccessed = metadata.firstAccessed;
-            }
-            
-            storage.set(`project:${projectId}:metadata`, metadata);
-        }
-    });
-    
-    console.log('[Init] Project metadata initialized for', Object.keys(projectConfig).length, 'projects');
-}
-
 // Mark project as completed
 function markProjectCompleted(projectId, completed = true) {
     const metadata = storage.get(`project:${projectId}:metadata`) || {};
@@ -1273,6 +1274,90 @@ function handleDialogRandom() {
     const randomPrompt = randomPrompts[Math.floor(Math.random() * randomPrompts.length)];
     dialogInput.value = randomPrompt;
     dialogInput.focus();
+}
+
+// Handle delete project button click
+let projectToDelete = null;
+
+function handleDeleteProjectClick(event) {
+    event.stopPropagation(); // Prevent project selection when clicking delete
+    
+    const deleteBtn = event.currentTarget;
+    const projectId = deleteBtn.getAttribute('data-project-id');
+    const projectName = deleteBtn.getAttribute('data-project-name');
+    
+    // Store project to delete
+    projectToDelete = projectId;
+    
+    // Update dialog content
+    const projectNameElement = document.getElementById('delete-dialog-project-name');
+    projectNameElement.textContent = projectName;
+    
+    // Show delete dialog
+    const deleteDialogOverlay = document.getElementById('delete-dialog-overlay');
+    deleteDialogOverlay.classList.add('active');
+}
+
+// Handle close delete dialog
+function handleCloseDeleteDialog() {
+    const deleteDialogOverlay = document.getElementById('delete-dialog-overlay');
+    deleteDialogOverlay.classList.remove('active');
+    projectToDelete = null;
+}
+
+// Handle confirm delete
+function handleConfirmDelete() {
+    if (!projectToDelete) return;
+    
+    // Delete project from storage
+    deleteProject(projectToDelete);
+    
+    // Close dialog
+    handleCloseDeleteDialog();
+    
+    // Refresh project list
+    handleRefreshProjects();
+    
+    // If the deleted project was active, clear the editor
+    if (currentProject === projectToDelete) {
+        currentProject = null;
+        if (monacoEditor) {
+            monacoEditor.setValue('');
+        }
+        document.getElementById('markdown-output').innerHTML = '';
+        
+        // Deselect all projects
+        document.querySelectorAll('.project-item').forEach(item => {
+            item.classList.remove('active');
+        });
+    }
+}
+
+// Delete project from storage
+function deleteProject(projectId) {
+    if (!projectId || projectId === 'null') return;
+    
+    console.log(`[Delete] Deleting project: ${projectId}`);
+    
+    // Get all project IDs
+    const projectIds = storage.get('meta:projectIds') || [];
+    
+    // Remove from project list
+    const updatedProjectIds = projectIds.filter(id => id !== projectId);
+    storage.set('meta:projectIds', updatedProjectIds);
+    
+    // Delete all project-related data
+    storage.remove(`project:${projectId}:metadata`);
+    storage.remove(`project:${projectId}:chatHistory`);
+    
+    // Delete code for all languages
+    const languages = ['python', 'csharp', 'javascript', 'java', 'cpp'];
+    languages.forEach(lang => {
+        storage.remove(`project:${projectId}:${lang}:code`);
+        storage.remove(`project:${projectId}:${lang}:lastSave`);
+    });
+    
+    console.log(`[Delete] Project ${projectId} deleted successfully`);
 }
 
 // Simulate dialog response

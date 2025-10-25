@@ -35,6 +35,11 @@
                             <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/>
                         </svg>
                     </button>
+                    <button class="add-project-btn" id="add-project-btn" title="Add Project">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                    </button>
                 </div>
                 <div class="theme-switcher">
                     <div class="theme-selector-group">
@@ -44,6 +49,25 @@
                 </div>
             </div>
             <div class="project-list"></div>
+        </div>
+
+        <!-- Add Project Dialog -->
+        <div class="dialog-overlay" id="project-dialog-overlay">
+            <div class="dialog-box">
+                <div class="dialog-header">
+                    <h4>Add New Project</h4>
+                    <button class="dialog-close" id="dialog-close-btn" title="Close">×</button>
+                </div>
+                <div class="dialog-content">
+                    <textarea id="project-dialog-input" placeholder="Enter project details..."></textarea>
+                </div>
+                <div class="dialog-actions">
+                    <button class="btn-primary" id="dialog-send-btn">Send</button>
+                    <button class="btn-secondary" id="dialog-stop-btn">Stop</button>
+                    <button class="btn-secondary" id="dialog-cancel-btn">Cancel</button>
+                    <button class="btn-secondary" id="dialog-random-btn">Random</button>
+                </div>
+            </div>
         </div>
 
         <!-- Sidebar Expand Button (visible when collapsed) -->
@@ -64,6 +88,7 @@
                             <button class="language-btn" data-language="python">Python</button>
                             <button class="language-btn active" data-language="csharp">C#</button>
                         </div>
+                        <button id="editor-send-btn" class="btn-primary" title="Send Code to LLM">Send</button>
                         <button class="maximize-btn" id="maximize-editor" title="Maximize/Restore">
                             <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
                                 <path d="M3 3v10h10V3H3zm9 9H4V4h8v8z"/>

@@ -366,6 +366,35 @@ function initializeEventListeners() {
     const refreshBtn = document.getElementById('refresh-projects');
     refreshBtn.addEventListener('click', handleRefreshProjects);
 
+    // Add project button
+    const addProjectBtn = document.getElementById('add-project-btn');
+    addProjectBtn.addEventListener('click', handleAddProjectClick);
+
+    // Dialog buttons
+    const dialogCloseBtn = document.getElementById('dialog-close-btn');
+    const dialogSendBtn = document.getElementById('dialog-send-btn');
+    const dialogStopBtn = document.getElementById('dialog-stop-btn');
+    const dialogCancelBtn = document.getElementById('dialog-cancel-btn');
+    const dialogRandomBtn = document.getElementById('dialog-random-btn');
+    const dialogOverlay = document.getElementById('project-dialog-overlay');
+
+    dialogCloseBtn.addEventListener('click', handleCloseDialog);
+    dialogSendBtn.addEventListener('click', handleDialogSend);
+    dialogStopBtn.addEventListener('click', handleDialogStop);
+    dialogCancelBtn.addEventListener('click', handleCloseDialog);
+    dialogRandomBtn.addEventListener('click', handleDialogRandom);
+    
+    // Close dialog when clicking overlay
+    dialogOverlay.addEventListener('click', function(e) {
+        if (e.target === dialogOverlay) {
+            handleCloseDialog();
+        }
+    });
+
+    // Editor send button
+    const editorSendBtn = document.getElementById('editor-send-btn');
+    editorSendBtn.addEventListener('click', handleEditorSendClick);
+
     // Maximize buttons
     const maximizeEditorBtn = document.getElementById('maximize-editor');
     const maximizeOutputBtn = document.getElementById('maximize-output');
@@ -1159,6 +1188,164 @@ function getProjectStats(projectId) {
         completedAt: metadata.completedAt,
         chatMessageCount: chatMessageCount
     };
+}
+
+// Handle add project button click
+function handleAddProjectClick() {
+    const dialogOverlay = document.getElementById('project-dialog-overlay');
+    const dialogInput = document.getElementById('project-dialog-input');
+    
+    // Clear previous input
+    dialogInput.value = '';
+    
+    // Show dialog
+    dialogOverlay.classList.add('active');
+    
+    // Focus on textarea
+    setTimeout(() => dialogInput.focus(), 100);
+}
+
+// Handle close dialog
+function handleCloseDialog() {
+    const dialogOverlay = document.getElementById('project-dialog-overlay');
+    dialogOverlay.classList.remove('active');
+}
+
+// Handle dialog send button
+function handleDialogSend() {
+    const dialogInput = document.getElementById('project-dialog-input');
+    const message = dialogInput.value.trim();
+    
+    if (!message) {
+        alert('Please enter project details');
+        return;
+    }
+    
+    // Add to LLM output
+    const outputDiv = document.getElementById('markdown-output');
+    const dialogMessageHtml = `
+        <div style="background: var(--accent-color); color: var(--accent-text); padding: 8px 12px; border-radius: 6px; margin-bottom: 16px;">
+            <strong>New Project Request:</strong> ${escapeHtml(message)}
+        </div>
+    `;
+    outputDiv.innerHTML += dialogMessageHtml;
+    
+    // Save to chat history if there's a current project
+    if (currentProject) {
+        saveChatMessage(currentProject, dialogMessageHtml);
+    }
+    
+    // Simulate LLM response
+    simulateDialogResponse(message);
+    
+    // Clear and close dialog
+    dialogInput.value = '';
+    handleCloseDialog();
+}
+
+// Handle dialog stop button
+function handleDialogStop() {
+    // Stop any ongoing LLM response
+    isLLMResponding = false;
+    updateButtonStates();
+    
+    const outputDiv = document.getElementById('markdown-output');
+    outputDiv.innerHTML += `
+        <div style="color: var(--text-secondary); font-style: italic; margin-bottom: 16px;">
+            Response stopped by user.
+        </div>
+    `;
+}
+
+// Handle dialog random button
+function handleDialogRandom() {
+    const dialogInput = document.getElementById('project-dialog-input');
+    
+    const randomPrompts = [
+        "Create a new easy problem about arrays and two pointers",
+        "Generate a medium difficulty problem involving binary trees",
+        "Design a hard problem related to dynamic programming",
+        "Create a problem about hash tables and string manipulation",
+        "Generate a graph traversal problem with medium difficulty",
+        "Create a sliding window problem for strings"
+    ];
+    
+    const randomPrompt = randomPrompts[Math.floor(Math.random() * randomPrompts.length)];
+    dialogInput.value = randomPrompt;
+    dialogInput.focus();
+}
+
+// Simulate dialog response
+function simulateDialogResponse(message) {
+    const outputDiv = document.getElementById('markdown-output');
+    
+    const responseHtml = `
+        <div style="background: var(--bg-secondary); padding: 12px; border-radius: 6px; border-left: 3px solid var(--accent-color); margin-bottom: 16px;">
+            <strong style="color: var(--accent-color);">Assistant:</strong>
+            <p>I've received your project request: "${escapeHtml(message)}"</p>
+            <p>This feature would allow you to create custom projects. Implementation pending.</p>
+        </div>
+    `;
+    
+    outputDiv.innerHTML += responseHtml;
+    
+    // Save to chat history if there's a current project
+    if (currentProject) {
+        saveChatMessage(currentProject, responseHtml);
+    }
+    
+    // Scroll to bottom
+    outputDiv.scrollTop = outputDiv.scrollHeight;
+}
+
+// Handle editor send button click
+function handleEditorSendClick() {
+    if (!monacoEditor) return;
+    
+    const code = monacoEditor.getValue();
+    const activeLanguageBtn = document.querySelector('.language-btn.active');
+    const language = activeLanguageBtn ? activeLanguageBtn.getAttribute('data-language') : 'csharp';
+    
+    if (!code.trim()) {
+        alert('Please write some code first');
+        return;
+    }
+    
+    // Get user input or use default message
+    const userInput = document.getElementById('user-input');
+    let message = userInput.value.trim();
+    
+    if (!message) {
+        message = "Please review my code and provide feedback.";
+    }
+    
+    // Add to output
+    const outputDiv = document.getElementById('markdown-output');
+    const editorMessageHtml = `
+        <div style="background: var(--accent-color); color: var(--accent-text); padding: 8px 12px; border-radius: 6px; margin-bottom: 16px;">
+            <strong>You (Code Editor):</strong> ${escapeHtml(message)}
+        </div>
+        <div style="background: var(--code-bg); padding: 12px; border-radius: 6px; margin-bottom: 16px; border: 1px solid var(--border-color);">
+            <strong>Code (${language}):</strong>
+            <pre><code>${escapeHtml(code)}</code></pre>
+        </div>
+    `;
+    
+    outputDiv.innerHTML += editorMessageHtml;
+    
+    // Save to chat history if there's a current project
+    if (currentProject) {
+        saveChatMessage(currentProject, editorMessageHtml);
+    }
+    
+    // Clear user input
+    userInput.value = '';
+    
+    // Simulate LLM response
+    simulateLLMResponse(message, code, language);
+    
+    // Scroll to bottom
+    outputDiv.scrollTop = outputDiv.scrollHeight;
 }
 
 // Export functions for debugging (optional)

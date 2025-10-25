@@ -1,7 +1,6 @@
 /* Don't edit */
 
 class InMemoryStorage {
-    // set, get, remove, append, rpush, lpush, llen, lrange, hgetall
     constructor() {
         this.data = {};
     }
@@ -18,22 +17,11 @@ class InMemoryStorage {
         delete this.data[key];
     }
 
-    append(key, value) {
+    rpush(key, value) {
         if (!this.data[key]) {
             this.data[key] = [];
         }
         this.data[key].push(value);
-    }
-
-    rpush(key, value) {
-        this.append(key, value);
-    }
-
-    lpush(key, value) {
-        if (!this.data[key]) {
-            this.data[key] = [];
-        }
-        this.data[key].unshift(value);
     }
 
     llen(key) {
@@ -49,17 +37,9 @@ class InMemoryStorage {
         }
         return this.data[key].slice(start, end);
     }
-
-    hgetall(key) {
-        if (!this.data[key]) {
-            return {};
-        }
-        return this.data[key];
-    }
 }
 
 class BrowserStorage {
-    // set, get, remove, append, rpush, lpush, llen, lrange, hgetall
     constructor() {
         this.storage = window.localStorage;
     }
@@ -77,25 +57,12 @@ class BrowserStorage {
         this.storage.removeItem(key);
     }
 
-    append(key, value) {
+    rpush(key, value) {
         let list = this.get(key);
         if (!list) {
             list = [];
         }
         list.push(value);
-        this.set(key, list);
-    }
-
-    rpush(key, value) {
-        this.append(key, value);
-    }
-
-    lpush(key, value) {
-        let list = this.get(key);
-        if (!list) {
-            list = [];
-        }
-        list.unshift(value);
         this.set(key, list);
     }
 
@@ -107,11 +74,6 @@ class BrowserStorage {
     lrange(key, start, end) {
         const list = this.get(key);
         return list ? list.slice(start, end) : [];
-    }
-
-    hgetall(key) {
-        const obj = this.get(key);
-        return obj ? obj : {};
     }
 }
 

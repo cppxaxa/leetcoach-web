@@ -127,6 +127,30 @@ public class Solution {
     }
 };
 
+// Project configuration with metadata
+const projectConfig = {
+    'two-sum': {
+        name: 'Two Sum',
+        difficulty: 'easy'
+    },
+    'add-two-numbers': {
+        name: 'Add Two Numbers',
+        difficulty: 'medium'
+    },
+    'longest-substring': {
+        name: 'Longest Substring',
+        difficulty: 'medium'
+    },
+    'median-arrays': {
+        name: 'Median of Two Arrays',
+        difficulty: 'hard'
+    },
+    'palindrome-number': {
+        name: 'Palindrome Number',
+        difficulty: 'easy'
+    }
+};
+
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
     // Configure marked.js
@@ -172,6 +196,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Don't auto-select any project on launch
     // User must explicitly select a project from the sidebar
     
+    // Initialize project metadata for all configured projects
+    initializeProjectMetadata();
+    
     initializeMonacoEditor();
     initializeEventListeners();
     
@@ -186,6 +213,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (savedPanelHeights.output) outputPanel.style.height = savedPanelHeights.output + 'px';
         if (savedPanelHeights.input) inputPanel.style.height = savedPanelHeights.input + 'px';
     }
+    
+    // Refresh projects on launch
+    handleRefreshProjects();
     
     // No project loaded initially - user must select one
 });
@@ -400,8 +430,8 @@ function handleThemeChange(event) {
     document.body.setAttribute('data-theme', selectedTheme);
     updateMonacoTheme(selectedTheme);
     
-    // Save theme preference
-    localStorage.setItem('leetcoach-theme', selectedTheme);
+    // Save theme preference using storage
+    storage.set('preferences:theme', selectedTheme);
 }
 
 // Update Monaco Editor theme
@@ -549,8 +579,10 @@ function handleStopMessage() {
 // Handle clear output
 function handleClearOutput() {
     document.getElementById('markdown-output').innerHTML = '';
-    // Clear chat history for current project
-    storage.set(`project:${currentProject}:chatHistory`, []);
+    // Remove the chat history key entirely (clear the list)
+    if (currentProject) {
+        storage.remove(`project:${currentProject}:chatHistory`);
+    }
 }
 
 // Handle sidebar toggle
@@ -592,6 +624,25 @@ function handleSidebarExpand() {
     }, 300);
 }
 
+// Helper function to get all project IDs with metadata
+function getAllProjectIds() {
+    // Get the list of all registered project IDs
+    // We maintain a master list of project IDs in storage
+    const projectIds = storage.get('meta:projectIds') || [];
+    return projectIds.filter(id => id && id !== 'null');
+}
+
+// Helper function to register a project ID
+function registerProjectId(projectId) {
+    if (!projectId || projectId === 'null') return;
+    
+    const projectIds = storage.get('meta:projectIds') || [];
+    if (!projectIds.includes(projectId)) {
+        projectIds.push(projectId);
+        storage.set('meta:projectIds', projectIds);
+    }
+}
+
 // Handle refresh projects
 function handleRefreshProjects() {
     const refreshBtn = document.getElementById('refresh-projects');
@@ -599,17 +650,77 @@ function handleRefreshProjects() {
     // Add spinning animation
     refreshBtn.classList.add('spinning');
     
+    // Get all project IDs
+    const projectIds = getAllProjectIds();
+    const projects = [];
+    
+    // Build projects array from metadata
+    for (const projectId of projectIds) {
+        const metadata = storage.get(`project:${projectId}:metadata`);
+        if (metadata) {
+            projects.push({ 
+                id: projectId, 
+                name: metadata.name || projectId.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()),
+                difficulty: metadata.difficulty || 'medium',
+                lastAccessed: metadata.lastAccessed
+            });
+        }
+    }
+    
+    // Sort by lastAccessed (most recent first)
+    projects.sort((a, b) => {
+        const dateA = a.lastAccessed ? new Date(a.lastAccessed) : new Date(0);
+        const dateB = b.lastAccessed ? new Date(b.lastAccessed) : new Date(0);
+        return dateB - dateA;
+    });
+    
+    // Rebuild project list UI
+    populateProjectListUI(projects);
+    
     // Remove spinning class after animation completes
     setTimeout(() => {
         refreshBtn.classList.remove('spinning');
     }, 600);
     
-    // In a real application, this would fetch updated project data from a server
-    // For now, we'll just provide visual feedback that the refresh occurred
-    console.log('[Refresh] Project list refreshed');
+    console.log('[Refresh] Project list refreshed with', projects.length, 'projects');
+}
+
+// Populate project list UI
+function populateProjectListUI(projects) {
+    const projectList = document.querySelector('.project-list');
+    if (!projectList) return;
     
-    // Optional: You could reload project states from storage here
-    // For example, refresh any project metadata that might have changed
+    // Remember current active project
+    const activeProject = currentProject;
+    
+    // Clear existing list
+    projectList.innerHTML = '';
+    
+    // Add projects
+    projects.forEach(project => {
+        const projectItem = document.createElement('div');
+        projectItem.className = 'project-item';
+        if (project.id === activeProject) {
+            projectItem.classList.add('active');
+        }
+        projectItem.setAttribute('data-project', project.id);
+        
+        const projectName = document.createElement('span');
+        projectName.className = 'project-name';
+        projectName.textContent = project.name;
+        
+        const projectDifficulty = document.createElement('span');
+        projectDifficulty.className = `project-difficulty ${project.difficulty}`;
+        projectDifficulty.textContent = project.difficulty.charAt(0).toUpperCase() + project.difficulty.slice(1);
+        
+        projectItem.appendChild(projectName);
+        projectItem.appendChild(projectDifficulty);
+        
+        // Re-attach click handler
+        projectItem.addEventListener('click', handleProjectClick);
+        
+        projectList.appendChild(projectItem);
+    });
 }
 
 // Update button states
@@ -960,9 +1071,12 @@ if (document.readyState === 'loading') {
 // Load chat history for a project
 function loadChatHistory(projectId) {
     const outputDiv = document.getElementById('markdown-output');
-    const history = storage.get(`project:${projectId}:chatHistory`);
+    // Use lrange to get all chat messages
+    // Note: We need to get the length first, then use lrange(key, 0, length)
+    const historyLength = storage.llen(`project:${projectId}:chatHistory`);
+    const history = storage.lrange(`project:${projectId}:chatHistory`, 0, historyLength);
     
-    if (history && Array.isArray(history)) {
+    if (history && Array.isArray(history) && history.length > 0) {
         outputDiv.innerHTML = history.join('');
     } else {
         outputDiv.innerHTML = '';
@@ -971,19 +1085,57 @@ function loadChatHistory(projectId) {
 
 // Save chat message to history
 function saveChatMessage(projectId, messageHtml) {
-    const history = storage.get(`project:${projectId}:chatHistory`) || [];
-    history.push(messageHtml);
-    storage.set(`project:${projectId}:chatHistory`, history);
+    // Use rpush to append message to the end of the chat history
+    storage.rpush(`project:${projectId}:chatHistory`, messageHtml);
 }
 
 // Update project metadata
 function updateProjectMetadata(projectId) {
+    // Register the project ID
+    registerProjectId(projectId);
+    
     const metadata = storage.get(`project:${projectId}:metadata`) || {};
     metadata.lastAccessed = new Date().toISOString();
     if (!metadata.firstAccessed) {
         metadata.firstAccessed = metadata.lastAccessed;
     }
+    
+    // Add project name and difficulty from config
+    if (projectConfig[projectId]) {
+        metadata.name = projectConfig[projectId].name;
+        metadata.difficulty = projectConfig[projectId].difficulty;
+    }
+    
     storage.set(`project:${projectId}:metadata`, metadata);
+}
+
+// Initialize project metadata for all configured projects
+function initializeProjectMetadata() {
+    Object.keys(projectConfig).forEach(projectId => {
+        // Register the project ID in our master list
+        registerProjectId(projectId);
+        
+        const existingMetadata = storage.get(`project:${projectId}:metadata`);
+        
+        // If metadata doesn't exist or is missing name/difficulty, update it
+        if (!existingMetadata || !existingMetadata.name || !existingMetadata.difficulty) {
+            const metadata = existingMetadata || {};
+            metadata.name = projectConfig[projectId].name;
+            metadata.difficulty = projectConfig[projectId].difficulty;
+            
+            // Don't overwrite existing timestamps
+            if (!metadata.firstAccessed) {
+                metadata.firstAccessed = new Date().toISOString();
+            }
+            if (!metadata.lastAccessed) {
+                metadata.lastAccessed = metadata.firstAccessed;
+            }
+            
+            storage.set(`project:${projectId}:metadata`, metadata);
+        }
+    });
+    
+    console.log('[Init] Project metadata initialized for', Object.keys(projectConfig).length, 'projects');
 }
 
 // Mark project as completed
@@ -997,14 +1149,15 @@ function markProjectCompleted(projectId, completed = true) {
 // Get project statistics
 function getProjectStats(projectId) {
     const metadata = storage.get(`project:${projectId}:metadata`) || {};
-    const chatHistory = storage.get(`project:${projectId}:chatHistory`) || [];
+    // Use llen to get the count of chat messages
+    const chatMessageCount = storage.llen(`project:${projectId}:chatHistory`);
     
     return {
         lastAccessed: metadata.lastAccessed,
         firstAccessed: metadata.firstAccessed,
         completed: metadata.completed || false,
         completedAt: metadata.completedAt,
-        chatMessageCount: chatHistory.length
+        chatMessageCount: chatMessageCount
     };
 }
 

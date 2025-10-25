@@ -11,7 +11,7 @@ A personal coding preparation note keeping platform to practice Leetcode.
 
 ## Screenshot
 
-![LeetCoach Application](docs/snap001.jpg)
+![LeetCoach Application](docs/snap002.jpg)
 
 ## Getting Started
 

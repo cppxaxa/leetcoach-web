@@ -16,6 +16,9 @@ let panelStates = {
     input: { collapsed: false, originalHeight: null }
 };
 
+// LLM chat state
+let currentAbortController = null;
+
 // Auto-save configuration
 const AUTO_SAVE_INTERVAL = 30000; // 30 seconds
 let autoSaveTimer = null;
@@ -467,10 +470,11 @@ function initializeEventListeners() {
     // User input textarea - handle Enter key
     const userInput = document.getElementById('user-input');
     userInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && e.ctrlKey) {
+        if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             handleSendMessage();
         }
+        // Shift+Enter will allow default behavior (new line)
     });
     
     // Add keyboard shortcut for sidebar toggle (Ctrl+B)
@@ -727,29 +731,139 @@ function handleSendMessage() {
     
     if (!message) return;
     
+    // Check if LLM is configured
+    try {
+        llm._get();
+    } catch (error) {
+        const outputDiv = document.getElementById('markdown-output');
+        const errorHtml = `
+            <div style="background: #f44336; color: white; padding: 12px; border-radius: 6px; margin-bottom: 16px;">
+                <strong>Error:</strong> ${escapeHtml(error.message)}
+            </div>
+        `;
+        outputDiv.innerHTML += errorHtml;
+        return;
+    }
+    
     isLLMResponding = true;
     updateButtonStates();
+    
+    // Clear input
+    userInput.value = '';
     
     // Get current code from editor
     const currentCode = monacoEditor ? monacoEditor.getValue() : '';
     const activeLanguageBtn = document.querySelector('.language-btn.active');
     const currentLanguage = activeLanguageBtn ? activeLanguageBtn.getAttribute('data-language') : 'csharp';
     
-    // Simulate LLM response
-    simulateLLMResponse(message, currentCode, currentLanguage);
+    // Call real LLM
+    sendLLMMessage(message, currentCode, currentLanguage);
+}
+
+// Send message to LLM
+async function sendLLMMessage(userMessage, code, language) {
+    const outputDiv = document.getElementById('markdown-output');
     
-    // Clear input
-    userInput.value = '';
+    // Clear output to show only current exchange
+    outputDiv.innerHTML = '';
+    
+    // Add user message to output
+    const userMessageHtml = `
+        <div style="background: var(--accent-color); color: var(--accent-text); padding: 8px 12px; border-radius: 6px; margin-bottom: 16px;">
+            <strong>You:</strong> ${escapeHtml(userMessage)}
+        </div>
+    `;
+    
+    outputDiv.innerHTML = userMessageHtml;
+    saveChatMessage(currentProject, userMessageHtml);
+    
+    // Save to LLM chat history
+    saveLLMChatMessage(currentProject, 'user', userMessage);
+    
+    // Scroll to bottom
+    outputDiv.scrollTop = outputDiv.scrollHeight;
+    
+    try {
+        // Create abort controller for this request
+        currentAbortController = new AbortController();
+        
+        // Get LLM instance
+        const llmInstance = llm._get();
+        
+        // Get chat history
+        const chatHistory = getLLMChatHistory(currentProject);
+        
+        // Call LLM
+        const response = await llmInstance.chat(chatHistory);
+        
+        // Check if request was aborted
+        if (currentAbortController.signal.aborted) {
+            return;
+        }
+        
+        // Parse markdown to HTML
+        let parsedContent = response;
+        try {
+            if (typeof marked !== 'undefined') {
+                parsedContent = marked.parse ? marked.parse(response) : marked(response);
+            } else {
+                console.warn('marked.js not available, using simple parser');
+                parsedContent = simpleMarkdownParse(response);
+            }
+        } catch (e) {
+            console.error('Error parsing markdown:', e);
+            parsedContent = simpleMarkdownParse(response);
+        }
+        
+        // Add assistant message to output
+        const assistantMessageHtml = `
+            <div style="background: var(--bg-secondary); padding: 12px; border-radius: 6px; margin-bottom: 16px; border-left: 3px solid var(--accent-color);">
+                ${parsedContent}
+            </div>
+        `;
+        
+        outputDiv.innerHTML = userMessageHtml + assistantMessageHtml;
+        saveChatMessage(currentProject, assistantMessageHtml);
+        
+        // Save to LLM chat history
+        saveLLMChatMessage(currentProject, 'assistant', response);
+        
+        // Scroll to bottom
+        outputDiv.scrollTop = outputDiv.scrollHeight;
+        
+    } catch (error) {
+        console.error('LLM Error:', error);
+        
+        // Check if request was aborted
+        if (currentAbortController && currentAbortController.signal.aborted) {
+            const stoppedHtml = `
+                <div style="background: var(--bg-secondary); padding: 12px; border-radius: 6px; margin-bottom: 16px; border-left: 3px solid orange;">
+                    <em>Response stopped by user.</em>
+                </div>
+            `;
+            outputDiv.innerHTML = userMessageHtml + stoppedHtml;
+        } else {
+            const errorHtml = `
+                <div style="background: #f44336; color: white; padding: 12px; border-radius: 6px; margin-bottom: 16px;">
+                    <strong>Error:</strong> ${escapeHtml(error.message)}
+                </div>
+            `;
+            outputDiv.innerHTML = userMessageHtml + errorHtml;
+        }
+    } finally {
+        isLLMResponding = false;
+        updateButtonStates();
+        currentAbortController = null;
+    }
 }
 
 // Handle stop message
 function handleStopMessage() {
+    if (currentAbortController) {
+        currentAbortController.abort();
+    }
     isLLMResponding = false;
     updateButtonStates();
-    
-    // Add stopping message to output
-    const outputDiv = document.getElementById('markdown-output');
-    outputDiv.innerHTML += '<p><em>Response stopped by user.</em></p>';
 }
 
 // Handle clear output
@@ -758,6 +872,7 @@ function handleClearOutput() {
     // Remove the chat history key entirely (clear the list)
     if (currentProject) {
         storage.remove(`project:${currentProject}:chatHistory`);
+        clearLLMChatHistory(currentProject);
     }
 }
 
@@ -1263,22 +1378,87 @@ if (document.readyState === 'loading') {
 // Load chat history for a project
 function loadChatHistory(projectId) {
     const outputDiv = document.getElementById('markdown-output');
-    // Use lrange to get all chat messages
-    // Note: We need to get the length first, then use lrange(key, 0, length)
-    const historyLength = storage.llen(`project:${projectId}:chatHistory`);
-    const history = storage.lrange(`project:${projectId}:chatHistory`, 0, historyLength);
     
-    if (history && Array.isArray(history) && history.length > 0) {
-        outputDiv.innerHTML = history.join('');
-    } else {
+    // Get LLM chat history
+    const llmHistory = getLLMChatHistory(projectId);
+    
+    if (llmHistory.length === 0) {
         outputDiv.innerHTML = '';
+        return;
     }
+    
+    // Find the last user message and corresponding assistant message
+    let lastUserMessage = null;
+    let lastAssistantMessage = null;
+    
+    // Iterate backwards to find the last user-assistant pair
+    for (let i = llmHistory.length - 1; i >= 0; i--) {
+        if (llmHistory[i].role === 'assistant' && !lastAssistantMessage) {
+            lastAssistantMessage = llmHistory[i].content;
+        } else if (llmHistory[i].role === 'user' && !lastUserMessage) {
+            lastUserMessage = llmHistory[i].content;
+            // Once we find the user message, stop if we already have assistant message
+            if (lastAssistantMessage) break;
+        }
+    }
+    
+    // Build the HTML output
+    let html = '';
+    
+    if (lastUserMessage) {
+        html += `
+            <div style="background: var(--accent-color); color: var(--accent-text); padding: 8px 12px; border-radius: 6px; margin-bottom: 16px;">
+                <strong>You:</strong> ${escapeHtml(lastUserMessage)}
+            </div>
+        `;
+    }
+    
+    if (lastAssistantMessage) {
+        // Parse markdown to HTML
+        let parsedContent = lastAssistantMessage;
+        try {
+            if (typeof marked !== 'undefined') {
+                parsedContent = marked.parse ? marked.parse(lastAssistantMessage) : marked(lastAssistantMessage);
+            } else {
+                parsedContent = simpleMarkdownParse(lastAssistantMessage);
+            }
+        } catch (e) {
+            console.error('Error parsing markdown:', e);
+            parsedContent = simpleMarkdownParse(lastAssistantMessage);
+        }
+        
+        html += `
+            <div style="background: var(--bg-secondary); padding: 12px; border-radius: 6px; margin-bottom: 16px; border-left: 3px solid var(--accent-color);">
+                ${parsedContent}
+            </div>
+        `;
+    }
+    
+    outputDiv.innerHTML = html;
 }
 
 // Save chat message to history
 function saveChatMessage(projectId, messageHtml) {
     // Use rpush to append message to the end of the chat history
     storage.rpush(`project:${projectId}:chatHistory`, messageHtml);
+}
+
+// Get LLM chat history (role/content format for LLM API)
+function getLLMChatHistory(projectId) {
+    const history = storage.get(`project:${projectId}:llmChatHistory`) || [];
+    return history;
+}
+
+// Save message to LLM chat history
+function saveLLMChatMessage(projectId, role, content) {
+    const history = getLLMChatHistory(projectId);
+    history.push({ role, content });
+    storage.set(`project:${projectId}:llmChatHistory`, history);
+}
+
+// Clear LLM chat history
+function clearLLMChatHistory(projectId) {
+    storage.remove(`project:${projectId}:llmChatHistory`);
 }
 
 // Update project metadata

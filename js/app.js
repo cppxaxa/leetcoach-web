@@ -1,6 +1,9 @@
 // Initialize Storage
 const storage = new Storage();
 
+// Initialize LLM
+const llm = new Llm(storage);
+
 // Application State
 let monacoEditor = null;
 let currentProject = null;
@@ -153,6 +156,12 @@ const projectConfig = {
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize LLM settings
+    llm.initSettingPlaceholders();
+
+    // Set LLM type
+    llm.setType('gemini');
+
     // Configure marked.js
     if (typeof marked !== 'undefined') {
         marked.setOptions({

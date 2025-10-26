@@ -18,6 +18,8 @@ let panelStates = {
 
 // LLM chat state
 let currentAbortController = null;
+let dialogAbortController = null;
+let isDialogLLMResponding = false;
 
 // Auto-save configuration
 const AUTO_SAVE_INTERVAL = 30000; // 30 seconds
@@ -1429,6 +1431,10 @@ function handleAddProjectClick() {
     // Clear previous input
     dialogInput.value = '';
     
+    // Reset dialog state
+    isDialogLLMResponding = false;
+    updateDialogButtonStates();
+    
     // Show dialog
     dialogOverlay.classList.add('active');
     
@@ -1438,6 +1444,15 @@ function handleAddProjectClick() {
 
 // Handle close dialog
 function handleCloseDialog() {
+    // Stop any ongoing LLM request
+    if (dialogAbortController) {
+        dialogAbortController.abort();
+        dialogAbortController = null;
+    }
+    
+    isDialogLLMResponding = false;
+    updateDialogButtonStates();
+    
     const dialogOverlay = document.getElementById('project-dialog-overlay');
     dialogOverlay.classList.remove('active');
 }
@@ -1471,34 +1486,75 @@ function handleDialogSend() {
 
 // Handle dialog stop button
 function handleDialogStop() {
-    // Stop any ongoing LLM response
-    isLLMResponding = false;
-    updateButtonStates();
+    // Abort the current request
+    if (dialogAbortController) {
+        dialogAbortController.abort();
+        dialogAbortController = null;
+    }
     
-    const outputDiv = document.getElementById('markdown-output');
-    outputDiv.innerHTML += `
-        <div style="color: var(--text-secondary); font-style: italic; margin-bottom: 16px;">
-            Response stopped by user.
-        </div>
-    `;
+    isDialogLLMResponding = false;
+    updateDialogButtonStates();
 }
 
 // Handle dialog random button
-function handleDialogRandom() {
+async function handleDialogRandom() {
     const dialogInput = document.getElementById('project-dialog-input');
+    const hint = dialogInput.value.trim();
     
-    const randomPrompts = [
-        "Create a new easy problem about arrays and two pointers",
-        "Generate a medium difficulty problem involving binary trees",
-        "Design a hard problem related to dynamic programming",
-        "Create a problem about hash tables and string manipulation",
-        "Generate a graph traversal problem with medium difficulty",
-        "Create a sliding window problem for strings"
-    ];
+    // Check if LLM is configured
+    try {
+        llm._get();
+    } catch (error) {
+        alert(error.message);
+        return;
+    }
     
-    const randomPrompt = randomPrompts[Math.floor(Math.random() * randomPrompts.length)];
-    dialogInput.value = randomPrompt;
-    dialogInput.focus();
+    // Set responding state
+    isDialogLLMResponding = true;
+    updateDialogButtonStates();
+    
+    try {
+        // Create abort controller for this request
+        dialogAbortController = new AbortController();
+        
+        // Get LLM instance
+        const llmInstance = llm._get();
+        
+        // Build prompt based on hint
+        let prompt = "You are a helpful assistant that suggests LeetCode problems. ";
+        if (hint) {
+            prompt += `Based on this hint: "${hint}", suggest a random LeetCode problem. `;
+        } else {
+            prompt += "Suggest a random LeetCode problem. ";
+        }
+        prompt += "Return ONLY the problem in this exact format: '<number>. <name> [<difficulty>]' where difficulty is Easy, Medium, or Hard. Example: '1. Two Sum [Easy]' or '42. Trapping Rain Water [Hard]'. Do not include any other text.";
+        
+        // Call LLM
+        const response = await llmInstance.answer(prompt);
+        
+        // Check if request was aborted
+        if (dialogAbortController.signal.aborted) {
+            return;
+        }
+        
+        // Extract the problem info from response (clean up any extra text)
+        const cleanedResponse = response.trim().split('\n')[0]; // Take first line only
+        
+        // Set the response in the input
+        dialogInput.value = cleanedResponse;
+        
+    } catch (error) {
+        console.error('Dialog LLM Error:', error);
+        
+        // Check if request was aborted
+        if (!dialogAbortController || !dialogAbortController.signal.aborted) {
+            alert(`Error getting random problem: ${error.message}`);
+        }
+    } finally {
+        isDialogLLMResponding = false;
+        updateDialogButtonStates();
+        dialogAbortController = null;
+    }
 }
 
 // Handle delete project button click
@@ -1881,6 +1937,22 @@ function updateClarifyButtonStates() {
         sendBtn.disabled = false;
         stopBtn.disabled = true;
         stopBtn.classList.remove('responding');
+    }
+}
+
+// Update dialog button states
+function updateDialogButtonStates() {
+    const stopBtn = document.getElementById('dialog-stop-btn');
+    const randomBtn = document.getElementById('dialog-random-btn');
+    
+    if (isDialogLLMResponding) {
+        stopBtn.disabled = false;
+        stopBtn.classList.add('responding');
+        randomBtn.disabled = true;
+    } else {
+        stopBtn.disabled = true;
+        stopBtn.classList.remove('responding');
+        randomBtn.disabled = false;
     }
 }
 

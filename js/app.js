@@ -765,8 +765,17 @@ function handleSendMessage() {
 async function sendLLMMessage(userMessage, code, language) {
     const outputDiv = document.getElementById('markdown-output');
     
-    // Clear output to show only current exchange
-    outputDiv.innerHTML = '';
+    // Clear output and show loading indicator
+    outputDiv.innerHTML = `
+        <div class="llm-thinking">
+            <div class="thinking-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <p>Thinking...</p>
+        </div>
+    `;
     
     // Save to LLM chat history
     saveLLMChatMessage(currentProject, 'user', userMessage);
@@ -1832,9 +1841,11 @@ function updateClarifyButtonStates() {
     if (isClarifyResponding) {
         sendBtn.disabled = true;
         stopBtn.disabled = false;
+        stopBtn.classList.add('responding');
     } else {
         sendBtn.disabled = false;
         stopBtn.disabled = true;
+        stopBtn.classList.remove('responding');
     }
 }
 

@@ -190,7 +190,12 @@ class Llm {
 
     setType(type) {
         this.type = type;
-        this.llm = this._get();
+
+        try {
+            this.llm = this._get();
+        } catch (error) {
+            console.error('Failed to honor LLM type:', error);
+        }
     }
 
     initSettingPlaceholders() {

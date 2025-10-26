@@ -133,6 +133,82 @@ body {
     to { transform: rotate(360deg); }
 }
 
+/* Pulse animation for stop button */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.7;
+        transform: scale(0.95);
+    }
+}
+
+/* Thinking dots animation */
+@keyframes thinkingDots {
+    0%, 20% {
+        opacity: 0.3;
+        transform: scale(0.8);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+    100% {
+        opacity: 0.3;
+        transform: scale(0.8);
+    }
+}
+
+.btn-secondary.responding {
+    animation: pulse 1.5s ease-in-out infinite;
+    background-color: var(--accent-color);
+    color: var(--accent-text);
+    border-color: var(--accent-color);
+}
+
+/* LLM Thinking Indicator */
+.llm-thinking {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+}
+
+.llm-thinking p {
+    margin-top: 16px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.thinking-dots {
+    display: flex;
+    gap: 8px;
+}
+
+.thinking-dots span {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--accent-color);
+    animation: thinkingDots 1.4s ease-in-out infinite;
+}
+
+.thinking-dots span:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.thinking-dots span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.thinking-dots span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
 .sidebar.collapsed .sidebar-toggle {
     opacity: 1;
     pointer-events: auto;

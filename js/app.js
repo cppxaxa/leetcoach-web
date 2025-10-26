@@ -767,13 +767,6 @@ async function sendLLMMessage(userMessage, code, language) {
     // Clear output to show only current exchange
     outputDiv.innerHTML = '';
     
-    // Add user message to output (for chat history only, not displayed)
-    const userMessageHtml = `
-        <div style="background: var(--accent-color); color: var(--accent-text); padding: 8px 12px; border-radius: 6px; margin-bottom: 16px;">
-            <strong>You:</strong> ${escapeHtml(userMessage)}
-        </div>
-    `;
-    
     // Save to LLM chat history
     saveLLMChatMessage(currentProject, 'user', userMessage);
     
@@ -814,7 +807,7 @@ async function sendLLMMessage(userMessage, code, language) {
         
         // Add assistant message to output
         const assistantMessageHtml = `
-            <div style="background: var(--bg-secondary); padding: 12px; border-radius: 6px; margin-bottom: 16px; border-left: 3px solid var(--accent-color);">
+            <div style="background: var(--bg-secondary); padding: 12px; border-radius: 6px; margin-bottom: 16px;">
                 ${parsedContent}
             </div>
         `;
@@ -855,7 +848,7 @@ async function sendLLMMessage(userMessage, code, language) {
                     <strong>Error:</strong> ${escapeHtml(error.message)}
                 </div>
             `;
-            outputDiv.innerHTML = userMessageHtml + errorHtml;
+            outputDiv.innerHTML = errorHtml;
         }
     } finally {
         isLLMResponding = false;
@@ -1043,138 +1036,6 @@ function updateButtonStates() {
     
     sendBtn.disabled = isLLMResponding;
     stopBtn.disabled = !isLLMResponding;
-}
-
-// Simulate LLM response
-function simulateLLMResponse(userMessage, code, language) {
-    const outputDiv = document.getElementById('markdown-output');
-    
-    // Add user message to output (for chat history only, not displayed)
-    const userMessageHtml = `
-        <div style="background: var(--accent-color); color: var(--accent-text); padding: 8px 12px; border-radius: 6px; margin-bottom: 16px;">
-            <strong>You:</strong> ${escapeHtml(userMessage)}
-        </div>
-    `;
-    
-    // Simulate typing effect
-    const responses = [
-        `## Analysis of ${currentProject.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-
-Let me help you with this problem. Here's my analysis:
-
-### Approach
-For this problem, we can use a **hash map** approach to achieve O(n) time complexity.
-
-### Algorithm
-1. Create a hash map to store numbers and their indices
-2. Iterate through the array
-3. For each number, calculate the complement (target - current number)
-4. Check if the complement exists in the hash map
-5. If found, return the indices
-
-### Code Implementation
-\`\`\`${language}
-// Optimized solution using hash map
-${generateSampleSolution(currentProject, language)}
-\`\`\`
-
-### Time Complexity: O(n)
-### Space Complexity: O(n)
-
-Would you like me to explain any part of this solution in more detail?`,
-
-        `## Code Review
-
-I've analyzed your current code. Here are some suggestions:
-
-### Strengths ✅
-- Good variable naming
-- Clear structure
-
-### Improvements 💡
-- Consider edge cases (empty array, no solution)
-- Add input validation
-- Optimize for better performance
-
-### Next Steps
-1. Test with sample inputs
-2. Handle edge cases
-3. Consider alternative approaches
-
-Let me know if you'd like me to help implement any of these improvements!`
-    ];
-    
-    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-    
-    setTimeout(() => {
-        if (isLLMResponding) {
-            // Parse markdown to HTML
-            let parsedContent = randomResponse;
-            try {
-                if (typeof marked !== 'undefined') {
-                    // Use marked.js if available
-                    parsedContent = marked.parse ? marked.parse(randomResponse) : marked(randomResponse);
-                } else {
-                    // Fallback to simple parser
-                    console.warn('marked.js not available, using simple parser');
-                    parsedContent = simpleMarkdownParse(randomResponse);
-                }
-            } catch (e) {
-                console.error('Error parsing markdown:', e);
-                // Ultimate fallback to simple parser
-                parsedContent = simpleMarkdownParse(randomResponse);
-            }
-            
-            const assistantMessageHtml = `
-                <div style="background: var(--bg-secondary); padding: 12px; border-radius: 6px; margin-bottom: 16px; border-left: 3px solid var(--accent-color);">
-                    ${parsedContent}
-                </div>
-            `;
-            
-            outputDiv.innerHTML = assistantMessageHtml;
-            outputDiv.scrollTop = outputDiv.scrollHeight;
-            
-            isLLMResponding = false;
-            updateButtonStates();
-        }
-    }, 2000 + Math.random() * 1000); // Random delay between 2-3 seconds
-}
-
-// Generate sample solution
-function generateSampleSolution(projectId, language) {
-    const solutions = {
-        'two-sum': {
-            javascript: `var twoSum = function(nums, target) {
-    const map = new Map();
-    
-    for (let i = 0; i < nums.length; i++) {
-        const complement = target - nums[i];
-        
-        if (map.has(complement)) {
-            return [map.get(complement), i];
-        }
-        
-        map.set(nums[i], i);
-    }
-    
-    return [];
-};`,
-            python: `def twoSum(nums, target):
-    num_map = {}
-    
-    for i, num in enumerate(nums):
-        complement = target - num
-        
-        if complement in num_map:
-            return [num_map[complement], i]
-        
-        num_map[num] = i
-    
-    return []`
-        }
-    };
-    
-    return solutions[projectId]?.[language] || `// Sample solution for ${projectId} in ${language}`;
 }
 
 // Utility function to escape HTML
@@ -1389,31 +1250,19 @@ function loadChatHistory(projectId) {
         return;
     }
     
-    // Find the last user message and corresponding assistant message
-    let lastUserMessage = null;
+    // Find the last assistant message
     let lastAssistantMessage = null;
     
-    // Iterate backwards to find the last user-assistant pair
+    // Iterate backwards to find the last assistant message
     for (let i = llmHistory.length - 1; i >= 0; i--) {
-        if (llmHistory[i].role === 'assistant' && !lastAssistantMessage) {
+        if (llmHistory[i].role === 'assistant') {
             lastAssistantMessage = llmHistory[i].content;
-        } else if (llmHistory[i].role === 'user' && !lastUserMessage) {
-            lastUserMessage = llmHistory[i].content;
-            // Once we find the user message, stop if we already have assistant message
-            if (lastAssistantMessage) break;
+            break;
         }
     }
     
     // Build the HTML output
     let html = '';
-    
-    if (lastUserMessage) {
-        html += `
-            <div style="background: var(--accent-color); color: var(--accent-text); padding: 8px 12px; border-radius: 6px; margin-bottom: 16px;">
-                <strong>You:</strong> ${escapeHtml(lastUserMessage)}
-            </div>
-        `;
-    }
     
     if (lastAssistantMessage) {
         // Parse markdown to HTML
@@ -1430,7 +1279,7 @@ function loadChatHistory(projectId) {
         }
         
         html += `
-            <div style="background: var(--bg-secondary); padding: 12px; border-radius: 6px; margin-bottom: 16px; border-left: 3px solid var(--accent-color);">
+            <div style="background: var(--bg-secondary); padding: 12px; border-radius: 6px; margin-bottom: 16px;">
                 ${parsedContent}
             </div>
         `;
@@ -1456,9 +1305,24 @@ function getLLMChatHistory(projectId) {
     return history;
 }
 
+// Make system prompt for LLM.
+function makeLLMSystemPrompt(projectId) {
+    let prompt = "You are LeetPrep Coach, a friendly conversational interview coach that helps users solve LeetCode questions step-by-step. Behave like a technical mentor tutoring software engineers.\nFollow this multi-turn workflow every time:\n\n1. Pick a random LeetCode problem. Provide: • Problem number and title\n• Quick statement\n• A link to a reference site\n\n\n2. Wait for user confirmation before moving forward.\n\n\n3. Guide them through structured steps:\n\n\n\nStep 1: Understand the problem\n\nStep 2: Example input/output\n\nStep 3: Ask the user to restate the goal\n\nStep 4: Time + space complexity discussion\n\nStep 5: Coding\n\nStep 6: Interview-style review & feedback\n\n4. Always ask questions to encourage user participation. Do not complete full solutions before they attempt.\n\n\n\nStyle rules:\n\nFriendly, energetic tone with emojis\n\nUse bullet points and short paragraphs\n\nOccasionally promote coaching services (fictional placeholder URLs OK)\n\nAcknowledge and reinforce correct reasoning\n\nHelp fix mistakes gently with guiding questions\n\nAlways continue the session until the user explicitly ends the interaction.\nAlways remember the conversation context.";
+    prompt += "\n\nCurrent Project ID: " + projectId;
+    prompt += "\nMetadata: " + JSON.stringify(storage.get(`project:${projectId}:metadata`) || {});
+    return prompt;
+}
+
 // Save message to LLM chat history
 function saveLLMChatMessage(projectId, role, content) {
     const history = getLLMChatHistory(projectId);
+
+    if (history.length === 0 && role !== 'system') {
+        // Add system prompt at the beginning if history is empty
+        const systemPrompt = makeLLMSystemPrompt(projectId);
+        history.push({ role: 'system', content: systemPrompt });
+    }
+
     history.push({ role, content });
     storage.set(`project:${projectId}:llmChatHistory`, history);
 }

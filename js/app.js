@@ -732,9 +732,6 @@ function loadProject(projectId) {
     
     // Update project metadata
     updateProjectMetadata(projectId);
-    
-    // Refresh project list to show the new project and update help button state
-    handleRefreshProjects();
 }
 
 // Load code template

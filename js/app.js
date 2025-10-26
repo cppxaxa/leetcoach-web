@@ -774,9 +774,6 @@ async function sendLLMMessage(userMessage, code, language) {
         </div>
     `;
     
-    // Don't display user message in output
-    saveChatMessage(currentProject, userMessageHtml);
-    
     // Save to LLM chat history
     saveLLMChatMessage(currentProject, 'user', userMessage);
     
@@ -835,8 +832,6 @@ async function sendLLMMessage(userMessage, code, language) {
             });
         }
         
-        saveChatMessage(currentProject, assistantMessageHtml);
-        
         // Save to LLM chat history
         saveLLMChatMessage(currentProject, 'assistant', response);
         
@@ -881,9 +876,8 @@ function handleStopMessage() {
 // Handle clear output
 function handleClearOutput() {
     document.getElementById('markdown-output').innerHTML = '';
-    // Remove the chat history key entirely (clear the list)
+    // Clear the LLM chat history
     if (currentProject) {
-        storage.remove(`project:${currentProject}:chatHistory`);
         clearLLMChatHistory(currentProject);
     }
 }
@@ -1062,9 +1056,6 @@ function simulateLLMResponse(userMessage, code, language) {
         </div>
     `;
     
-    // Don't display user message in output
-    saveChatMessage(currentProject, userMessageHtml);
-    
     // Simulate typing effect
     const responses = [
         `## Analysis of ${currentProject.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
@@ -1141,7 +1132,6 @@ Let me know if you'd like me to help implement any of these improvements!`
             `;
             
             outputDiv.innerHTML = assistantMessageHtml;
-            saveChatMessage(currentProject, assistantMessageHtml);
             outputDiv.scrollTop = outputDiv.scrollHeight;
             
             isLLMResponding = false;
@@ -1460,12 +1450,6 @@ function loadChatHistory(projectId) {
     }
 }
 
-// Save chat message to history
-function saveChatMessage(projectId, messageHtml) {
-    // Use rpush to append message to the end of the chat history
-    storage.rpush(`project:${projectId}:chatHistory`, messageHtml);
-}
-
 // Get LLM chat history (role/content format for LLM API)
 function getLLMChatHistory(projectId) {
     const history = storage.get(`project:${projectId}:llmChatHistory`) || [];
@@ -1515,8 +1499,9 @@ function markProjectCompleted(projectId, completed = true) {
 // Get project statistics
 function getProjectStats(projectId) {
     const metadata = storage.get(`project:${projectId}:metadata`) || {};
-    // Use llen to get the count of chat messages
-    const chatMessageCount = storage.llen(`project:${projectId}:chatHistory`);
+    // Get the count of chat messages from LLM chat history
+    const llmHistory = getLLMChatHistory(projectId);
+    const chatMessageCount = llmHistory.length;
     
     return {
         lastAccessed: metadata.lastAccessed,
@@ -1566,11 +1551,6 @@ function handleDialogSend() {
         </div>
     `;
     outputDiv.innerHTML += dialogMessageHtml;
-    
-    // Save to chat history if there's a current project
-    if (currentProject) {
-        saveChatMessage(currentProject, dialogMessageHtml);
-    }
     
     // Simulate LLM response
     simulateDialogResponse(message);
@@ -1684,7 +1664,7 @@ function deleteProject(projectId) {
     
     // Delete all project-related data
     storage.remove(`project:${projectId}:metadata`);
-    storage.remove(`project:${projectId}:chatHistory`);
+    storage.remove(`project:${projectId}:llmChatHistory`);
     
     // Delete code for all languages
     const languages = ['python', 'csharp', 'javascript', 'java', 'cpp'];
@@ -1884,11 +1864,6 @@ function simulateDialogResponse(message) {
     
     outputDiv.innerHTML += responseHtml;
     
-    // Save to chat history if there's a current project
-    if (currentProject) {
-        saveChatMessage(currentProject, responseHtml);
-    }
-    
     // Scroll to bottom
     outputDiv.scrollTop = outputDiv.scrollHeight;
 }
@@ -1906,6 +1881,20 @@ function handleEditorSendClick() {
         return;
     }
     
+    // Check if LLM is configured
+    try {
+        llm._get();
+    } catch (error) {
+        const outputDiv = document.getElementById('markdown-output');
+        const errorHtml = `
+            <div style="background: #f44336; color: white; padding: 12px; border-radius: 6px; margin-bottom: 16px;">
+                <strong>Error:</strong> ${escapeHtml(error.message)}
+            </div>
+        `;
+        outputDiv.innerHTML += errorHtml;
+        return;
+    }
+    
     // Get user input or use default message
     const userInput = document.getElementById('user-input');
     let message = userInput.value.trim();
@@ -1914,33 +1903,14 @@ function handleEditorSendClick() {
         message = "Please review my code and provide feedback.";
     }
     
-    // Add to output (for chat history only, not displayed)
-    const outputDiv = document.getElementById('markdown-output');
-    const editorMessageHtml = `
-        <div style="background: var(--accent-color); color: var(--accent-text); padding: 8px 12px; border-radius: 6px; margin-bottom: 16px;">
-            <strong>You (Code Editor):</strong> ${escapeHtml(message)}
-        </div>
-        <div style="background: var(--code-bg); padding: 12px; border-radius: 6px; margin-bottom: 16px; border: 1px solid var(--border-color);">
-            <strong>Code (${language}):</strong>
-            <pre><code>${escapeHtml(code)}</code></pre>
-        </div>
-    `;
-    
-    // Don't display user message/code in output
-    
-    // Save to chat history if there's a current project
-    if (currentProject) {
-        saveChatMessage(currentProject, editorMessageHtml);
-    }
+    // Build the complete message with code included
+    const fullMessage = `${message}\n\nHere's my code in ${language}:\n\`\`\`${language}\n${code}\n\`\`\``;
     
     // Clear user input
     userInput.value = '';
     
-    // Simulate LLM response
-    simulateLLMResponse(message, code, language);
-    
-    // Scroll to bottom
-    outputDiv.scrollTop = outputDiv.scrollHeight;
+    // Send to real LLM
+    sendLLMMessage(fullMessage, code, language);
 }
 
 // Export functions for debugging (optional)

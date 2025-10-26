@@ -439,12 +439,13 @@ function initializeEventListeners() {
         }
     });
 
-    // Clarify input - handle Enter with Ctrl to send
+    // Clarify input - handle Enter key
     clarifyInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && e.ctrlKey) {
+        if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             handleClarifySend();
         }
+        // Shift+Enter will allow default behavior (new line)
     });
 
     // Editor send button
@@ -1543,11 +1544,25 @@ function deleteProject(projectId) {
 // ===== CLARIFY DIALOG HANDLERS =====
 let clarifyChatHistory = [];
 let isClarifyResponding = false;
+let clarifyAbortController = null;
 
 // Handle clarify button click
 function handleClarifyClick() {
     const clarifyDialogOverlay = document.getElementById('clarify-dialog-overlay');
     clarifyDialogOverlay.classList.add('active');
+    
+    // Load previous chat history without system messages into temporary chat history
+    if (currentProject) {
+        const mainHistory = getLLMChatHistory(currentProject);
+        // Filter out system messages and copy to clarify history
+        clarifyChatHistory = mainHistory.filter(msg => msg.role !== 'system').map(msg => ({
+            role: msg.role,
+            content: msg.content
+        }));
+        
+        // Display the loaded history
+        displayClarifyHistory();
+    }
     
     // Focus on input
     setTimeout(() => {
@@ -1559,14 +1574,43 @@ function handleClarifyClick() {
 function handleCloseClarifyDialog() {
     const clarifyDialogOverlay = document.getElementById('clarify-dialog-overlay');
     clarifyDialogOverlay.classList.remove('active');
+    
+    // Dispose of temporary chat history
+    clarifyChatHistory = [];
+    
+    // Cancel any ongoing request
+    if (clarifyAbortController) {
+        clarifyAbortController.abort();
+        clarifyAbortController = null;
+    }
+    
+    // Reset responding state
+    isClarifyResponding = false;
+    updateClarifyButtonStates();
+    
+    // Clear the display
+    const chatHistoryDiv = document.getElementById('clarify-chat-history');
+    chatHistoryDiv.innerHTML = `
+        <div class="clarify-welcome">
+            <p>Ask questions to clarify the LLM output. This chat is independent from the main conversation.</p>
+        </div>
+    `;
 }
 
 // Handle clarify send
-function handleClarifySend() {
+async function handleClarifySend() {
     const clarifyInput = document.getElementById('clarify-input');
     const message = clarifyInput.value.trim();
     
     if (!message) {
+        return;
+    }
+    
+    // Check if LLM is configured
+    try {
+        llm._get();
+    } catch (error) {
+        alert(error.message);
         return;
     }
     
@@ -1580,12 +1624,57 @@ function handleClarifySend() {
     // Clear input
     clarifyInput.value = '';
     
-    // Simulate LLM response
-    simulateClarifyResponse(message);
+    // Send to LLM
+    await sendClarifyLLMMessage(message);
+}
+
+// Send message to LLM for clarify dialog
+async function sendClarifyLLMMessage(userMessage) {
+    try {
+        // Create abort controller for this request
+        clarifyAbortController = new AbortController();
+        
+        // Get LLM instance
+        const llmInstance = llm._get();
+        
+        // Call LLM with current clarify chat history
+        const response = await llmInstance.chat(clarifyChatHistory);
+        
+        // Check if request was aborted
+        if (clarifyAbortController.signal.aborted) {
+            return;
+        }
+        
+        // Add assistant response
+        isClarifyResponding = false;
+        updateClarifyButtonStates();
+        addClarifyMessage('assistant', response);
+        
+    } catch (error) {
+        console.error('Clarify LLM Error:', error);
+        
+        isClarifyResponding = false;
+        updateClarifyButtonStates();
+        
+        // Check if request was aborted
+        if (clarifyAbortController && clarifyAbortController.signal.aborted) {
+            addClarifyMessage('assistant', '(Response stopped by user)', true);
+        } else {
+            addClarifyMessage('assistant', `Error: ${error.message}`, true);
+        }
+    } finally {
+        clarifyAbortController = null;
+    }
 }
 
 // Handle clarify stop
 function handleClarifyStop() {
+    // Abort the current request
+    if (clarifyAbortController) {
+        clarifyAbortController.abort();
+        clarifyAbortController = null;
+    }
+    
     isClarifyResponding = false;
     updateClarifyButtonStates();
     
@@ -1606,6 +1695,69 @@ function handleClarifyClearHistory() {
             </div>
         `;
     }
+}
+
+// Display clarify history
+function displayClarifyHistory() {
+    const chatHistoryDiv = document.getElementById('clarify-chat-history');
+    
+    // Clear existing content
+    chatHistoryDiv.innerHTML = '';
+    
+    if (clarifyChatHistory.length === 0) {
+        chatHistoryDiv.innerHTML = `
+            <div class="clarify-welcome">
+                <p>Ask questions to clarify the LLM output. This chat is independent from the main conversation.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Display each message
+    clarifyChatHistory.forEach(msg => {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `clarify-message ${msg.role}`;
+        
+        const roleLabel = msg.role === 'user' ? 'You' : 'Assistant';
+        let messageContent = msg.content;
+        
+        // Parse markdown for assistant messages
+        if (msg.role === 'assistant') {
+            try {
+                if (typeof marked !== 'undefined') {
+                    messageContent = marked.parse ? marked.parse(msg.content) : marked(msg.content);
+                } else {
+                    messageContent = simpleMarkdownParse(msg.content);
+                }
+            } catch (e) {
+                console.error('Error parsing markdown:', e);
+                messageContent = simpleMarkdownParse(msg.content);
+            }
+        } else {
+            messageContent = escapeHtml(msg.content);
+        }
+        
+        messageDiv.innerHTML = `
+            <strong>${roleLabel}</strong>
+            <p>${messageContent}</p>
+        `;
+        
+        // Render math expressions with KaTeX for assistant messages
+        if (msg.role === 'assistant' && typeof renderMathInElement !== 'undefined') {
+            renderMathInElement(messageDiv, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ],
+                throwOnError: false
+            });
+        }
+        
+        chatHistoryDiv.appendChild(messageDiv);
+    });
+    
+    // Scroll to bottom
+    chatHistoryDiv.scrollTop = chatHistoryDiv.scrollHeight;
 }
 
 // Add message to clarify chat
@@ -1670,34 +1822,6 @@ function addClarifyMessage(role, content, isSystemMessage = false) {
     
     // Scroll to bottom
     chatHistoryDiv.scrollTop = chatHistoryDiv.scrollHeight;
-}
-
-// Simulate clarify response
-function simulateClarifyResponse(userMessage) {
-    // Simulate typing delay
-    setTimeout(() => {
-        if (!isClarifyResponding) return;
-        
-        let response = '';
-        
-        // Generate contextual response based on user message
-        if (userMessage.toLowerCase().includes('explain')) {
-            response = 'I can help explain the code or concepts from the LLM output. What specific part would you like me to clarify?';
-        } else if (userMessage.toLowerCase().includes('why') || userMessage.toLowerCase().includes('how')) {
-            response = 'That\'s a great question! The approach shown takes advantage of specific algorithmic properties. Would you like me to break down the reasoning step by step?';
-        } else if (userMessage.toLowerCase().includes('alternative') || userMessage.toLowerCase().includes('other way')) {
-            response = 'Yes, there are alternative approaches! Depending on your constraints, you could consider different trade-offs between time and space complexity.';
-        } else if (userMessage.toLowerCase().includes('complexity') || userMessage.toLowerCase().includes('time') || userMessage.toLowerCase().includes('space')) {
-            response = 'The time complexity and space complexity analysis helps us understand the performance characteristics of the solution. Let me explain the specific complexities for this approach.';
-        } else {
-            response = 'I understand your question. This is a clarification dialog to help you better understand the LLM output. In a real implementation, this would connect to an actual LLM service for intelligent responses.';
-        }
-        
-        isClarifyResponding = false;
-        updateClarifyButtonStates();
-        addClarifyMessage('assistant', response);
-        
-    }, 800 + Math.random() * 1200); // Random delay between 0.8-2.0 seconds
 }
 
 // Update clarify button states

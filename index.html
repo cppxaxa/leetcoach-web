@@ -191,6 +191,7 @@
                 <div class="panel-header">
                     <h4>Chat</h4>
                     <div class="input-controls">
+                        <button class="help-btn" id="chat-help-btn" title="Help - How to enable LLM">?</button>
                         <button class="maximize-btn" id="maximize-input" title="Maximize/Restore">
                             <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
                                 <path d="M3 3v10h10V3H3zm9 9H4V4h8v8z"/>
@@ -203,6 +204,43 @@
                 <div class="input-container">
                     <textarea id="user-input" placeholder="Editable..."></textarea>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LLM Help Dialog -->
+    <div class="dialog-overlay" id="llm-help-dialog-overlay">
+        <div class="dialog-box">
+            <div class="dialog-header">
+                <h4>How to Enable LLM</h4>
+                <button class="dialog-close" id="llm-help-dialog-close-btn" title="Close">×</button>
+            </div>
+            <div class="dialog-content">
+                <div style="line-height: 1.6;">
+                    <p style="margin-bottom: 12px;">To enable the LLM functionality in this webapp, follow these steps:</p>
+                    <ol style="margin-left: 20px; margin-bottom: 12px;">
+                        <li style="margin-bottom: 8px;">
+                            <strong>Download Settings:</strong> Click the download icon (↓) in the left navigation pane to export your current settings as a JSON file.
+                        </li>
+                        <li style="margin-bottom: 8px;">
+                            <strong>Edit Settings:</strong> Open the downloaded JSON file in a text editor and configure the LLM settings:
+                            <ul style="margin-left: 20px; margin-top: 4px;">
+                                <li>Set the <code>type</code> field (e.g., "openai", "anthropic", "azure")</li>
+                                <li>Add your <code>apiKey</code></li>
+                                <li>Configure any other required parameters for your chosen LLM provider</li>
+                            </ul>
+                        </li>
+                        <li style="margin-bottom: 8px;">
+                            <strong>Upload Settings:</strong> Click the upload icon (↑) in the left navigation pane and select your modified JSON file to import the settings.
+                        </li>
+                    </ol>
+                    <p style="margin-top: 12px; padding: 10px; background-color: var(--bg-secondary); border-radius: 4px; font-size: 13px;">
+                        <strong>Note:</strong> Your API key will be stored locally in your browser and is never sent to our servers. Only you have access to it.
+                    </p>
+                </div>
+            </div>
+            <div class="dialog-actions">
+                <button class="btn-primary" id="llm-help-dialog-ok-btn">OK</button>
             </div>
         </div>
     </div>

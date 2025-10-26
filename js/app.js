@@ -448,6 +448,23 @@ function initializeEventListeners() {
         // Shift+Enter will allow default behavior (new line)
     });
 
+    // LLM Help dialog buttons
+    const chatHelpBtn = document.getElementById('chat-help-btn');
+    const llmHelpDialogCloseBtn = document.getElementById('llm-help-dialog-close-btn');
+    const llmHelpDialogOkBtn = document.getElementById('llm-help-dialog-ok-btn');
+    const llmHelpDialogOverlay = document.getElementById('llm-help-dialog-overlay');
+
+    chatHelpBtn.addEventListener('click', handleOpenLlmHelpDialog);
+    llmHelpDialogCloseBtn.addEventListener('click', handleCloseLlmHelpDialog);
+    llmHelpDialogOkBtn.addEventListener('click', handleCloseLlmHelpDialog);
+    
+    // Close help dialog when clicking overlay
+    llmHelpDialogOverlay.addEventListener('click', function(e) {
+        if (e.target === llmHelpDialogOverlay) {
+            handleCloseLlmHelpDialog();
+        }
+    });
+
     // Editor send button
     const editorSendBtn = document.getElementById('editor-send-btn');
     editorSendBtn.addEventListener('click', handleEditorSendClick);
@@ -713,6 +730,9 @@ function loadProject(projectId) {
     
     // Update project metadata
     updateProjectMetadata(projectId);
+    
+    // Refresh project list to show the new project and update help button state
+    handleRefreshProjects();
 }
 
 // Load code template
@@ -1037,6 +1057,21 @@ function populateProjectListUI(projects) {
         
         projectList.appendChild(projectItem);
     });
+    
+    // Update help button blinking state
+    updateHelpButtonBlinkState(projects.length === 0);
+}
+
+// Update help button blink state based on whether there are projects
+function updateHelpButtonBlinkState(shouldBlink) {
+    const helpBtn = document.getElementById('chat-help-btn');
+    if (helpBtn) {
+        if (shouldBlink) {
+            helpBtn.classList.add('blink');
+        } else {
+            helpBtn.classList.remove('blink');
+        }
+    }
 }
 
 // Update button states
@@ -1910,6 +1945,18 @@ function handleEditorSendClick() {
     
     // Send to real LLM
     sendLLMMessage(fullMessage, code, language);
+}
+
+// Handle open LLM help dialog
+function handleOpenLlmHelpDialog() {
+    const llmHelpDialogOverlay = document.getElementById('llm-help-dialog-overlay');
+    llmHelpDialogOverlay.classList.add('active');
+}
+
+// Handle close LLM help dialog
+function handleCloseLlmHelpDialog() {
+    const llmHelpDialogOverlay = document.getElementById('llm-help-dialog-overlay');
+    llmHelpDialogOverlay.classList.remove('active');
 }
 
 // Export functions for debugging (optional)

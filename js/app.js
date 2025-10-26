@@ -1458,7 +1458,7 @@ function handleCloseDialog() {
 }
 
 // Handle dialog send button
-function handleDialogSend() {
+async function handleDialogSend() {
     const dialogInput = document.getElementById('project-dialog-input');
     const message = dialogInput.value.trim();
     
@@ -1466,6 +1466,18 @@ function handleDialogSend() {
         alert('Please enter project details');
         return;
     }
+    
+    // Check if LLM is configured
+    try {
+        llm._get();
+    } catch (error) {
+        alert(error.message);
+        return;
+    }
+    
+    // Set responding state
+    isDialogLLMResponding = true;
+    updateDialogButtonStates();
     
     // Add to LLM output
     const outputDiv = document.getElementById('markdown-output');
@@ -1476,12 +1488,126 @@ function handleDialogSend() {
     `;
     outputDiv.innerHTML += dialogMessageHtml;
     
-    // Simulate LLM response
-    simulateDialogResponse(message);
+    // Show loading indicator
+    const loadingHtml = `
+        <div class="llm-thinking">
+            <div class="thinking-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <p>Creating project...</p>
+        </div>
+    `;
+    outputDiv.innerHTML += loadingHtml;
+    outputDiv.scrollTop = outputDiv.scrollHeight;
     
-    // Clear and close dialog
-    dialogInput.value = '';
-    handleCloseDialog();
+    try {
+        // Create abort controller for this request
+        dialogAbortController = new AbortController();
+        
+        // Get LLM instance
+        const llmInstance = llm._get();
+        
+        // Build prompt for structured project creation
+        const prompt = `You are a helpful assistant that helps create LeetCode-style coding projects. Based on the user's request, generate a project with the following information:
+
+User request: "${message}"
+
+Return ONLY a valid JSON object with this exact structure (no markdown, no code blocks, just the JSON):
+{
+  "name": "Problem Name",
+  "difficulty": "Easy|Medium|Hard",
+  "pythonCode": "Python boilerplate code here",
+  "csharpCode": "C# boilerplate code here"
+}
+
+Guidelines:
+- name: Should be a clear, concise problem name (e.g., "Two Sum", "Reverse Linked List")
+- difficulty: Must be exactly one of: Easy, Medium, or Hard
+- pythonCode: Complete Python function/class template with docstrings and proper formatting
+- csharpCode: Complete C# class/method template with proper formatting
+- Both code templates should include comments indicating where the solution should be written
+- Make the boilerplate code appropriate for the problem difficulty and type
+
+Return ONLY the JSON object, nothing else.`;
+        
+        // Call LLM
+        const response = await llmInstance.answer(prompt);
+        
+        // Check if request was aborted
+        if (dialogAbortController.signal.aborted) {
+            return;
+        }
+        
+        // Parse the JSON response
+        const projectData = parseProjectJSON(response);
+        
+        if (!projectData) {
+            throw new Error('Failed to parse project data from LLM response');
+        }
+        
+        // Create the project
+        const projectId = createProjectFromData(projectData);
+        
+        // Show success message
+        const successHtml = `
+            <div style="background: var(--bg-secondary); padding: 12px; border-radius: 6px; border-left: 3px solid #4caf50; margin-bottom: 16px;">
+                <strong style="color: #4caf50;">Success!</strong>
+                <p>Created project: <strong>${escapeHtml(projectData.name)}</strong> [${escapeHtml(projectData.difficulty)}]</p>
+            </div>
+        `;
+        
+        // Remove loading indicator
+        const thinkingDiv = outputDiv.querySelector('.llm-thinking');
+        if (thinkingDiv) {
+            thinkingDiv.remove();
+        }
+        
+        outputDiv.innerHTML += successHtml;
+        outputDiv.scrollTop = outputDiv.scrollHeight;
+        
+        // Refresh project list
+        handleRefreshProjects();
+        
+        // Select and load the new project
+        setTimeout(() => {
+            const projectItem = document.querySelector(`.project-item[data-project="${projectId}"]`);
+            if (projectItem) {
+                projectItem.click();
+            }
+        }, 100);
+        
+        // Clear and close dialog
+        dialogInput.value = '';
+        handleCloseDialog();
+        
+    } catch (error) {
+        console.error('Dialog LLM Error:', error);
+        
+        // Remove loading indicator
+        const thinkingDiv = outputDiv.querySelector('.llm-thinking');
+        if (thinkingDiv) {
+            thinkingDiv.remove();
+        }
+        
+        // Check if request was aborted
+        if (!dialogAbortController || !dialogAbortController.signal.aborted) {
+            const errorHtml = `
+                <div style="background: #f44336; color: white; padding: 12px; border-radius: 6px; margin-bottom: 16px;">
+                    <strong>Error:</strong> ${escapeHtml(error.message)}
+                </div>
+            `;
+            outputDiv.innerHTML += errorHtml;
+            outputDiv.scrollTop = outputDiv.scrollHeight;
+            
+            alert(`Error creating project: ${error.message}`);
+        }
+    } finally {
+        isDialogLLMResponding = false;
+        updateDialogButtonStates();
+        dialogAbortController = null;
+    }
 }
 
 // Handle dialog stop button
@@ -1954,6 +2080,111 @@ function updateDialogButtonStates() {
         stopBtn.classList.remove('responding');
         randomBtn.disabled = false;
     }
+}
+
+// Parse project JSON from LLM response with forgiveness
+function parseProjectJSON(response) {
+    try {
+        // Remove markdown code blocks if present
+        let cleanedResponse = response.trim();
+        
+        // Remove ```json or ``` markers
+        cleanedResponse = cleanedResponse.replace(/^```json?\s*/i, '');
+        cleanedResponse = cleanedResponse.replace(/\s*```\s*$/, '');
+        cleanedResponse = cleanedResponse.trim();
+        
+        // Try to find JSON object in the response
+        const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+            cleanedResponse = jsonMatch[0];
+        }
+        
+        // Parse the JSON
+        const data = JSON.parse(cleanedResponse);
+        
+        // Validate required fields
+        if (!data.name || typeof data.name !== 'string') {
+            throw new Error('Missing or invalid "name" field');
+        }
+        
+        if (!data.difficulty || !['Easy', 'Medium', 'Hard'].includes(data.difficulty)) {
+            // Try to fix common variations
+            const diffLower = (data.difficulty || '').toLowerCase();
+            if (diffLower === 'easy') data.difficulty = 'Easy';
+            else if (diffLower === 'medium') data.difficulty = 'Medium';
+            else if (diffLower === 'hard') data.difficulty = 'Hard';
+            else {
+                // Default to Medium if invalid
+                console.warn('Invalid difficulty, defaulting to Medium');
+                data.difficulty = 'Medium';
+            }
+        }
+        
+        // Ensure code fields exist (use defaults if missing)
+        if (!data.pythonCode || typeof data.pythonCode !== 'string') {
+            console.warn('Missing pythonCode, using default template');
+            data.pythonCode = `def solution():\n    """\n    ${data.name}\n    """\n    # Your solution here\n    pass`;
+        }
+        
+        if (!data.csharpCode || typeof data.csharpCode !== 'string') {
+            console.warn('Missing csharpCode, using default template');
+            data.csharpCode = `public class Solution {\n    // ${data.name}\n    public void Solve() {\n        // Your solution here\n        \n    }\n}`;
+        }
+        
+        return {
+            name: data.name.trim(),
+            difficulty: data.difficulty,
+            pythonCode: data.pythonCode,
+            csharpCode: data.csharpCode
+        };
+        
+    } catch (error) {
+        console.error('Error parsing project JSON:', error);
+        console.error('Response was:', response);
+        return null;
+    }
+}
+
+// Create project from parsed data
+function createProjectFromData(projectData) {
+    // Generate project ID from name
+    const projectId = projectData.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    
+    // Check if project already exists
+    const existingIds = getAllProjectIds();
+    let finalProjectId = projectId;
+    let counter = 1;
+    while (existingIds.includes(finalProjectId)) {
+        finalProjectId = `${projectId}-${counter}`;
+        counter++;
+    }
+    
+    // Register the project
+    registerProjectId(finalProjectId);
+    
+    // Store project metadata
+    const metadata = {
+        name: projectData.name,
+        difficulty: projectData.difficulty.toLowerCase(),
+        createdAt: new Date().toISOString(),
+        lastAccessed: new Date().toISOString(),
+        completed: false
+    };
+    storage.set(`project:${finalProjectId}:metadata`, metadata);
+    
+    // Store boilerplate code for both languages
+    storage.set(`project:${finalProjectId}:python:code`, projectData.pythonCode);
+    storage.set(`project:${finalProjectId}:csharp:code`, projectData.csharpCode);
+    
+    // Initialize empty chat history
+    storage.set(`project:${finalProjectId}:llmChatHistory`, []);
+    
+    console.log(`[Project Created] ${finalProjectId}:`, metadata);
+    
+    return finalProjectId;
 }
 
 // Simulate dialog response

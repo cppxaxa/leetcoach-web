@@ -767,14 +767,14 @@ async function sendLLMMessage(userMessage, code, language) {
     // Clear output to show only current exchange
     outputDiv.innerHTML = '';
     
-    // Add user message to output
+    // Add user message to output (for chat history only, not displayed)
     const userMessageHtml = `
         <div style="background: var(--accent-color); color: var(--accent-text); padding: 8px 12px; border-radius: 6px; margin-bottom: 16px;">
             <strong>You:</strong> ${escapeHtml(userMessage)}
         </div>
     `;
     
-    outputDiv.innerHTML = userMessageHtml;
+    // Don't display user message in output
     saveChatMessage(currentProject, userMessageHtml);
     
     // Save to LLM chat history
@@ -822,7 +822,19 @@ async function sendLLMMessage(userMessage, code, language) {
             </div>
         `;
         
-        outputDiv.innerHTML = userMessageHtml + assistantMessageHtml;
+        outputDiv.innerHTML = assistantMessageHtml;
+        
+        // Render math expressions with KaTeX
+        if (typeof renderMathInElement !== 'undefined') {
+            renderMathInElement(outputDiv, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ],
+                throwOnError: false
+            });
+        }
+        
         saveChatMessage(currentProject, assistantMessageHtml);
         
         // Save to LLM chat history
@@ -841,7 +853,7 @@ async function sendLLMMessage(userMessage, code, language) {
                     <em>Response stopped by user.</em>
                 </div>
             `;
-            outputDiv.innerHTML = userMessageHtml + stoppedHtml;
+            outputDiv.innerHTML = stoppedHtml;
         } else {
             const errorHtml = `
                 <div style="background: #f44336; color: white; padding: 12px; border-radius: 6px; margin-bottom: 16px;">
@@ -1043,14 +1055,14 @@ function updateButtonStates() {
 function simulateLLMResponse(userMessage, code, language) {
     const outputDiv = document.getElementById('markdown-output');
     
-    // Add user message to output
+    // Add user message to output (for chat history only, not displayed)
     const userMessageHtml = `
         <div style="background: var(--accent-color); color: var(--accent-text); padding: 8px 12px; border-radius: 6px; margin-bottom: 16px;">
             <strong>You:</strong> ${escapeHtml(userMessage)}
         </div>
     `;
     
-    outputDiv.innerHTML += userMessageHtml;
+    // Don't display user message in output
     saveChatMessage(currentProject, userMessageHtml);
     
     // Simulate typing effect
@@ -1128,7 +1140,7 @@ Let me know if you'd like me to help implement any of these improvements!`
                 </div>
             `;
             
-            outputDiv.innerHTML += assistantMessageHtml;
+            outputDiv.innerHTML = assistantMessageHtml;
             saveChatMessage(currentProject, assistantMessageHtml);
             outputDiv.scrollTop = outputDiv.scrollHeight;
             
@@ -1435,6 +1447,17 @@ function loadChatHistory(projectId) {
     }
     
     outputDiv.innerHTML = html;
+    
+    // Render math expressions with KaTeX
+    if (typeof renderMathInElement !== 'undefined') {
+        renderMathInElement(outputDiv, {
+            delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false}
+            ],
+            throwOnError: false
+        });
+    }
 }
 
 // Save chat message to history
@@ -1759,10 +1782,39 @@ function addClarifyMessage(role, content, isSystemMessage = false) {
         messageDiv.innerHTML = `<p style="font-style: italic; opacity: 0.8;">${escapeHtml(content)}</p>`;
     } else {
         const roleLabel = role === 'user' ? 'You' : 'Assistant';
+        let messageContent = content;
+        
+        // Parse markdown for assistant messages
+        if (role === 'assistant') {
+            try {
+                if (typeof marked !== 'undefined') {
+                    messageContent = marked.parse ? marked.parse(content) : marked(content);
+                } else {
+                    messageContent = simpleMarkdownParse(content);
+                }
+            } catch (e) {
+                console.error('Error parsing markdown:', e);
+                messageContent = simpleMarkdownParse(content);
+            }
+        } else {
+            messageContent = escapeHtml(content);
+        }
+        
         messageDiv.innerHTML = `
             <strong>${roleLabel}</strong>
-            <p>${escapeHtml(content)}</p>
+            <p>${messageContent}</p>
         `;
+        
+        // Render math expressions with KaTeX for assistant messages
+        if (role === 'assistant' && typeof renderMathInElement !== 'undefined') {
+            renderMathInElement(messageDiv, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ],
+                throwOnError: false
+            });
+        }
     }
     
     chatHistoryDiv.appendChild(messageDiv);
@@ -1862,7 +1914,7 @@ function handleEditorSendClick() {
         message = "Please review my code and provide feedback.";
     }
     
-    // Add to output
+    // Add to output (for chat history only, not displayed)
     const outputDiv = document.getElementById('markdown-output');
     const editorMessageHtml = `
         <div style="background: var(--accent-color); color: var(--accent-text); padding: 8px 12px; border-radius: 6px; margin-bottom: 16px;">
@@ -1874,7 +1926,7 @@ function handleEditorSendClick() {
         </div>
     `;
     
-    outputDiv.innerHTML += editorMessageHtml;
+    // Don't display user message/code in output
     
     // Save to chat history if there's a current project
     if (currentProject) {

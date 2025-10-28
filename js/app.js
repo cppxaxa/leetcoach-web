@@ -1508,6 +1508,57 @@ function handleCloseDialog() {
     dialogOverlay.classList.remove('active');
 }
 
+// Generate Python boilerplate code
+async function generatePythonBoilerplate(problemName, llmInstance) {
+    const prompt = `Generate Python boilerplate code for a LeetCode problem called "${problemName}". 
+Return ONLY the Python code, no explanation, no markdown code blocks.
+Include a function/class definition with docstring and a comment showing where to write the solution.
+Example format:
+def problemName(param):
+    """
+    :type param: type
+    :rtype: type
+    """
+    # Your solution here
+    pass`;
+    
+    try {
+        const response = await llmInstance.answer(prompt);
+        // Clean up any markdown code blocks if present
+        let cleanCode = response.trim();
+        cleanCode = cleanCode.replace(/^```python\s*/m, '').replace(/^```\s*$/m, '').trim();
+        return cleanCode || `# ${problemName}\n# TODO: Implement your solution here\n`;
+    } catch (error) {
+        console.error('[Python Boilerplate] Error:', error);
+        return `# ${problemName}\n# TODO: Implement your solution here\n`;
+    }
+}
+
+// Generate C# boilerplate code
+async function generateCSharpBoilerplate(problemName, llmInstance) {
+    const prompt = `Generate C# boilerplate code for a LeetCode problem called "${problemName}".
+Return ONLY the C# code, no explanation, no markdown code blocks.
+Include a Solution class with a method and a comment showing where to write the solution.
+Example format:
+public class Solution {
+    public ReturnType MethodName(ParamType param) {
+        // Your solution here
+        
+    }
+}`;
+    
+    try {
+        const response = await llmInstance.answer(prompt);
+        // Clean up any markdown code blocks if present
+        let cleanCode = response.trim();
+        cleanCode = cleanCode.replace(/^```csharp\s*/m, '').replace(/^```c#\s*/m, '').replace(/^```\s*$/m, '').trim();
+        return cleanCode || `// ${problemName}\nclass Program\n{\n    static void Main()\n    {\n        // TODO: Implement your solution here\n    }\n}`;
+    } catch (error) {
+        console.error('[C# Boilerplate] Error:', error);
+        return `// ${problemName}\nclass Program\n{\n    static void Main()\n    {\n        // TODO: Implement your solution here\n    }\n}`;
+    }
+}
+
 // Handle dialog send button
 async function handleDialogSend() {
     const dialogInput = document.getElementById('project-dialog-input');
@@ -1625,14 +1676,29 @@ Return ONLY the JSON, nothing else.`;
             
             // Parse the simple response
             projectData = parseProjectJSON(simpleResponse);
+        
+            // If parsing failed, try repairing the JSON and parsing again
+            if (!projectData) {
+                console.log('[Project Creation] Initial parse failed, attempting JSON repair...');
+                const repairedResponse = repairJSON(response);
+                if (repairedResponse !== response) {
+                    console.log('[Project Creation] JSON repaired, retrying parse...');
+                    projectData = parseProjectJSON(repairedResponse);
+                }
+            }
             
             if (!projectData) {
                 throw new Error('Failed to parse project data from LLM response');
             }
             
-            // Add simple boilerplate code
-            projectData.pythonCode = `# ${projectData.name}\n# TODO: Implement your solution here\n`;
-            projectData.csharpCode = `// ${projectData.name}\nclass Program\n{\n    static void Main()\n    {\n        // TODO: Implement your solution here\n    }\n}`;
+            // Generate boilerplate code separately
+            console.log('[Project Creation] Generating Python boilerplate...');
+            thinkingDiv.textContent = 'Generating Python code template...';
+            projectData.pythonCode = await generatePythonBoilerplate(projectData.name, llmInstance);
+            
+            console.log('[Project Creation] Generating C# boilerplate...');
+            thinkingDiv.textContent = 'Generating C# code template...';
+            projectData.csharpCode = await generateCSharpBoilerplate(projectData.name, llmInstance);
         }
         
         // Create the project
@@ -2227,6 +2293,59 @@ function updateDialogButtonStates() {
         stopBtn.classList.remove('responding');
         randomBtn.disabled = false;
     }
+}
+
+// Repair malformed JSON
+function repairJSON(jsonString) {
+    let cleaned = jsonString.trim();
+    
+    // Remove markdown code blocks if present
+    cleaned = cleaned.replace(/^```json?\s*/i, '');
+    cleaned = cleaned.replace(/\s*```\s*$/i, '');
+    cleaned = cleaned.trim();
+    
+    // Try to find JSON object in the response
+    const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+        cleaned = jsonMatch[0];
+    }
+    
+    // Count opening and closing braces
+    const openBraces = (cleaned.match(/\{/g) || []).length;
+    const closeBraces = (cleaned.match(/\}/g) || []).length;
+    
+    // If starts with { but missing closing braces
+    if (cleaned.startsWith('{') && openBraces > closeBraces) {
+        const missing = openBraces - closeBraces;
+        console.log(`[JSON Repair] Adding ${missing} missing closing brace(s)`);
+        cleaned += '}'.repeat(missing);
+    }
+    
+    // Try to fix trailing commas before closing braces
+    cleaned = cleaned.replace(/,(\s*[}\]])/g, '$1');
+    
+    // Try to fix unescaped quotes in string values (basic attempt)
+    // This is a simple heuristic and may not work for all cases
+    try {
+        // Test if it parses now
+        JSON.parse(cleaned);
+        return cleaned;
+    } catch (e) {
+        // If still fails, try removing trailing incomplete key-value pairs
+        const lastCommaIndex = cleaned.lastIndexOf(',');
+        if (lastCommaIndex > 0) {
+            const beforeComma = cleaned.substring(0, lastCommaIndex);
+            const afterComma = cleaned.substring(lastCommaIndex + 1).trim();
+            
+            // Check if what comes after the comma looks incomplete (no colon)
+            if (afterComma && !afterComma.includes(':')) {
+                console.log('[JSON Repair] Removing incomplete trailing entry');
+                cleaned = beforeComma + '\n}';
+            }
+        }
+    }
+    
+    return cleaned;
 }
 
 // Parse project JSON from LLM response with forgiveness

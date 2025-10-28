@@ -1125,6 +1125,35 @@ function updateHelpButtonBlinkState(shouldBlink) {
             helpBtn.classList.remove('blink');
         }
     }
+    
+    // Also update add project button
+    const addProjectBtn = document.getElementById('add-project-btn');
+    if (addProjectBtn) {
+        if (shouldBlink) {
+            addProjectBtn.classList.add('blink');
+        } else {
+            addProjectBtn.classList.remove('blink');
+        }
+    }
+    
+    // Also update storage buttons (export and import)
+    const exportBtn = document.getElementById('export-storage-btn');
+    if (exportBtn) {
+        if (shouldBlink) {
+            exportBtn.classList.add('blink');
+        } else {
+            exportBtn.classList.remove('blink');
+        }
+    }
+    
+    const importBtn = document.getElementById('import-storage-btn');
+    if (importBtn) {
+        if (shouldBlink) {
+            importBtn.classList.add('blink');
+        } else {
+            importBtn.classList.remove('blink');
+        }
+    }
 }
 
 // Update button states
@@ -2612,10 +2641,12 @@ function createTreeFolder(name, content, level) {
     toggle.className = 'tree-toggle';
     toggle.innerHTML = `<svg viewBox="0 0 16 16"><path d="M6 4l4 4-4 4z"/></svg>`;
     
-    // Folder icon
+    // Folder icon - improved with closed/open state
     const icon = document.createElement('span');
     icon.className = 'tree-icon';
-    icon.innerHTML = `<svg viewBox="0 0 16 16"><path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.311 1.184C7.985 3.648 8.48 4 9 4h4.5A1.5 1.5 0 0 1 15 5.5v7a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5v-9z"/></svg>`;
+    icon.innerHTML = `<svg viewBox="0 0 16 16" fill="currentColor">
+        <path d="M.54 3.87L.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4H2.19zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707z"/>
+    </svg>`;
     
     // Label
     const label = document.createElement('span');
@@ -2673,10 +2704,12 @@ function createTreeFile(name, description, level) {
     nodeDiv.className = 'tree-node file';
     nodeDiv.style.paddingLeft = `${level * 12 + 20}px`;
     
-    // File icon
+    // File icon - improved document icon with corner fold
     const icon = document.createElement('span');
     icon.className = 'tree-icon';
-    icon.innerHTML = `<svg viewBox="0 0 16 16"><path d="M4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H4zm0 1h8a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z"/></svg>`;
+    icon.innerHTML = `<svg viewBox="0 0 16 16" fill="currentColor">
+        <path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM4.5 9a.5.5 0 0 1 0-1h7a.5.5 0 0 1 0 1h-7zM4 10.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm.5 2.5a.5.5 0 0 1 0-1h4a.5.5 0 0 1 0 1h-4z"/>
+    </svg>`;
     
     // Label
     const label = document.createElement('span');

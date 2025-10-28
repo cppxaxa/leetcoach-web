@@ -846,6 +846,14 @@ body {
     animation: help-blink 1.5s ease-in-out infinite;
 }
 
+.add-project-btn.blink {
+    animation: help-blink 1.5s ease-in-out infinite;
+}
+
+.storage-btn.blink {
+    animation: help-blink 1.5s ease-in-out infinite;
+}
+
 @keyframes help-blink {
     0%, 100% {
         opacity: 1;
@@ -1483,6 +1491,7 @@ body {
     cursor: pointer;
     border-radius: 4px;
     transition: background-color 0.15s ease;
+    color: var(--text-primary);
 }
 
 .tree-node:hover {
@@ -1526,17 +1535,75 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
 .tree-icon svg {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
     fill: currentColor;
+}
+
+/* Folder icons with theme-aware colors */
+.tree-node.folder .tree-icon svg {
+    fill: #dcb67a;
+}
+
+[data-theme="light"] .tree-node.folder .tree-icon svg,
+[data-theme="github"] .tree-node.folder .tree-icon svg {
+    fill: #c09553;
+}
+
+/* File icons with theme-aware colors */
+.tree-node.file .tree-icon svg {
+    fill: #6e9cce;
+}
+
+[data-theme="light"] .tree-node.file .tree-icon svg,
+[data-theme="github"] .tree-node.file .tree-icon svg {
+    fill: #4078c0;
+}
+
+[data-theme="high-contrast"] .tree-node.folder .tree-icon svg {
+    fill: #ffff00;
+}
+
+[data-theme="high-contrast"] .tree-node.file .tree-icon svg {
+    fill: #00ffff;
+}
+
+/* Selected state icon colors */
+.tree-node.selected.folder .tree-icon svg,
+.tree-node.selected.file .tree-icon svg {
+    fill: white;
+}
+
+[data-theme="light"] .tree-node.selected .tree-icon svg,
+[data-theme="github"] .tree-node.selected .tree-icon svg {
+    fill: white;
+}
+
+[data-theme="high-contrast"] .tree-node.selected .tree-icon svg {
+    fill: #000000;
 }
 
 .tree-label {
     flex: 1;
     font-size: 13px;
+    color: var(--text-primary);
+}
+
+.tree-node.selected .tree-label {
+    color: white;
+}
+
+[data-theme="light"] .tree-node.selected .tree-label,
+[data-theme="github"] .tree-node.selected .tree-label {
+    color: white;
+}
+
+[data-theme="high-contrast"] .tree-node.selected .tree-label {
+    color: #000000;
 }
 
 .tree-children {

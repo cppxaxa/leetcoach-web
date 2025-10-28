@@ -91,7 +91,7 @@
                     <button class="btn-secondary" id="dialog-stop-btn" disabled>Stop</button>
                     <button class="btn-secondary" id="dialog-cancel-btn">Cancel</button>
                     <button class="btn-secondary" id="dialog-random-btn">Random</button>
-                    <button class="btn-secondary" id="dialog-library-btn">Library</button>
+                    <button class="btn-primary" id="dialog-library-btn">Library</button>
                 </div>
             </div>
         </div>
@@ -276,7 +276,9 @@
             </div>
             <div class="dialog-content">
                 <div style="line-height: 1.6;">
-                    <p style="margin-bottom: 12px;">To enable the LLM functionality in this webapp, follow these steps:</p>
+                    <p style="margin-bottom: 12px;">We currently support two LLM options:</p>
+                    
+                    <h5 style="margin-top: 16px; margin-bottom: 8px; color: #58a6ff;">Option 1: Gemini (Requires API Key)</h5>
                     <ol style="margin-left: 20px; margin-bottom: 12px;">
                         <li style="margin-bottom: 8px;">
                             <strong>Download Settings:</strong> Click the download icon (↓) in the left navigation pane to export your current settings as a JSON file.
@@ -284,17 +286,30 @@
                         <li style="margin-bottom: 8px;">
                             <strong>Edit Settings:</strong> Open the downloaded JSON file in a text editor and configure the LLM settings:
                             <ul style="margin-left: 20px; margin-top: 4px;">
-                                <li>Set the <code>type</code> field (e.g., "openai", "anthropic", "azure")</li>
-                                <li>Add your <code>apiKey</code></li>
-                                <li>Configure any other required parameters for your chosen LLM provider</li>
+                                <li>Set the <code>type</code> field to "gemini"</li>
+                                <li>Add your <code>apiKey</code> from Google AI Studio</li>
+                                <li>Configure any other required parameters</li>
                             </ul>
                         </li>
                         <li style="margin-bottom: 8px;">
                             <strong>Upload Settings:</strong> Click the upload icon (↑) in the left navigation pane and select your modified JSON file to import the settings.
                         </li>
                     </ol>
-                    <p style="margin-top: 12px; padding: 10px; background-color: var(--bg-secondary); border-radius: 4px; font-size: 13px;">
+                    <p style="margin-bottom: 16px; padding: 10px; background-color: var(--bg-secondary); border-radius: 4px; font-size: 13px;">
                         <strong>Note:</strong> Your API key will be stored locally in your browser and is never sent to our servers. Only you have access to it.
+                    </p>
+
+                    <h5 style="margin-top: 16px; margin-bottom: 8px; color: #58a6ff;">Option 2: MLC AI Web LLM (Completely Private)</h5>
+                    <p style="margin-left: 20px; margin-bottom: 8px;">
+                        MLC AI Web LLM downloads a language model directly into your browser cache and runs entirely on your device. This option is:
+                    </p>
+                    <ul style="margin-left: 40px; margin-bottom: 8px;">
+                        <li style="margin-bottom: 4px;"><strong>100% Private:</strong> All processing happens locally on your machine</li>
+                        <li style="margin-bottom: 4px;"><strong>No API Key Required:</strong> No external services needed</li>
+                        <li style="margin-bottom: 4px;"><strong>Uses Your Device:</strong> Requires client machine compute power and initial model download</li>
+                    </ul>
+                    <p style="margin-left: 20px; padding: 10px; background-color: var(--bg-secondary); border-radius: 4px; font-size: 13px;">
+                        <strong>Note:</strong> First-time setup will download the model to your browser cache. Performance depends on your device's capabilities.
                     </p>
                 </div>
             </div>

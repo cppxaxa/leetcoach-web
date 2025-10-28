@@ -164,8 +164,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize LLM settings
     llm.initSettingPlaceholders();
 
-    // Set LLM type
-    llm.setType('gemini');
+    // Set LLM type from saved preference or default to 'gemini'
+    const savedLlmType = storage.get('setting:llm_type') || 'gemini';
+    llm.setType(savedLlmType);
 
     // Configure marked.js
     if (typeof marked !== 'undefined') {
@@ -448,6 +449,31 @@ function initializeEventListeners() {
             handleClarifySend();
         }
         // Shift+Enter will allow default behavior (new line)
+    });
+
+    // Settings dialog buttons
+    const settingsBtn = document.getElementById('settings-btn');
+    const settingsDialogCloseBtn = document.getElementById('settings-dialog-close-btn');
+    const settingsOkBtn = document.getElementById('settings-ok-btn');
+    const settingsCancelBtn = document.getElementById('settings-cancel-btn');
+    const settingsDialogOverlay = document.getElementById('settings-dialog-overlay');
+
+    settingsBtn.addEventListener('click', handleOpenSettingsDialog);
+    settingsDialogCloseBtn.addEventListener('click', handleCloseSettingsDialog);
+    settingsOkBtn.addEventListener('click', handleSaveSettings);
+    settingsCancelBtn.addEventListener('click', handleCloseSettingsDialog);
+    
+    // Close settings dialog when clicking overlay
+    settingsDialogOverlay.addEventListener('click', function(e) {
+        if (e.target === settingsDialogOverlay) {
+            handleCloseSettingsDialog();
+        }
+    });
+
+    // LLM type selector buttons
+    const llmBtns = document.querySelectorAll('.llm-btn');
+    llmBtns.forEach(btn => {
+        btn.addEventListener('click', handleLlmButtonClick);
     });
 
     // LLM Help dialog buttons
@@ -2080,6 +2106,65 @@ function updateClarifyButtonStates() {
         stopBtn.disabled = true;
         stopBtn.classList.remove('responding');
     }
+}
+
+// ===== SETTINGS DIALOG HANDLERS =====
+
+// Handle open settings dialog
+function handleOpenSettingsDialog() {
+    const settingsDialogOverlay = document.getElementById('settings-dialog-overlay');
+    settingsDialogOverlay.classList.add('active');
+    
+    // Load current LLM type
+    const currentLlmType = storage.get('setting:llm_type') || 'gemini';
+    
+    // Update active state of LLM buttons
+    document.querySelectorAll('.llm-btn').forEach(btn => {
+        const llmType = btn.getAttribute('data-llm-type');
+        if (llmType === currentLlmType) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+}
+
+// Handle close settings dialog
+function handleCloseSettingsDialog() {
+    const settingsDialogOverlay = document.getElementById('settings-dialog-overlay');
+    settingsDialogOverlay.classList.remove('active');
+}
+
+// Handle LLM button click
+function handleLlmButtonClick(event) {
+    const clickedBtn = event.currentTarget;
+    const selectedLlmType = clickedBtn.getAttribute('data-llm-type');
+    
+    // Update active state
+    document.querySelectorAll('.llm-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    clickedBtn.classList.add('active');
+}
+
+// Handle save settings
+function handleSaveSettings() {
+    // Get selected LLM type
+    const activeLlmBtn = document.querySelector('.llm-btn.active');
+    if (activeLlmBtn) {
+        const selectedLlmType = activeLlmBtn.getAttribute('data-llm-type');
+        
+        // Save to storage
+        storage.set('setting:llm_type', selectedLlmType);
+        
+        // Update LLM instance
+        llm.setType(selectedLlmType);
+        
+        console.log(`[Settings] LLM type changed to: ${selectedLlmType}`);
+    }
+    
+    // Close dialog
+    handleCloseSettingsDialog();
 }
 
 // Update dialog button states

@@ -412,7 +412,7 @@ class Llm {
         }
 
         if (this.storage.get('setting:llm_type') == null) {
-            this.storage.set('setting:llm_type', 'gemini');
+            this.storage.set('setting:llm_type', 'mlcaiwebllm');
         }
     }
 

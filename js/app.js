@@ -164,9 +164,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize LLM settings
     llm.initSettingPlaceholders();
 
-    // Set LLM type from saved preference or default to 'gemini'
-    const savedLlmType = storage.get('setting:llm_type') || 'gemini';
+    // Set LLM type from saved preference or default to 'mlcaiwebllm'
+    const savedLlmType = storage.get('setting:llm_type') || 'mlcaiwebllm';
     llm.setType(savedLlmType);
+
+    // Update LLM button active state
+    document.querySelectorAll('.llm-btn').forEach(btn => {
+        if (btn.getAttribute('data-llm-type') === savedLlmType) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
 
     // Configure marked.js
     if (typeof marked !== 'undefined') {
@@ -2153,7 +2162,7 @@ function handleOpenSettingsDialog() {
     settingsDialogOverlay.classList.add('active');
     
     // Load current LLM type
-    const currentLlmType = storage.get('setting:llm_type') || 'gemini';
+    const currentLlmType = storage.get('setting:llm_type') || 'mlcaiwebllm';
     
     // Update active state of LLM buttons
     document.querySelectorAll('.llm-btn').forEach(btn => {

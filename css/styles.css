@@ -1340,3 +1340,199 @@ body {
     font-size: 11px;
     margin-right: 4px;
 }
+
+/* Library Dialog Styles */
+.library-dialog {
+    width: 800px;
+    max-width: 90vw;
+    max-height: 85vh;
+    min-height: 600px;
+}
+
+.library-content {
+    padding: 0;
+    max-height: 650px;
+    min-height: 500px;
+    overflow: auto;
+}
+
+.library-explorer {
+    padding: 12px;
+}
+
+/* Tree Explorer Styles */
+.tree-item {
+    user-select: none;
+    margin: 2px 0;
+}
+
+.tree-node {
+    display: flex;
+    align-items: center;
+    padding: 6px 8px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.15s ease;
+}
+
+.tree-node:hover {
+    background-color: var(--hover-bg);
+}
+
+.tree-node.selected {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.tree-node.folder {
+    font-weight: 500;
+}
+
+.tree-toggle {
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 4px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.tree-toggle.expanded {
+    transform: rotate(90deg);
+}
+
+.tree-toggle svg {
+    width: 12px;
+    height: 12px;
+    fill: currentColor;
+}
+
+.tree-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tree-icon svg {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+}
+
+.tree-label {
+    flex: 1;
+    font-size: 13px;
+}
+
+.tree-children {
+    margin-left: 20px;
+    display: none;
+}
+
+.tree-children.expanded {
+    display: block;
+}
+
+/* Library dialog button spacing */
+#dialog-library-btn {
+    margin-left: auto;
+}
+
+/* Model Loading Progress Indicator */
+.model-loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.model-loading-content {
+    background-color: var(--bg-primary);
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 500px;
+    overflow: hidden;
+}
+
+.model-loading-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--bg-secondary);
+}
+
+.model-loading-header h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.model-loading-cancel {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+}
+
+.model-loading-cancel:hover {
+    color: var(--text-primary);
+}
+
+.model-loading-body {
+    padding: 20px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background-color: var(--bg-secondary);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: #007acc;
+    transition: width 0.3s ease;
+    border-radius: 4px;
+}
+
+.progress-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.progress-details {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    max-height: 100px;
+    overflow-y: auto;
+}
+

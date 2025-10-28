@@ -180,6 +180,206 @@ class GeminiLLM extends ILLM {
     }
 }
 
+class MLCAIWebLLM extends ILLM {
+    constructor() {
+        super();
+        this.engine = null;
+        this.modelId = "Llama-3.2-3B-Instruct-q4f16_1-MLC";
+        this.initialized = false;
+        this.cancelled = false;
+    }
+
+    _showLoadingProgress() {
+        const overlay = document.getElementById('model-loading-overlay');
+        if (overlay) {
+            overlay.style.display = 'flex';
+        }
+        
+        // Set up cancel button
+        const cancelBtn = document.getElementById('model-loading-cancel-btn');
+        if (cancelBtn) {
+            cancelBtn.onclick = () => {
+                this.cancelled = true;
+                this._hideLoadingProgress();
+                this._updateProgress(0, 'Cancelled', 'Model loading was cancelled by user');
+            };
+        }
+    }
+
+    _hideLoadingProgress() {
+        const overlay = document.getElementById('model-loading-overlay');
+        if (overlay) {
+            overlay.style.display = 'none';
+        }
+    }
+
+    _updateProgress(progress, text, details) {
+        const progressFill = document.getElementById('model-progress-fill');
+        const progressText = document.getElementById('model-progress-text');
+        const progressDetails = document.getElementById('model-progress-details');
+        
+        if (progressFill) {
+            progressFill.style.width = `${(progress * 100).toFixed(1)}%`;
+        }
+        if (progressText) {
+            progressText.textContent = text || 'Loading...';
+        }
+        if (progressDetails) {
+            progressDetails.textContent = details || '';
+        }
+    }
+
+    async _ensureInitialized() {
+        if (this.initialized) {
+            return;
+        }
+
+        if (this.cancelled) {
+            throw new Error('Model loading was cancelled');
+        }
+
+        try {
+            // Wait for webllm to be available
+            if (typeof webllm === 'undefined') {
+                throw new Error('MLC AI WebLLM library not loaded. Please ensure the script is included in your HTML.');
+            }
+
+            // Show loading progress
+            this._showLoadingProgress();
+            this._updateProgress(0, 'Initializing...', 'Starting model download...');
+
+            // Initialize the WebLLM engine
+            this.engine = await webllm.CreateMLCEngine(this.modelId, {
+                initProgressCallback: (progress) => {
+                    if (this.cancelled) {
+                        throw new Error('Model loading was cancelled');
+                    }
+                    
+                    console.log('Model loading progress:', progress);
+                    
+                    // Update the progress UI
+                    const percentText = `${(progress.progress * 100).toFixed(1)}%`;
+                    this._updateProgress(
+                        progress.progress,
+                        `${percentText} - ${progress.text}`,
+                        `Time elapsed: ${progress.timeElapsed}s`
+                    );
+                }
+            });
+            
+            this.initialized = true;
+            console.log('MLC AI WebLLM initialized successfully');
+            
+            // Show completion
+            this._updateProgress(1, 'Model loaded successfully!', 'Ready to use');
+            
+            // Hide after a short delay
+            setTimeout(() => {
+                this._hideLoadingProgress();
+            }, 1500);
+            
+        } catch (error) {
+            console.error('Failed to initialize MLC AI WebLLM:', error);
+            
+            // Show error in progress UI
+            this._updateProgress(0, 'Error', error.message);
+            
+            // Hide after showing error
+            setTimeout(() => {
+                this._hideLoadingProgress();
+            }, 3000);
+            
+            throw new Error(`Failed to initialize WebLLM: ${error.message}`);
+        }
+    }
+
+    /**
+     * Get a response from a simple prompt
+     */
+    async answer(prompt) {
+        await this._ensureInitialized();
+        
+        const messages = [
+            { role: 'user', content: prompt }
+        ];
+
+        return await this._chat(messages);
+    }
+
+    /**
+     * Get a response from chat history
+     */
+    async chat(chatHistory) {
+        await this._ensureInitialized();
+        
+        const messages = chatHistory.map(msg => ({
+            role: msg.role,
+            content: msg.content || msg.text
+        }));
+
+        return await this._chat(messages);
+    }
+
+    /**
+     * Get a response from chat history with system prompt
+     */
+    async chatEx(system, chatHistory) {
+        await this._ensureInitialized();
+        
+        const messages = [
+            { role: 'system', content: system },
+            ...chatHistory.map(msg => ({
+                role: msg.role,
+                content: msg.content || msg.text
+            }))
+        ];
+
+        return await this._chat(messages);
+    }
+
+    /**
+     * Get a response from a prompt with system prompt
+     */
+    async answerEx(system, prompt) {
+        await this._ensureInitialized();
+        
+        const messages = [
+            { role: 'system', content: system },
+            { role: 'user', content: prompt }
+        ];
+
+        return await this._chat(messages);
+    }
+
+    async _chat(messages) {
+        try {
+            const completion = await this.engine.chat.completions.create({
+                messages: messages
+            });
+
+            if (completion.choices && completion.choices.length > 0) {
+                return completion.choices[0].message.content;
+            }
+
+            throw new Error('No response from WebLLM');
+        } catch (error) {
+            console.error('WebLLM chat error:', error);
+            throw new Error(`WebLLM chat failed: ${error.message}`);
+        }
+    }
+
+    /**
+     * Clean up resources
+     */
+    async dispose() {
+        if (this.engine) {
+            await this.engine.unload();
+            this.engine = null;
+            this.initialized = false;
+        }
+    }
+}
+
 class Llm {
     constructor(storage) {
         this.storage = storage;
@@ -215,6 +415,8 @@ class Llm {
                 throw new Error('Gemini API key is not set in settings.');
             }
             return new GeminiLLM(key);
+        } else if (this.type == 'mlcaiwebllm') {
+            return new MLCAIWebLLM();
         }
     }
 }

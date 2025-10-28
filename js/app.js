@@ -467,6 +467,25 @@ function initializeEventListeners() {
         }
     });
 
+    // Library dialog buttons
+    const dialogLibraryBtn = document.getElementById('dialog-library-btn');
+    const libraryDialogCloseBtn = document.getElementById('library-dialog-close-btn');
+    const libraryOpenBtn = document.getElementById('library-open-btn');
+    const libraryCancelBtn = document.getElementById('library-cancel-btn');
+    const libraryDialogOverlay = document.getElementById('library-dialog-overlay');
+
+    dialogLibraryBtn.addEventListener('click', handleOpenLibraryDialog);
+    libraryDialogCloseBtn.addEventListener('click', handleCloseLibraryDialog);
+    libraryOpenBtn.addEventListener('click', handleLibraryOpen);
+    libraryCancelBtn.addEventListener('click', handleCloseLibraryDialog);
+    
+    // Close library dialog when clicking overlay
+    libraryDialogOverlay.addEventListener('click', function(e) {
+        if (e.target === libraryDialogOverlay) {
+            handleCloseLibraryDialog();
+        }
+    });
+
     // Editor send button
     const editorSendBtn = document.getElementById('editor-send-btn');
     editorSendBtn.addEventListener('click', handleEditorSendClick);
@@ -2257,6 +2276,185 @@ function handleOpenLlmHelpDialog() {
 function handleCloseLlmHelpDialog() {
     const llmHelpDialogOverlay = document.getElementById('llm-help-dialog-overlay');
     llmHelpDialogOverlay.classList.remove('active');
+}
+
+// Library dialog state
+let selectedLibraryItem = null;
+
+// Handle open library dialog
+function handleOpenLibraryDialog() {
+    const libraryDialogOverlay = document.getElementById('library-dialog-overlay');
+    libraryDialogOverlay.classList.add('active');
+    
+    // Always rebuild the tree
+    buildLibraryTree();
+    
+    // Reset selection
+    selectedLibraryItem = null;
+    updateLibraryOpenButton();
+}
+
+// Handle close library dialog
+function handleCloseLibraryDialog() {
+    const libraryDialogOverlay = document.getElementById('library-dialog-overlay');
+    libraryDialogOverlay.classList.remove('active');
+    selectedLibraryItem = null;
+    updateLibraryOpenButton();
+}
+
+// Handle library open button
+function handleLibraryOpen() {
+    if (!selectedLibraryItem) return;
+    
+    // Get the problem name
+    const problemName = selectedLibraryItem.name;
+
+    // Get the problem description
+    const description = selectedLibraryItem.description;
+    
+    // Put it in the Add New Project textarea
+    const dialogInput = document.getElementById('project-dialog-input');
+    dialogInput.value = `${problemName}\n\n${description}`;
+    
+    // Close library dialog
+    handleCloseLibraryDialog();
+}
+
+// Update library open button state
+function updateLibraryOpenButton() {
+    const openBtn = document.getElementById('library-open-btn');
+    openBtn.disabled = !selectedLibraryItem;
+}
+
+// Build library tree structure
+function buildLibraryTree() {
+    const libraryExplorer = document.getElementById('library-explorer');
+    libraryExplorer.innerHTML = '';
+    
+    // Check if problemLibrary exists
+    if (typeof window.problemLibrary === 'undefined') {
+        console.error('problemLibrary is not defined!');
+        libraryExplorer.innerHTML = '<div style="padding: 20px; color: var(--text-secondary);">Error: Library data not loaded</div>';
+        return;
+    }
+    
+    // Build tree from problemLibrary
+    Object.keys(window.problemLibrary).forEach(rootName => {
+        const rootItem = createTreeFolder(rootName, window.problemLibrary[rootName], 0);
+        libraryExplorer.appendChild(rootItem);
+    });
+}
+
+// Create a tree folder element
+function createTreeFolder(name, content, level) {
+    const itemDiv = document.createElement('div');
+    itemDiv.className = 'tree-item';
+    
+    const nodeDiv = document.createElement('div');
+    nodeDiv.className = 'tree-node folder';
+    nodeDiv.style.paddingLeft = `${level * 12}px`;
+    
+    // Toggle arrow
+    const toggle = document.createElement('span');
+    toggle.className = 'tree-toggle';
+    toggle.innerHTML = `<svg viewBox="0 0 16 16"><path d="M6 4l4 4-4 4z"/></svg>`;
+    
+    // Folder icon
+    const icon = document.createElement('span');
+    icon.className = 'tree-icon';
+    icon.innerHTML = `<svg viewBox="0 0 16 16"><path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.311 1.184C7.985 3.648 8.48 4 9 4h4.5A1.5 1.5 0 0 1 15 5.5v7a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5v-9z"/></svg>`;
+    
+    // Label
+    const label = document.createElement('span');
+    label.className = 'tree-label';
+    label.textContent = name;
+    
+    nodeDiv.appendChild(toggle);
+    nodeDiv.appendChild(icon);
+    nodeDiv.appendChild(label);
+    
+    // Children container
+    const childrenDiv = document.createElement('div');
+    childrenDiv.className = 'tree-children';
+    
+    // Add children
+    Object.keys(content).forEach(childName => {
+        const childContent = content[childName];
+        
+        if (typeof childContent === 'string') {
+            // This is a file (problem)
+            const fileItem = createTreeFile(childName, childContent, level + 1);
+            childrenDiv.appendChild(fileItem);
+        } else {
+            // This is a folder (category)
+            const folderItem = createTreeFolder(childName, childContent, level + 1);
+            childrenDiv.appendChild(folderItem);
+        }
+    });
+    
+    itemDiv.appendChild(nodeDiv);
+    itemDiv.appendChild(childrenDiv);
+    
+    // Toggle functionality
+    toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggle.classList.toggle('expanded');
+        childrenDiv.classList.toggle('expanded');
+    });
+    
+    // Expand on folder click
+    nodeDiv.addEventListener('click', () => {
+        toggle.classList.toggle('expanded');
+        childrenDiv.classList.toggle('expanded');
+    });
+    
+    return itemDiv;
+}
+
+// Create a tree file element
+function createTreeFile(name, description, level) {
+    const itemDiv = document.createElement('div');
+    itemDiv.className = 'tree-item';
+    
+    const nodeDiv = document.createElement('div');
+    nodeDiv.className = 'tree-node file';
+    nodeDiv.style.paddingLeft = `${level * 12 + 20}px`;
+    
+    // File icon
+    const icon = document.createElement('span');
+    icon.className = 'tree-icon';
+    icon.innerHTML = `<svg viewBox="0 0 16 16"><path d="M4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H4zm0 1h8a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z"/></svg>`;
+    
+    // Label
+    const label = document.createElement('span');
+    label.className = 'tree-label';
+    label.textContent = name;
+    
+    nodeDiv.appendChild(icon);
+    nodeDiv.appendChild(label);
+    
+    // Click handler for file selection
+    nodeDiv.addEventListener('click', () => {
+        // Remove previous selection
+        document.querySelectorAll('.tree-node.selected').forEach(node => {
+            node.classList.remove('selected');
+        });
+        
+        // Add selection to this node
+        nodeDiv.classList.add('selected');
+        
+        // Store selected item
+        selectedLibraryItem = {
+            name: name,
+            description: description
+        };
+        
+        updateLibraryOpenButton();
+    });
+    
+    itemDiv.appendChild(nodeDiv);
+    
+    return itemDiv;
 }
 
 // Export functions for debugging (optional)

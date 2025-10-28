@@ -86,6 +86,7 @@
                     <button class="btn-secondary" id="dialog-stop-btn" disabled>Stop</button>
                     <button class="btn-secondary" id="dialog-cancel-btn">Cancel</button>
                     <button class="btn-secondary" id="dialog-random-btn">Random</button>
+                    <button class="btn-secondary" id="dialog-library-btn">Library</button>
                 </div>
             </div>
         </div>
@@ -105,6 +106,25 @@
                 <div class="dialog-actions">
                     <button class="btn-danger" id="delete-dialog-confirm-btn">Delete</button>
                     <button class="btn-secondary" id="delete-dialog-cancel-btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Library Dialog -->
+        <div class="dialog-overlay" id="library-dialog-overlay">
+            <div class="dialog-box library-dialog">
+                <div class="dialog-header">
+                    <h4>Problem Library</h4>
+                    <button class="dialog-close" id="library-dialog-close-btn" title="Close">×</button>
+                </div>
+                <div class="dialog-content library-content">
+                    <div class="library-explorer" id="library-explorer">
+                        <!-- Tree structure will be dynamically generated here -->
+                    </div>
+                </div>
+                <div class="dialog-actions">
+                    <button class="btn-primary" id="library-open-btn" disabled>Open</button>
+                    <button class="btn-secondary" id="library-cancel-btn">Cancel</button>
                 </div>
             </div>
         </div>
@@ -245,9 +265,33 @@
         </div>
     </div>
 
+    <!-- Model Loading Progress Indicator -->
+    <div id="model-loading-overlay" class="model-loading-overlay" style="display: none;">
+        <div class="model-loading-content">
+            <div class="model-loading-header">
+                <h4>Loading AI Model</h4>
+                <button class="model-loading-cancel" id="model-loading-cancel-btn" title="Cancel">×</button>
+            </div>
+            <div class="model-loading-body">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="model-progress-fill"></div>
+                </div>
+                <div class="progress-text" id="model-progress-text">Initializing...</div>
+                <div class="progress-details" id="model-progress-details"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MLC AI WebLLM -->
+    <script type="module">
+        import * as webllm from "https://esm.run/@mlc-ai/web-llm";
+        window.webllm = webllm;
+    </script>
+
     <!-- JavaScript -->
     <script src="js/externallibs/storage.js"></script>
     <script src="js/externallibs/llm.js"></script>
+    <script src="js/library.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

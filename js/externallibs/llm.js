@@ -383,13 +383,21 @@ class MLCAIWebLLM extends ILLM {
 class Llm {
     constructor(storage) {
         this.storage = storage;
+        this.cachedInstance = null;
+        this.cachedType = null;
+        this.cachedApiKey = null;
 
         let type = this.storage.get('setting:llm_type');
         this.type = type;
     }
 
-    setType(type) {
+    async setType(type) {
         this.type = type;
+
+        // Dispose of old instance if type changed
+        if (this.cachedInstance && this.cachedType !== type) {
+            await this._disposeInstance();
+        }
 
         try {
             this.llm = this._get();
@@ -408,15 +416,49 @@ class Llm {
         }
     }
 
+    async _disposeInstance() {
+        if (this.cachedInstance && typeof this.cachedInstance.dispose === 'function') {
+            try {
+                await this.cachedInstance.dispose();
+                console.log('LLM instance disposed successfully');
+            } catch (error) {
+                console.error('Error disposing LLM instance:', error);
+            }
+        }
+        this.cachedInstance = null;
+        this.cachedType = null;
+        this.cachedApiKey = null;
+    }
+
     _get() {
         if (this.type == 'gemini') {
             let key = this.storage.get('setting:gemini_api_key');
             if (!key) {
                 throw new Error('Gemini API key is not set in settings.');
             }
-            return new GeminiLLM(key);
+            
+            // Reuse cached instance if type and API key haven't changed
+            if (this.cachedInstance && this.cachedType === 'gemini' && this.cachedApiKey === key) {
+                return this.cachedInstance;
+            }
+            
+            // Create new instance
+            this.cachedInstance = new GeminiLLM(key);
+            this.cachedType = 'gemini';
+            this.cachedApiKey = key;
+            return this.cachedInstance;
+            
         } else if (this.type == 'mlcaiwebllm') {
-            return new MLCAIWebLLM();
+            // Reuse cached instance if type hasn't changed
+            if (this.cachedInstance && this.cachedType === 'mlcaiwebllm') {
+                return this.cachedInstance;
+            }
+            
+            // Create new instance
+            this.cachedInstance = new MLCAIWebLLM();
+            this.cachedType = 'mlcaiwebllm';
+            this.cachedApiKey = null;
+            return this.cachedInstance;
         }
     }
 }

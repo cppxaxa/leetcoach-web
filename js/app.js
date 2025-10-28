@@ -1583,10 +1583,47 @@ Return ONLY the JSON object, nothing else.`;
         }
         
         // Parse the JSON response
-        const projectData = parseProjectJSON(response);
+        let projectData = parseProjectJSON(response);
         
         if (!projectData) {
-            throw new Error('Failed to parse project data from LLM response');
+            // First attempt failed - try simpler prompt
+            console.log('[Project Creation] First attempt failed, trying simpler prompt...');
+            
+            // Update loading indicator
+            const thinkingDiv = outputDiv.querySelector('.llm-thinking p');
+            if (thinkingDiv) {
+                thinkingDiv.textContent = 'Retrying with simpler format...';
+            }
+            
+            // Simpler prompt - just name and difficulty
+            const simplePrompt = `Based on this request: "${message}"
+
+Generate a LeetCode problem. Return ONLY a JSON object with this structure (no markdown, no code blocks):
+{
+  "name": "Problem Name",
+  "difficulty": "Easy|Medium|Hard"
+}
+
+The difficulty must be exactly one of: Easy, Medium, or Hard.
+Return ONLY the JSON, nothing else.`;
+            
+            const simpleResponse = await llmInstance.answer(simplePrompt);
+            
+            // Check if request was aborted
+            if (dialogAbortController.signal.aborted) {
+                return;
+            }
+            
+            // Parse the simple response
+            projectData = parseProjectJSON(simpleResponse);
+            
+            if (!projectData) {
+                throw new Error('Failed to parse project data from LLM response');
+            }
+            
+            // Add simple boilerplate code
+            projectData.pythonCode = `# ${projectData.name}\n# TODO: Implement your solution here\n`;
+            projectData.csharpCode = `// ${projectData.name}\nclass Program\n{\n    static void Main()\n    {\n        // TODO: Implement your solution here\n    }\n}`;
         }
         
         // Create the project
@@ -2223,13 +2260,13 @@ function parseProjectJSON(response) {
         
         // Ensure code fields exist (use defaults if missing)
         if (!data.pythonCode || typeof data.pythonCode !== 'string') {
-            console.warn('Missing pythonCode, using default template');
-            data.pythonCode = `def solution():\n    """\n    ${data.name}\n    """\n    # Your solution here\n    pass`;
+            console.warn('Missing pythonCode, will use default template');
+            data.pythonCode = null; // Will be filled with simple boilerplate by caller
         }
         
         if (!data.csharpCode || typeof data.csharpCode !== 'string') {
-            console.warn('Missing csharpCode, using default template');
-            data.csharpCode = `public class Solution {\n    // ${data.name}\n    public void Solve() {\n        // Your solution here\n        \n    }\n}`;
+            console.warn('Missing csharpCode, will use default template');
+            data.csharpCode = null; // Will be filled with simple boilerplate by caller
         }
         
         return {
@@ -2277,8 +2314,11 @@ function createProjectFromData(projectData) {
     storage.set(`project:${finalProjectId}:metadata`, metadata);
     
     // Store boilerplate code for both languages
-    storage.set(`project:${finalProjectId}:python:code`, projectData.pythonCode);
-    storage.set(`project:${finalProjectId}:csharp:code`, projectData.csharpCode);
+    const pythonCode = projectData.pythonCode || `# ${projectData.name}\n# TODO: Implement your solution here\n`;
+    const csharpCode = projectData.csharpCode || `// ${projectData.name}\nclass Program\n{\n    static void Main()\n    {\n        // TODO: Implement your solution here\n    }\n}`;
+    
+    storage.set(`project:${finalProjectId}:python:code`, pythonCode);
+    storage.set(`project:${finalProjectId}:csharp:code`, csharpCode);
     
     // Initialize empty chat history
     storage.set(`project:${finalProjectId}:llmChatHistory`, []);

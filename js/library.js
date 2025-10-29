@@ -33,7 +33,6 @@ window.problemLibrary = {
             "Unique Paths": "There is a robot on an m x n grid. The robot is initially located at the top-left corner (i.e., grid[0][0]). The robot tries to move to the bottom-right corner (i.e., grid[m - 1][n - 1]). The robot can only move either down or right at any point in time.\n\nGiven the two integers m and n, return the number of possible unique paths that the robot can take to reach the bottom-right corner.",
             "Jump Game": "You are given an integer array nums. You are initially positioned at the array's first index, and each element in the array represents your maximum jump length at that position.\n\nReturn true if you can reach the last index, or false otherwise."
         },
-        
         "Graph": {
             "Clone Graph": "Given a reference of a node in a connected undirected graph.\n\nReturn a deep copy (clone) of the graph.\n\nEach node in the graph contains a value (int) and a list (List[Node]) of its neighbors.",
             "Course Schedule": "There are a total of numCourses courses you have to take, labeled from 0 to numCourses - 1. You are given an array prerequisites where prerequisites[i] = [ai, bi] indicates that you must take course bi first if you want to take course ai.\n\nFor example, the pair [0, 1], indicates that to take course 0 you have to first take course 1.\n\nReturn true if you can finish all courses. Otherwise, return false.",
@@ -147,8 +146,7 @@ window.problemLibrary = {
             "IPO": "Difficulty: HARD\nFrequency: 49.0\nAcceptance Rate: 0.5302026973246128\nLink: https://leetcode.com/problems/ipo\nTopics: Array, Greedy, Sorting, Heap (Priority Queue)",
             "Partition Array Into Two Arrays to Minimize Sum Difference": "Difficulty: HARD\nFrequency: 49.0\nAcceptance Rate: 0.21752369802097132\nLink: https://leetcode.com/problems/partition-array-into-two-arrays-to-minimize-sum-difference\nTopics: Array, Two Pointers, Binary Search, Dynamic Programming, Bit Manipulation, Ordered Set, Bitmask",
             "First Missing Positive": "Difficulty: HARD\nFrequency: 42.3\nAcceptance Rate: 0.4108465766394882\nLink: https://leetcode.com/problems/first-missing-positive\nTopics: Array, Hash Table",
-            "The Skyline Problem": "Difficulty: HARD\nFrequency: 33.0\nAcceptance Rate: 0.4396233271583687\nLink: https://leetcode.com/problems/the-skyline-problem\nTopics: Array, Divide and Conquer, Binary Indexed Tree, Segment Tree, Line Sweep, Heap (Priority Queue), Ordered Set"
-            ,
+            "The Skyline Problem": "Difficulty: HARD\nFrequency: 33.0\nAcceptance Rate: 0.4396233271583687\nLink: https://leetcode.com/problems/the-skyline-problem\nTopics: Array, Divide and Conquer, Binary Indexed Tree, Segment Tree, Line Sweep, Heap (Priority Queue), Ordered Set",
             "Top K Frequent Elements": "Difficulty: MEDIUM\nFrequency: 54.3\nAcceptance Rate: 0.6456598417590443\nLink: https://leetcode.com/problems/top-k-frequent-elements\nTopics: Array, Hash Table, Divide and Conquer, Sorting, Heap (Priority Queue), Bucket Sort, Counting, Quickselect",
             "House Robber": "Difficulty: MEDIUM\nFrequency: 42.3\nAcceptance Rate: 0.5230497484771839\nLink: https://leetcode.com/problems/house-robber\nTopics: Array, Dynamic Programming",
             "Kth Smallest Element in a Sorted Matrix": "Difficulty: MEDIUM\nFrequency: 42.3\nAcceptance Rate: 0.6356660329525441\nLink: https://leetcode.com/problems/kth-smallest-element-in-a-sorted-matrix\nTopics: Array, Binary Search, Sorting, Heap (Priority Queue), Matrix",
@@ -247,8 +245,7 @@ window.problemLibrary = {
             "Meeting Rooms II": "Difficulty: MEDIUM\nFrequency: 58.6\nAcceptance Rate: 0.5214164659444622\nLink: https://leetcode.com/problems/meeting-rooms-ii\nTopics: Array, Two Pointers, Greedy, Sorting, Heap (Priority Queue), Prefix Sum",
             "Task Scheduler": "Difficulty: MEDIUM\nFrequency: 58.6\nAcceptance Rate: 0.6153909539748507\nLink: https://leetcode.com/problems/task-scheduler\nTopics: Array, Hash Table, Greedy, Sorting, Heap (Priority Queue), Counting",
             "IPO": "Difficulty: HARD\nFrequency: 49.0\nAcceptance Rate: 0.5302026973246128\nLink: https://leetcode.com/problems/ipo\nTopics: Array, Greedy, Sorting, Heap (Priority Queue)",
-            "The Skyline Problem": "Difficulty: HARD\nFrequency: 33.0\nAcceptance Rate: 0.4396233271583687\nLink: https://leetcode.com/problems/the-skyline-problem\nTopics: Array, Divide and Conquer, Binary Indexed Tree, Segment Tree, Line Sweep, Heap (Priority Queue), Ordered Set"
-            ,
+            "The Skyline Problem": "Difficulty: HARD\nFrequency: 33.0\nAcceptance Rate: 0.4396233271583687\nLink: https://leetcode.com/problems/the-skyline-problem\nTopics: Array, Divide and Conquer, Binary Indexed Tree, Segment Tree, Line Sweep, Heap (Priority Queue), Ordered Set",
             "Find Median from Data Stream": "Difficulty: HARD\nFrequency: 42.3\nAcceptance Rate: 0.5327816407313548\nLink: https://leetcode.com/problems/find-median-from-data-stream\nTopics: Two Pointers, Design, Sorting, Heap (Priority Queue), Data Stream",
             "Merge k Sorted Lists": "Difficulty: HARD\nFrequency: 42.3\nAcceptance Rate: 0.567741907864408\nLink: https://leetcode.com/problems/merge-k-sorted-lists\nTopics: Linked List, Divide and Conquer, Heap (Priority Queue), Merge Sort"
         },
@@ -308,11 +305,9 @@ window.problemLibrary = {
             "Russian Doll Envelopes": "Difficulty: HARD\nFrequency: 42.2\nAcceptance Rate: 0.3732991914997274\nLink: https://leetcode.com/problems/russian-doll-envelopes\nTopics: Array, Binary Search, Dynamic Programming, Sorting",
             "Trapping Rain Water": "Difficulty: HARD\nFrequency: 30.0\nAcceptance Rate: 0.6510195479297859\nLink: https://leetcode.com/problems/trapping-rain-water\nTopics: Array, Two Pointers, Dynamic Programming, Stack, Monotonic Stack",
             "Tallest Billboard": "Difficulty: HARD\nFrequency: 30.0\nAcceptance Rate: 0.5187288448273096\nLink: https://leetcode.com/problems/tallest-billboard\nTopics: Array, Dynamic Programming",
-            "Last Day Where You Can Still Cross": "Difficulty: HARD\nFrequency: 30.0\nAcceptance Rate: 0.6231939687413881\nLink: https://leetcode.com/problems/last-day-where-you-can-still-cross\nTopics: Array, Binary Search, Depth-First Search, Breadth-First Search, Union Find, Matrix"
-            ,
+            "Last Day Where You Can Still Cross": "Difficulty: HARD\nFrequency: 30.0\nAcceptance Rate: 0.6231939687413881\nLink: https://leetcode.com/problems/last-day-where-you-can-still-cross\nTopics: Array, Binary Search, Depth-First Search, Breadth-First Search, Union Find, Matrix",
             "Online Election": "Difficulty: MEDIUM\nFrequency: 46.2\nAcceptance Rate: 0.5184691560254644\nLink: https://leetcode.com/problems/online-election\nTopics: Array, Hash Table, Binary Search, Design",
-            "Minimum Time to Visit a Cell In a Grid": "Difficulty: HARD\nFrequency: 58.7\nAcceptance Rate: 0.568054168958796\nLink: https://leetcode.com/problems/minimum-time-to-visit-a-cell-in-a-grid\nTopics: Array, Breadth-First Search, Graph, Heap (Priority Queue), Matrix, Shortest Path"
-            ,
+            "Minimum Time to Visit a Cell In a Grid": "Difficulty: HARD\nFrequency: 58.7\nAcceptance Rate: 0.568054168958796\nLink: https://leetcode.com/problems/minimum-time-to-visit-a-cell-in-a-grid\nTopics: Array, Breadth-First Search, Graph, Heap (Priority Queue), Matrix, Shortest Path",
             "Coin Change": "Difficulty: MEDIUM\nFrequency: 30.0\nAcceptance Rate: 0.4649545396006711\nLink: https://leetcode.com/problems/coin-change\nTopics: Array, Dynamic Programming, Breadth-First Search",
             "Majority Element II": "Difficulty: MEDIUM\nFrequency: 52.2\nAcceptance Rate: 0.5438036123865881\nLink: https://leetcode.com/problems/majority-element-ii\nTopics: Array, Hash Table, Sorting, Counting"
         },
@@ -332,8 +327,7 @@ window.problemLibrary = {
             "Search Suggestions System": "Difficulty: MEDIUM\nFrequency: 30.0\nAcceptance Rate: 0.6505032264917545\nLink: https://leetcode.com/problems/search-suggestions-system\nTopics: Array, String, Binary Search, Trie, Sorting, Heap (Priority Queue)",
             "Verbal Arithmetic Puzzle": "Difficulty: HARD\nFrequency: 58.7\nAcceptance Rate: 0.3477800583342335\nLink: https://leetcode.com/problems/verbal-arithmetic-puzzle\nTopics: Array, Math, String, Backtracking",
             "Text Justification": "Difficulty: HARD\nFrequency: 56.8\nAcceptance Rate: 0.48149935664104093\nLink: https://leetcode.com/problems/text-justification\nTopics: Array, String, Simulation",
-            "String Transformation": "Difficulty: HARD\nFrequency: 46.2\nAcceptance Rate: 0.2510979075174374\nLink: https://leetcode.com/problems/string-transformation\nTopics: Math, String, Dynamic Programming, String Matching"
-            ,
+            "String Transformation": "Difficulty: HARD\nFrequency: 46.2\nAcceptance Rate: 0.2510979075174374\nLink: https://leetcode.com/problems/string-transformation\nTopics: Math, String, Dynamic Programming, String Matching",
             "Minimum Cost to Convert String II": "Difficulty: HARD\nFrequency: 58.7\nAcceptance Rate: 0.25539014373716634\nLink: https://leetcode.com/problems/minimum-cost-to-convert-string-ii\nTopics: Array, String, Dynamic Programming, Graph, Trie, Shortest Path"
         },
         "Dynamic Programming": {
@@ -344,8 +338,7 @@ window.problemLibrary = {
             "Jump Game II": "Difficulty: MEDIUM\nFrequency: 37.1\nAcceptance Rate: 0.415032966531176\nLink: https://leetcode.com/problems/jump-game-ii\nTopics: Array, Dynamic Programming, Greedy",
             "Unique Paths II": "Difficulty: MEDIUM\nFrequency: 30.0\nAcceptance Rate: 0.43154324141961387\nLink: https://leetcode.com/problems/unique-paths-ii\nTopics: Array, Dynamic Programming, Matrix",
             "Cherry Pickup": "Difficulty: HARD\nFrequency: 58.7\nAcceptance Rate: 0.3786948581341589\nLink: https://leetcode.com/problems/cherry-pickup\nTopics: Array, Dynamic Programming, Matrix",
-            "Tallest Billboard": "Difficulty: HARD\nFrequency: 30.0\nAcceptance Rate: 0.5187288448273096\nLink: https://leetcode.com/problems/tallest-billboard\nTopics: Array, Dynamic Programming"
-            ,
+            "Tallest Billboard": "Difficulty: HARD\nFrequency: 30.0\nAcceptance Rate: 0.5187288448273096\nLink: https://leetcode.com/problems/tallest-billboard\nTopics: Array, Dynamic Programming",
             "Count Vowels Permutation": "Difficulty: HARD\nFrequency: 37.1\nAcceptance Rate: 0.61484920403603\nLink: https://leetcode.com/problems/count-vowels-permutation\nTopics: Dynamic Programming"
         },
         "Tree": {
@@ -377,8 +370,7 @@ window.problemLibrary = {
             "Smallest Missing Non-negative Integer After Operations": "Difficulty: MEDIUM\nFrequency: 58.7\nAcceptance Rate: 0.3987738925814309\nLink: https://leetcode.com/problems/smallest-missing-non-negative-integer-after-operations\nTopics: Array, Hash Table, Math, Greedy",
             "Integer to Roman": "Difficulty: MEDIUM\nFrequency: 37.1\nAcceptance Rate: 0.6861927118001762\nLink: https://leetcode.com/problems/integer-to-roman\nTopics: Hash Table, Math, String",
             "Number of Digit One": "Difficulty: HARD\nFrequency: 30.0\nAcceptance Rate: 0.3599159436598703\nLink: https://leetcode.com/problems/number-of-digit-one\nTopics: Math, Dynamic Programming, Recursion",
-            "String Transformation": "Difficulty: HARD\nFrequency: 46.2\nAcceptance Rate: 0.2510979075174374\nLink: https://leetcode.com/problems/string-transformation\nTopics: Math, String, Dynamic Programming, String Matching"
-            ,
+            "String Transformation": "Difficulty: HARD\nFrequency: 46.2\nAcceptance Rate: 0.2510979075174374\nLink: https://leetcode.com/problems/string-transformation\nTopics: Math, String, Dynamic Programming, String Matching",
             "Nth Highest Salary": "Difficulty: MEDIUM\nFrequency: 37.1\nAcceptance Rate: 0.38039031689086605\nLink: https://leetcode.com/problems/nth-highest-salary\nTopics: Database"
         },
         "Backtracking": {
@@ -419,8 +411,7 @@ window.problemLibrary = {
         "Binary": {
             "Number of Possible Sets of Closing Branches": "Difficulty: HARD\nFrequency: 58.7\nAcceptance Rate: 0.48448935008192245\nLink: https://leetcode.com/problems/number-of-possible-sets-of-closing-branches\nTopics: Bit Manipulation, Graph, Heap (Priority Queue), Enumeration, Shortest Path"
         }
-    }
-    ,
+    },
     "Microsoft Sheet": {
         "Array": {
             "Two Sum": "Difficulty: EASY\nFrequency: 100.0\nAcceptance Rate: 0.5577699843955036\nLink: https://leetcode.com/problems/two-sum\nTopics: Array, Hash Table",
@@ -453,8 +444,7 @@ window.problemLibrary = {
             "Combination Sum II": "Difficulty: MEDIUM\nFrequency: 37.7\nAcceptance Rate: 0.5767453180420465\nLink: https://leetcode.com/problems/combination-sum-ii\nTopics: Array, Backtracking",
             "Multiply Strings": "Difficulty: MEDIUM\nFrequency: 37.7\nAcceptance Rate: 0.4228941429852704\nLink: https://leetcode.com/problems/multiply-strings\nTopics: Math, String, Simulation",
             "Spiral Matrix II": "Difficulty: MEDIUM\nFrequency: 37.7\nAcceptance Rate: 0.734312719680276\nLink: https://leetcode.com/problems/spiral-matrix-ii\nTopics: Array, Matrix, Simulation",
-            "3Sum Closest": "Difficulty: MEDIUM\nFrequency: 31.1\nAcceptance Rate: 0.468869600214817\nLink: https://leetcode.com/problems/3sum-closest\nTopics: Array, Two Pointers, Sorting"
-            ,
+            "3Sum Closest": "Difficulty: MEDIUM\nFrequency: 31.1\nAcceptance Rate: 0.468869600214817\nLink: https://leetcode.com/problems/3sum-closest\nTopics: Array, Two Pointers, Sorting",
             "First Missing Positive": "Difficulty: HARD\nFrequency: 42.3\nAcceptance Rate: 0.4108465766394882\nLink: https://leetcode.com/problems/first-missing-positive\nTopics: Array, Hash Table",
             "Search in Rotated Sorted Array II": "Difficulty: MEDIUM\nFrequency: 37.7\nAcceptance Rate: 0.4552909516332913\nLink: https://leetcode.com/problems/search-in-rotated-sorted-array-ii\nTopics: Array, Binary Search",
             "Remove Element": "Difficulty: EASY\nFrequency: 60.0\nAcceptance Rate: 0.5152502866234081\nLink: https://leetcode.com/problems/remove-element\nTopics: Array, Two Pointers"
@@ -480,8 +470,7 @@ window.problemLibrary = {
             "Longest Valid Parentheses": "Difficulty: HARD\nFrequency: 47.2\nAcceptance Rate: 0.3631311456770452\nLink: https://leetcode.com/problems/longest-valid-parentheses\nTopics: String, Dynamic Programming, Stack",
             "Minimum Window Substring": "Difficulty: HARD\nFrequency: 41.4\nAcceptance Rate: 0.45350747638232236\nLink: https://leetcode.com/problems/minimum-window-substring\nTopics: Hash Table, String, Sliding Window",
             "Wildcard Matching": "Difficulty: HARD\nFrequency: 39.0\nAcceptance Rate: 0.2989833857244126\nLink: https://leetcode.com/problems/wildcard-matching\nTopics: String, Dynamic Programming, Greedy, Recursion",
-            "Substring with Concatenation of All Words": "Difficulty: HARD\nFrequency: 26.7\nAcceptance Rate: 0.32997499702748073\nLink: https://leetcode.com/problems/substring-with-concatenation-of-all-words\nTopics: Hash Table, String, Sliding Window"
-            ,
+            "Substring with Concatenation of All Words": "Difficulty: HARD\nFrequency: 26.7\nAcceptance Rate: 0.32997499702748073\nLink: https://leetcode.com/problems/substring-with-concatenation-of-all-words\nTopics: Hash Table, String, Sliding Window",
             "Group Anagrams": "Difficulty: MEDIUM\nFrequency: 56.8\nAcceptance Rate: 0.7092883082997726\nLink: https://leetcode.com/problems/group-anagrams\nTopics: Array, Hash Table, String, Sorting"
         },
         "Dynamic Programming": {
@@ -503,8 +492,7 @@ window.problemLibrary = {
             "Regular Expression Matching": "Difficulty: HARD\nFrequency: 51.6\nAcceptance Rate: 0.29280131010169236\nLink: https://leetcode.com/problems/regular-expression-matching\nTopics: String, Dynamic Programming, Recursion",
             "Longest Valid Parentheses": "Difficulty: HARD\nFrequency: 47.2\nAcceptance Rate: 0.3631311456770452\nLink: https://leetcode.com/problems/longest-valid-parentheses\nTopics: String, Dynamic Programming, Stack",
             "Minimum Window Substring": "Difficulty: HARD\nFrequency: 41.4\nAcceptance Rate: 0.45350747638232236\nLink: https://leetcode.com/problems/minimum-window-substring\nTopics: Hash Table, String, Sliding Window",
-            "Wildcard Matching": "Difficulty: HARD\nFrequency: 39.0\nAcceptance Rate: 0.2989833857244126\nLink: https://leetcode.com/problems/wildcard-matching\nTopics: String, Dynamic Programming, Greedy, Recursion"
-            ,
+            "Wildcard Matching": "Difficulty: HARD\nFrequency: 39.0\nAcceptance Rate: 0.2989833857244126\nLink: https://leetcode.com/problems/wildcard-matching\nTopics: String, Dynamic Programming, Greedy, Recursion",
             "Edit Distance": "Difficulty: HARD\nFrequency: 58.7\nAcceptance Rate: 0.3717950891041048\nLink: https://leetcode.com/problems/edit-distance\nTopics: String, Dynamic Programming"
         },
         "Tree": {
@@ -540,8 +528,7 @@ window.problemLibrary = {
             "Pow(x, n)": "Difficulty: MEDIUM\nFrequency: 52.2\nAcceptance Rate: 0.3702318641045828\nLink: https://leetcode.com/problems/powx-n\nTopics: Math, Recursion",
             "Divide Two Integers": "Difficulty: MEDIUM\nFrequency: 49.5\nAcceptance Rate: 0.18396975085033054\nLink: https://leetcode.com/problems/divide-two-integers\nTopics: Math, Bit Manipulation",
             "Unique Paths": "Difficulty: MEDIUM\nFrequency: 52.8\nAcceptance Rate: 0.6577285437608488\nLink: https://leetcode.com/problems/unique-paths\nTopics: Math, Dynamic Programming, Combinatorics",
-            "Unique Binary Search Trees": "Difficulty: MEDIUM\nFrequency: 21.0\nAcceptance Rate: 0.6244520536210353\nLink: https://leetcode.com/problems/unique-binary-search-trees\nTopics: Math, Dynamic Programming, Tree, Binary Search Tree, Binary Tree"
-            ,
+            "Unique Binary Search Trees": "Difficulty: MEDIUM\nFrequency: 21.0\nAcceptance Rate: 0.6244520536210353\nLink: https://leetcode.com/problems/unique-binary-search-trees\nTopics: Math, Dynamic Programming, Tree, Binary Search Tree, Binary Tree",
             "Sqrt(x)": "Difficulty: EASY\nFrequency: 52.2\nAcceptance Rate: 0.3672205022880447\nLink: https://leetcode.com/problems/sqrtx\nTopics: Math, Binary Search"
         },
         "Backtracking": {
@@ -556,8 +543,7 @@ window.problemLibrary = {
             "Combinations": "Difficulty: MEDIUM\nFrequency: 31.1\nAcceptance Rate: 0.7289648238875795\nLink: https://leetcode.com/problems/combinations\nTopics: Backtracking",
             "3Sum Closest": "Difficulty: MEDIUM\nFrequency: 31.1\nAcceptance Rate: 0.468869600214817\nLink: https://leetcode.com/problems/3sum-closest\nTopics: Array, Two Pointers, Sorting",
             "N-Queens": "Difficulty: HARD\nFrequency: 50.9\nAcceptance Rate: 0.7281704967757537\nLink: https://leetcode.com/problems/n-queens\nTopics: Array, Backtracking",
-            "N-Queens II": "Difficulty: HARD\nFrequency: 21.0\nAcceptance Rate: 0.7672955295381376\nLink: https://leetcode.com/problems/n-queens-ii\nTopics: Backtracking"
-            ,
+            "N-Queens II": "Difficulty: HARD\nFrequency: 21.0\nAcceptance Rate: 0.7672955295381376\nLink: https://leetcode.com/problems/n-queens-ii\nTopics: Backtracking",
             "Permutations II": "Difficulty: MEDIUM\nFrequency: 47.5\nAcceptance Rate: 0.5549990977431888\nLink: https://leetcode.com/problems/permutations-ii\nTopics: Array, Backtracking"
         },
         "Stack": {
@@ -583,8 +569,7 @@ window.problemLibrary = {
             "Search in Rotated Sorted Array": "Difficulty: MEDIUM\nFrequency: 68.5\nAcceptance Rate: 0.4283722138743466\nLink: https://leetcode.com/problems/search-in-rotated-sorted-array\nTopics: Array, Binary Search",
             "Find First and Last Position of Element in Sorted Array": "Difficulty: MEDIUM\nFrequency: 54.6\nAcceptance Rate: 0.4682873183580639\nLink: https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array\nTopics: Array, Binary Search",
             "Search a 2D Matrix": "Difficulty: MEDIUM\nFrequency: 50.9\nAcceptance Rate: 0.5228957258337302\nLink: https://leetcode.com/problems/search-a-2d-matrix\nTopics: Array, Binary Search, Matrix",
-            "Median of Two Sorted Arrays": "Difficulty: HARD\nFrequency: 72.9\nAcceptance Rate: 0.43814591586025275\nLink: https://leetcode.com/problems/median-of-two-sorted-arrays\nTopics: Array, Binary Search, Divide and Conquer"
-            ,
+            "Median of Two Sorted Arrays": "Difficulty: HARD\nFrequency: 72.9\nAcceptance Rate: 0.43814591586025275\nLink: https://leetcode.com/problems/median-of-two-sorted-arrays\nTopics: Array, Binary Search, Divide and Conquer",
             "Sqrt(x)": "Difficulty: EASY\nFrequency: 52.2\nAcceptance Rate: 0.3672205022880447\nLink: https://leetcode.com/problems/sqrtx\nTopics: Math, Binary Search"
         },
         "Trie": {
@@ -593,13 +578,11 @@ window.problemLibrary = {
         "Bit Manipulation": {
             "Add Binary": "Difficulty: EASY\nFrequency: 41.4\nAcceptance Rate: 0.5567701348180015\nLink: https://leetcode.com/problems/add-binary\nTopics: Math, String, Bit Manipulation, Simulation",
             "Divide Two Integers": "Difficulty: MEDIUM\nFrequency: 49.5\nAcceptance Rate: 0.18396975085033054\nLink: https://leetcode.com/problems/divide-two-integers\nTopics: Math, Bit Manipulation"
-        }
-        ,
+        },
         "Backtracking Extra": {
             "Sudoku Solver": "Difficulty: HARD\nFrequency: 62.5\nAcceptance Rate: 0.5860903198788493\nLink: https://leetcode.com/problems/sudoku-solver\nTopics: Array, Backtracking"
         }
-    }
-    ,
+    },
     "Airbnb Sheet": {
         "Array": {
             "Contains Duplicate II": "Difficulty: EASY\nFrequency: 72.4\nAcceptance Rate: 0.4904986450077176\nLink: https://leetcode.com/problems/contains-duplicate-ii\nTopics: Array, Hash Table, Sliding Window",
@@ -623,8 +606,7 @@ window.problemLibrary = {
             "Shortest Path to Get All Keys": "Difficulty: HARD\nFrequency: 74.3\nAcceptance Rate: 0.537030042053839\nLink: https://leetcode.com/problems/shortest-path-to-get-all-keys\nTopics: Array, Bit Manipulation, Breadth-First Search, Matrix",
             "Employee Free Time": "Difficulty: HARD\nFrequency: 74.3\nAcceptance Rate: 0.7259759595862569\nLink: https://leetcode.com/problems/employee-free-time\nTopics: Array, Line Sweep, Sorting, Heap (Priority Queue)",
             "Maximum Candies You Can Get from Boxes": "Difficulty: HARD\nFrequency: 72.4\nAcceptance Rate: 0.6877100758915674\nLink: https://leetcode.com/problems/maximum-candies-you-can-get-from-boxes\nTopics: Array, Breadth-First Search, Graph",
-            "Minimum Number of Flips to Convert Binary Matrix to Zero Matrix": "Difficulty: HARD\nFrequency: 70.4\nAcceptance Rate: 0.7195955875149401\nLink: https://leetcode.com/problems/minimum-number-of-flips-to-convert-binary-matrix-to-zero-matrix\nTopics: Array, Hash Table, Bit Manipulation, Breadth-First Search, Matrix"
-            ,
+            "Minimum Number of Flips to Convert Binary Matrix to Zero Matrix": "Difficulty: HARD\nFrequency: 70.4\nAcceptance Rate: 0.7195955875149401\nLink: https://leetcode.com/problems/minimum-number-of-flips-to-convert-binary-matrix-to-zero-matrix\nTopics: Array, Hash Table, Bit Manipulation, Breadth-First Search, Matrix",
             "Contains Duplicate III": "Difficulty: MEDIUM\nFrequency: 58.7\nAcceptance Rate: 0.2193840565956839\nLink: https://leetcode.com/problems/contains-duplicate-iii\nTopics: Array, Sliding Window, Sorting, Ordered Set"
         },
         "String": {
@@ -642,8 +624,7 @@ window.problemLibrary = {
             "Maximum Profit in Job Scheduling": "Difficulty: HARD\nFrequency: 94.5\nAcceptance Rate: 0.5441735043380527\nLink: https://leetcode.com/problems/maximum-profit-in-job-scheduling\nTopics: Array, Binary Search, Dynamic Programming, Sorting",
             "Minimum Window Substring": "Difficulty: HARD\nFrequency: 74.3\nAcceptance Rate: 0.45350701011329586\nLink: https://leetcode.com/problems/minimum-window-substring\nTopics: Hash Table, String, Sliding Window",
             "Word Search II": "Difficulty: HARD\nFrequency: 72.4\nAcceptance Rate: 0.3732633211647155\nLink: https://leetcode.com/problems/word-search-ii\nTopics: Array, String, Backtracking, Trie, Matrix",
-            "Regular Expression Matching": "Difficulty: HARD\nFrequency: 70.4\nAcceptance Rate: 0.29280116328628375\nLink: https://leetcode.com/problems/regular-expression-matching\nTopics: String, Dynamic Programming, Recursion"
-            ,
+            "Regular Expression Matching": "Difficulty: HARD\nFrequency: 70.4\nAcceptance Rate: 0.29280116328628375\nLink: https://leetcode.com/problems/regular-expression-matching\nTopics: String, Dynamic Programming, Recursion",
             "Shortest Uncommon Substring in an Array": "Difficulty: HARD\nFrequency: 33.0\nAcceptance Rate: 0.4010000000000000\nLink: https://leetcode.com/problems/shortest-uncommon-substring-in-an-array\nTopics: Array, String, Trie"
         },
         "Dynamic Programming": {
@@ -661,8 +642,7 @@ window.problemLibrary = {
             "Minimum Number of Vertices to Reach All Nodes": "Difficulty: MEDIUM\nFrequency: 70.4\nAcceptance Rate: 0.8115726945174798\nLink: https://leetcode.com/problems/minimum-number-of-vertices-to-reach-all-nodes\nTopics: Graph",
             "Smallest Common Region": "Difficulty: MEDIUM\nFrequency: 84.1\nAcceptance Rate: 0.679230513317286\nLink: https://leetcode.com/problems/smallest-common-region\nTopics: Array, Hash Table, String, Tree, Depth-First Search, Breadth-First Search",
             "Employee Free Time": "Difficulty: HARD\nFrequency: 74.3\nAcceptance Rate: 0.7259759595862569\nLink: https://leetcode.com/problems/employee-free-time\nTopics: Array, Line Sweep, Sorting, Heap (Priority Queue)",
-            "Maximum Candies You Can Get from Boxes": "Difficulty: HARD\nFrequency: 72.4\nAcceptance Rate: 0.6877100758915674\nLink: https://leetcode.com/problems/maximum-candies-you-can-get-from-boxes\nTopics: Array, Breadth-First Search, Graph"
-            ,
+            "Maximum Candies You Can Get from Boxes": "Difficulty: HARD\nFrequency: 72.4\nAcceptance Rate: 0.6877100758915674\nLink: https://leetcode.com/problems/maximum-candies-you-can-get-from-boxes\nTopics: Array, Breadth-First Search, Graph",
             "Alien Dictionary": "Difficulty: HARD\nFrequency: 42.3\nAcceptance Rate: 0.3490000000000000\nLink: https://leetcode.com/problems/alien-dictionary\nTopics: Graph, Topological Sort, BFS, DFS"
         },
         "Design": {
@@ -706,8 +686,7 @@ window.problemLibrary = {
         },
         "Trie": {
             "Smallest Common Region": "Difficulty: MEDIUM\nFrequency: 84.1\nAcceptance Rate: 0.679230513317286\nLink: https://leetcode.com/problems/smallest-common-region\nTopics: Array, Hash Table, String, Tree, Depth-First Search, Breadth-First Search",
-            "Word Search II": "Difficulty: HARD\nFrequency: 72.4\nAcceptance Rate: 0.3732633211647155\nLink: https://leetcode.com/problems/word-search-ii\nTopics: Array, String, Backtracking, Trie, Matrix"
-            ,
+            "Word Search II": "Difficulty: HARD\nFrequency: 72.4\nAcceptance Rate: 0.3732633211647155\nLink: https://leetcode.com/problems/word-search-ii\nTopics: Array, String, Backtracking, Trie, Matrix",
             "Palindrome Pairs": "Difficulty: HARD\nFrequency: 58.7\nAcceptance Rate: 0.3740000000000000\nLink: https://leetcode.com/problems/palindrome-pairs\nTopics: Array, Hash Table, String, Trie"
         },
         "Bit Manipulation": {
@@ -717,9 +696,8 @@ window.problemLibrary = {
             "IP to CIDR": "Difficulty: MEDIUM\nFrequency: 70.4\nAcceptance Rate: 0.5492354970683057\nLink: https://leetcode.com/problems/ip-to-cidr\nTopics: String, Bit Manipulation",
             "Shortest Path to Get All Keys": "Difficulty: HARD\nFrequency: 74.3\nAcceptance Rate: 0.537030042053839\nLink: https://leetcode.com/problems/shortest-path-to-get-all-keys\nTopics: Array, Bit Manipulation, Breadth-First Search, Matrix",
             "Minimum Number of Flips to Convert Binary Matrix to Zero Matrix": "Difficulty: HARD\nFrequency: 70.4\nAcceptance Rate: 0.7195955875149401\nLink: https://leetcode.com/problems/minimum-number-of-flips-to-convert-binary-matrix-to-zero-matrix\nTopics: Array, Hash Table, Bit Manipulation, Breadth-First Search, Matrix"
-        }
-    ,
-    "Linked List": {
+        },
+        "Linked List": {
             "Add Two Numbers": "Difficulty: MEDIUM\nFrequency: 78.3\nAcceptance Rate: 0.4622507658063209\nLink: https://leetcode.com/problems/add-two-numbers\nTopics: Linked List, Math, Recursion",
             "Intersection of Two Linked Lists": "Difficulty: EASY\nFrequency: 58.7\nAcceptance Rate: 0.5143508240815807\nLink: https://leetcode.com/problems/intersection-of-two-linked-lists\nTopics: Hash Table, Linked List, Two Pointers"
         },

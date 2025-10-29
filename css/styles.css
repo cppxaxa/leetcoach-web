@@ -1713,3 +1713,109 @@ body {
     overflow-y: auto;
 }
 
+/* Progress Dialog */
+.progress-dialog {
+    max-width: 600px;
+}
+
+.progress-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.progress-step {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    opacity: 0.4;
+    transition: opacity 0.3s ease;
+}
+
+.progress-step.active {
+    opacity: 1;
+}
+
+.progress-step.completed {
+    opacity: 1;
+}
+
+.step-icon {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.step-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-color);
+    border-top-color: var(--accent-color);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    display: none;
+}
+
+.progress-step.active .step-spinner {
+    display: block;
+}
+
+.step-check {
+    color: #4caf50;
+    display: none;
+}
+
+.progress-step.completed .step-check {
+    display: block;
+    animation: checkmark-pop 0.3s ease-out;
+}
+
+.progress-step.completed .step-spinner {
+    display: none;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes checkmark-pop {
+    0% {
+        transform: scale(0);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.step-content {
+    flex: 1;
+}
+
+.step-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.step-description {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.progress-step.active .step-title {
+    color: var(--accent-color);
+}
+
+.progress-step.completed .step-title {
+    color: #4caf50;
+}
+

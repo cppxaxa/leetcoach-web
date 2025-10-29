@@ -1590,6 +1590,51 @@ public class Solution {
     }
 }
 
+// Progress Dialog Functions
+function showProgressDialog() {
+    const progressOverlay = document.getElementById('progress-dialog-overlay');
+    if (progressOverlay) {
+        // Reset all steps
+        const steps = progressOverlay.querySelectorAll('.progress-step');
+        steps.forEach(step => {
+            step.classList.remove('active', 'completed');
+        });
+        progressOverlay.classList.add('active');
+    }
+}
+
+function hideProgressDialog() {
+    const progressOverlay = document.getElementById('progress-dialog-overlay');
+    if (progressOverlay) {
+        progressOverlay.classList.remove('active');
+    }
+}
+
+function updateProgressStep(stepNumber, status, description) {
+    const progressOverlay = document.getElementById('progress-dialog-overlay');
+    if (!progressOverlay) return;
+    
+    const step = progressOverlay.querySelector(`.progress-step[data-step="${stepNumber}"]`);
+    if (!step) return;
+    
+    // Update description if provided
+    if (description) {
+        const descElement = step.querySelector('.step-description');
+        if (descElement) {
+            descElement.textContent = description;
+        }
+    }
+    
+    // Update status
+    if (status === 'active') {
+        step.classList.add('active');
+        step.classList.remove('completed');
+    } else if (status === 'completed') {
+        step.classList.remove('active');
+        step.classList.add('completed');
+    }
+}
+
 // Handle dialog send button
 async function handleDialogSend() {
     const dialogInput = document.getElementById('project-dialog-input');
@@ -1611,6 +1656,9 @@ async function handleDialogSend() {
     // Set responding state
     isDialogLLMResponding = true;
     updateDialogButtonStates();
+    
+    // Show progress dialog
+    showProgressDialog();
     
     // Add to LLM output
     const outputDiv = document.getElementById('markdown-output');
@@ -1636,6 +1684,9 @@ async function handleDialogSend() {
     outputDiv.scrollTop = outputDiv.scrollHeight;
     
     try {
+        // Step 1: Processing request
+        updateProgressStep(1, 'active', 'Analyzing problem requirements...');
+        
         // Create abort controller for this request
         dialogAbortController = new AbortController();
         
@@ -1670,8 +1721,12 @@ Return ONLY the JSON object, nothing else.`;
         
         // Check if request was aborted
         if (dialogAbortController.signal.aborted) {
+            hideProgressDialog();
             return;
         }
+        
+        // Complete step 1
+        updateProgressStep(1, 'completed', 'Requirements analyzed');
         
         // Parse the JSON response
         let projectData = parseProjectJSON(response);
@@ -1702,6 +1757,7 @@ Return ONLY the JSON, nothing else.`;
             
             // Check if request was aborted
             if (dialogAbortController.signal.aborted) {
+                hideProgressDialog();
                 return;
             }
             
@@ -1722,18 +1778,37 @@ Return ONLY the JSON, nothing else.`;
                 throw new Error('Failed to parse project data from LLM response');
             }
             
-            // Generate boilerplate code separately
+            // Step 2: Generate Python boilerplate
+            updateProgressStep(2, 'active', 'Creating Python template...');
             console.log('[Project Creation] Generating Python boilerplate...');
             thinkingDiv.textContent = 'Generating Python code template...';
             projectData.pythonCode = await generatePythonBoilerplate(projectData.name, llmInstance);
+            updateProgressStep(2, 'completed', 'Python template created');
             
+            // Step 3: Generate C# boilerplate
+            updateProgressStep(3, 'active', 'Creating C# template...');
             console.log('[Project Creation] Generating C# boilerplate...');
             thinkingDiv.textContent = 'Generating C# code template...';
             projectData.csharpCode = await generateCSharpBoilerplate(projectData.name, llmInstance);
+            updateProgressStep(3, 'completed', 'C# template created');
+        } else {
+            // First parse succeeded - mark steps 2 and 3 as completed quickly
+            updateProgressStep(2, 'active', 'Python template included...');
+            await new Promise(resolve => setTimeout(resolve, 200));
+            updateProgressStep(2, 'completed', 'Python template ready');
+            
+            updateProgressStep(3, 'active', 'C# template included...');
+            await new Promise(resolve => setTimeout(resolve, 200));
+            updateProgressStep(3, 'completed', 'C# template ready');
         }
+        
+        // Step 4: Finalize project
+        updateProgressStep(4, 'active', 'Setting up project structure...');
         
         // Create the project
         const projectId = createProjectFromData(projectData);
+        
+        updateProgressStep(4, 'completed', 'Project created successfully');
         
         // Show success message
         const successHtml = `
@@ -1755,13 +1830,18 @@ Return ONLY the JSON, nothing else.`;
         // Refresh project list
         handleRefreshProjects();
         
+        // Wait a bit to show completed state, then hide progress dialog
+        setTimeout(() => {
+            hideProgressDialog();
+        }, 1000);
+        
         // Select and load the new project
         setTimeout(() => {
             const projectItem = document.querySelector(`.project-item[data-project="${projectId}"]`);
             if (projectItem) {
                 projectItem.click();
             }
-        }, 100);
+        }, 1100);
         
         // Clear and close dialog
         dialogInput.value = '';
@@ -1769,6 +1849,9 @@ Return ONLY the JSON, nothing else.`;
         
     } catch (error) {
         console.error('Dialog LLM Error:', error);
+        
+        // Hide progress dialog
+        hideProgressDialog();
         
         // Remove loading indicator
         const thinkingDiv = outputDiv.querySelector('.llm-thinking');
@@ -1802,6 +1885,9 @@ function handleDialogStop() {
         dialogAbortController.abort();
         dialogAbortController = null;
     }
+    
+    // Hide progress dialog
+    hideProgressDialog();
     
     isDialogLLMResponding = false;
     updateDialogButtonStates();

@@ -1542,6 +1542,7 @@ async function generatePythonBoilerplate(problemName, llmInstance) {
     const prompt = `Generate Python boilerplate code for a LeetCode problem called "${problemName}". 
 Return ONLY the Python code, no explanation, no markdown code blocks.
 Include a function/class definition with docstring and a comment showing where to write the solution.
+The code should not have the solution, and only the boilerplate structure with a pass statement.
 Example format:
 def problemName(param):
     """
@@ -1568,6 +1569,7 @@ async function generateCSharpBoilerplate(problemName, llmInstance) {
     const prompt = `Generate C# boilerplate code for a LeetCode problem called "${problemName}".
 Return ONLY the C# code, no explanation, no markdown code blocks.
 Include a Solution class with a method and a comment showing where to write the solution.
+The code should not have the solution, and only the boilerplate structure with the comment '// Your solution here'.
 Example format:
 public class Solution {
     public ReturnType MethodName(ParamType param) {

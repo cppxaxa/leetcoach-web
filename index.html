@@ -359,10 +359,10 @@
                 <button class="dialog-close" id="llm-help-dialog-close-btn" title="Close">×</button>
             </div>
             <div class="dialog-content">
-                <div style="line-height: 1.6;">
+                <div class="help-dialog-text" style="line-height: 1.6;">
                     <p style="margin-bottom: 12px;">We currently support two LLM options:</p>
                     
-                    <h5 style="margin-top: 16px; margin-bottom: 8px; color: #58a6ff;">Option 1: Gemini (Requires API Key)</h5>
+                    <h5 class="help-section-title" style="margin-top: 16px; margin-bottom: 8px;">Option 1: Gemini (Requires API Key)</h5>
                     <ol style="margin-left: 20px; margin-bottom: 12px;">
                         <li style="margin-bottom: 8px;">
                             <strong>Download Settings:</strong> Click the download icon (↓) in the left navigation pane to export your current settings as a JSON file.
@@ -379,11 +379,11 @@
                             <strong>Upload Settings:</strong> Click the upload icon (↑) in the left navigation pane and select your modified JSON file to import the settings.
                         </li>
                     </ol>
-                    <p style="margin-bottom: 16px; padding: 10px; background-color: var(--bg-secondary); border-radius: 4px; font-size: 13px;">
+                    <p class="help-note" style="margin-bottom: 16px; padding: 10px; background-color: var(--bg-secondary); border-radius: 4px; font-size: 13px;">
                         <strong>Note:</strong> Your API key will be stored locally in your browser and is never sent to our servers. Only you have access to it.
                     </p>
 
-                    <h5 style="margin-top: 16px; margin-bottom: 8px; color: #58a6ff;">Option 2: MLC AI Web LLM (Completely Private)</h5>
+                    <h5 class="help-section-title" style="margin-top: 16px; margin-bottom: 8px;">Option 2: MLC AI Web LLM (Completely Private)</h5>
                     <p style="margin-left: 20px; margin-bottom: 8px;">
                         MLC AI Web LLM downloads a language model directly into your browser cache and runs entirely on your device. This option is:
                     </p>
@@ -392,7 +392,7 @@
                         <li style="margin-bottom: 4px;"><strong>No API Key Required:</strong> No external services needed</li>
                         <li style="margin-bottom: 4px;"><strong>Uses Your Device:</strong> Requires client machine compute power and initial model download</li>
                     </ul>
-                    <p style="margin-left: 20px; padding: 10px; background-color: var(--bg-secondary); border-radius: 4px; font-size: 13px;">
+                    <p class="help-note" style="margin-left: 20px; padding: 10px; background-color: var(--bg-secondary); border-radius: 4px; font-size: 13px;">
                         <strong>Note:</strong> First-time setup will download the model to your browser cache. Performance depends on your device's capabilities.
                     </p>
                 </div>

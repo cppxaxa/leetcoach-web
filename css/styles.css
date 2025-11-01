@@ -1252,6 +1252,36 @@ body.mobile-mode .resize-handle:active:before {
     font-size: 14px;
 }
 
+/* Help Dialog Styles */
+.help-dialog-text {
+    color: var(--text-primary);
+}
+
+.help-dialog-text p,
+.help-dialog-text li,
+.help-dialog-text strong,
+.help-dialog-text ul,
+.help-dialog-text ol {
+    color: var(--text-primary);
+}
+
+.help-dialog-text code {
+    background-color: var(--code-bg);
+    color: var(--text-primary);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 12px;
+}
+
+.help-section-title {
+    color: var(--accent-color);
+}
+
+.help-note {
+    color: var(--text-primary);
+}
+
 /* Clarify Dialog Styles */
 .clarify-dialog {
     max-width: 700px;

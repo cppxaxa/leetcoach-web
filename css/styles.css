@@ -1985,7 +1985,7 @@ body.mobile-mode .sidebar:not(.collapsed) ~ .main-content {
 /* Mobile: Sidebar expand button positioning - inside Editor panel header */
 body.mobile-mode .sidebar-expand-btn {
     position: fixed;
-    top: 8px;
+    top: 4px;
     left: 8px;
     transform: none;
     width: 36px;

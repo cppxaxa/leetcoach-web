@@ -2069,6 +2069,7 @@ body.mobile-mode .dialog-content {
 
 body.mobile-mode .dialog-actions {
     padding: 14px 16px;
+    padding-bottom: max(80px, env(safe-area-inset-bottom, 80px));
     border-top: 2px solid var(--border-color);
     min-height: 64px;
     flex-wrap: wrap;

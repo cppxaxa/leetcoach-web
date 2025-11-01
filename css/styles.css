@@ -1053,6 +1053,31 @@ body {
     background-color: var(--accent-hover);
 }
 
+/* Mobile: Larger resize handles for better touch interaction */
+body.mobile-mode .resize-handle {
+    height: 12px;
+    cursor: ns-resize;
+    touch-action: none;
+}
+
+body.mobile-mode .resize-handle:before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 4px;
+    background-color: var(--text-secondary);
+    border-radius: 2px;
+    opacity: 0.5;
+}
+
+body.mobile-mode .resize-handle:active:before {
+    opacity: 1;
+    background-color: var(--accent-color);
+}
+
 /* Hide resize handles when any panel is maximized */
 .main-content:has(.editor-panel.maximized) .resize-handle,
 .main-content:has(.output-panel.maximized) .resize-handle,
@@ -1315,8 +1340,8 @@ body {
 
 .clarify-input-container textarea {
     width: 100%;
-    min-height: 80px;
-    max-height: 150px;
+    min-height: 60px;
+    max-height: 120px;
     padding: 10px 12px;
     border: 1px solid var(--border-color);
     border-radius: 6px;
@@ -1818,4 +1843,343 @@ body {
 .progress-step.completed .step-title {
     color: #4caf50;
 }
+
+/* ============================================
+   MOBILE-SPECIFIC STYLES
+   ============================================ */
+
+/* Mobile: Full-screen sidebar */
+body.mobile-mode .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    z-index: 5000;
+    box-shadow: none;
+    border-right: none;
+}
+
+body.mobile-mode .sidebar.collapsed {
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    border-right: none;
+    overflow: hidden;
+}
+
+/* Mobile: Adjust main content when sidebar is expanded */
+body.mobile-mode .main-content {
+    position: relative;
+    z-index: 1;
+}
+
+body.mobile-mode .sidebar:not(.collapsed) ~ .main-content {
+    display: none;
+}
+
+/* Mobile: Sidebar expand button positioning - inside Editor panel header */
+body.mobile-mode .sidebar-expand-btn {
+    position: fixed;
+    top: 8px;
+    left: 8px;
+    transform: none;
+    width: 36px;
+    height: 36px;
+    z-index: 1001;
+    background-color: var(--input-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+body.mobile-mode .sidebar-expand-btn:hover {
+    background-color: var(--hover-color);
+}
+
+body.mobile-mode .sidebar.collapsed ~ .sidebar-expand-btn {
+    display: flex;
+}
+
+/* Hide expand button when sidebar is open in mobile mode */
+body.mobile-mode .sidebar:not(.collapsed) ~ .sidebar-expand-btn {
+    display: none;
+}
+
+/* Mobile: Add padding to Editor panel header to make room for expand button */
+body.mobile-mode .editor-panel .panel-header {
+    position: relative;
+}
+
+body.mobile-mode .sidebar.collapsed ~ .main-content .editor-panel .panel-header h4 {
+    margin-left: 40px;
+}
+
+/* Mobile: Larger touch targets for buttons */
+body.mobile-mode .sidebar-toggle,
+body.mobile-mode .refresh-btn,
+body.mobile-mode .add-project-btn,
+body.mobile-mode .settings-btn,
+body.mobile-mode .storage-btn {
+    padding: 10px;
+    min-width: 40px;
+    min-height: 40px;
+}
+
+body.mobile-mode .maximize-btn {
+    padding: 8px 10px;
+    min-width: 36px;
+    min-height: 36px;
+}
+
+body.mobile-mode .output-controls button {
+    padding: 8px 12px;
+    font-size: 13px;
+    min-height: 36px;
+}
+
+body.mobile-mode .language-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+    min-height: 36px;
+}
+
+body.mobile-mode .theme-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+    min-height: 36px;
+}
+
+body.mobile-mode .btn-primary,
+body.mobile-mode .btn-secondary {
+    padding: 8px 16px;
+    font-size: 13px;
+    min-height: 40px;
+}
+
+body.mobile-mode .project-item {
+    padding: 12px 14px;
+    margin-bottom: 6px;
+    min-height: 48px;
+}
+
+body.mobile-mode .project-name {
+    font-size: 14px;
+}
+
+/* Mobile: Always show delete button (no hover on touch devices) */
+body.mobile-mode .project-delete-btn {
+    opacity: 1;
+}
+
+/* Mobile: Larger panel headers */
+body.mobile-mode .panel-header {
+    padding: 8px 12px;
+    min-height: 44px;
+}
+
+body.mobile-mode .panel-header h4 {
+    font-size: 13px;
+}
+
+/* Mobile: Larger input areas */
+body.mobile-mode #user-input,
+body.mobile-mode #clarify-input,
+body.mobile-mode .dialog-content textarea {
+    font-size: 16px; /* Prevents zoom on focus in iOS */
+    padding: 12px;
+}
+
+/* Mobile: Sidebar header adjustments */
+body.mobile-mode .sidebar-header {
+    padding: 12px 14px;
+}
+
+body.mobile-mode .sidebar-title {
+    gap: 8px;
+}
+
+/* Mobile: Better spacing for theme and storage controls */
+body.mobile-mode .theme-switcher {
+    margin: 8px 0;
+}
+
+body.mobile-mode .storage-controls {
+    gap: 4px;
+}
+
+/* Mobile: Make dialogs full-width on small screens */
+body.mobile-mode .dialog-box {
+    width: 100%;
+    max-width: 100vw;
+    max-height: 100vh;
+    height: 100vh;
+    border-radius: 0;
+    border: none;
+    animation: dialogSlideUp 0.3s ease-out;
+}
+
+@keyframes dialogSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+body.mobile-mode .library-dialog {
+    width: 100%;
+    max-width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+}
+
+body.mobile-mode .dialog-overlay {
+    background-color: var(--bg-primary);
+    backdrop-filter: none;
+    align-items: stretch;
+    justify-content: stretch;
+}
+
+body.mobile-mode .dialog-header {
+    padding: 14px 16px;
+    min-height: 52px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+body.mobile-mode .dialog-header h4 {
+    font-size: 16px;
+}
+
+body.mobile-mode .dialog-close {
+    width: 32px;
+    height: 32px;
+    font-size: 28px;
+}
+
+body.mobile-mode .dialog-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+}
+
+body.mobile-mode .dialog-actions {
+    padding: 14px 16px;
+    border-top: 2px solid var(--border-color);
+    min-height: 64px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+body.mobile-mode .dialog-actions button {
+    padding: 10px 18px;
+    font-size: 14px;
+    min-height: 44px;
+    flex: 1 1 auto;
+    min-width: calc(50% - 5px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Mobile: Clarify dialog - keep buttons in single row */
+body.mobile-mode .clarify-dialog .dialog-actions {
+    flex-wrap: nowrap;
+    gap: 8px;
+}
+
+body.mobile-mode .clarify-dialog .dialog-actions button {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 10px 8px;
+    font-size: 13px;
+}
+
+body.mobile-mode .dialog-content textarea {
+    font-size: 16px;
+    min-height: 120px;
+}
+
+/* Mobile: Special handling for single-row buttons */
+body.mobile-mode .dialog-actions button:only-child {
+    min-width: 100%;
+}
+
+/* Mobile: Clarify dialog adjustments */
+body.mobile-mode .clarify-content {
+    height: 100%;
+    max-height: 100%;
+}
+
+body.mobile-mode .clarify-chat-history {
+    flex: 1;
+    min-height: 0;
+}
+
+body.mobile-mode .clarify-input-container textarea {
+    min-height: 70px;
+    max-height: 150px;
+}
+
+/* Mobile: Library dialog adjustments */
+body.mobile-mode .library-content {
+    max-height: 100%;
+    min-height: 0;
+    flex: 1;
+}
+
+/* Mobile: Adjust scrollbar for touch */
+body.mobile-mode ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+body.mobile-mode ::-webkit-scrollbar-thumb {
+    border-radius: 6px;
+}
+
+/* Mobile: Ensure editor panel can be expanded when needed */
+body.mobile-mode .editor-panel {
+    transition: height 0.3s ease, min-height 0.3s ease;
+}
+
+body.mobile-mode .editor-panel:not(.panel-collapsed) {
+    min-height: 200px;
+}
+
+/* Mobile: Better spacing in collapsed state */
+body.mobile-mode .editor-panel.panel-collapsed,
+body.mobile-mode .output-panel.panel-collapsed,
+body.mobile-mode .input-panel.panel-collapsed {
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+}
+
+/* Mobile: Ensure collapsed panel headers are still accessible */
+body.mobile-mode .panel-collapsed .panel-header {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* Mobile: Help button */
+body.mobile-mode .help-btn {
+    min-width: 36px;
+    min-height: 36px;
+    font-size: 14px;
+}
+
+/* Mobile landscape orientation adjustments */
+@media (max-width: 896px) and (orientation: landscape) {
+    body.mobile-mode .sidebar {
+        width: 50% !important;
+        min-width: 50% !important;
+        max-width: 50% !important;
+    }
+}
+
 

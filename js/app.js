@@ -11,9 +11,9 @@ let isLLMResponding = false;
 let isSidebarCollapsed = false;
 let maximizedPanel = null; // Track which panel is maximized
 let panelStates = {
-    editor: { collapsed: false, originalHeight: null },
-    output: { collapsed: false, originalHeight: null },
-    input: { collapsed: false, originalHeight: null }
+    editor: { collapsed: false, originalHeight: null, wasCollapsedBeforeMaximize: false },
+    output: { collapsed: false, originalHeight: null, wasCollapsedBeforeMaximize: false },
+    input: { collapsed: false, originalHeight: null, wasCollapsedBeforeMaximize: false }
 };
 
 // LLM chat state
@@ -243,6 +243,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (savedPanelHeights.output) outputPanel.style.height = savedPanelHeights.output + 'px';
         if (savedPanelHeights.input) inputPanel.style.height = savedPanelHeights.input + 'px';
     }
+    
+    // Initialize mobile-specific behavior
+    initializeMobileMode();
     
     // Refresh projects on launch
     handleRefreshProjects();
@@ -755,6 +758,11 @@ function handleProjectClick(event) {
     const projectItem = event.currentTarget;
     const projectId = projectItem.getAttribute('data-project');
     
+    // Auto-collapse sidebar in mobile mode
+    if (window.isMobile() && !isSidebarCollapsed) {
+        handleSidebarToggle();
+    }
+    
     // Update active state
     document.querySelectorAll('.project-item').forEach(item => {
         item.classList.remove('active');
@@ -1240,6 +1248,55 @@ function handlePanelCollapse(panelType) {
     }, 300);
 }
 
+// Initialize mobile-specific behavior
+function initializeMobileMode() {
+    if (!window.isMobile()) {
+        // Not a mobile device, skip mobile-specific setup
+        return;
+    }
+    
+    // Add mobile class to body for CSS targeting
+    document.body.classList.add('mobile-mode');
+    
+    // Collapse editor panel by default on mobile
+    const editorPanel = document.querySelector('.editor-panel');
+    if (editorPanel && !panelStates.editor.collapsed) {
+        // Save current height before collapsing
+        const currentHeight = editorPanel.offsetHeight;
+        panelStates.editor.originalHeight = currentHeight + 'px';
+        
+        editorPanel.classList.add('panel-collapsed');
+        panelStates.editor.collapsed = true;
+    }
+    
+    // Ensure Details (output) and Chat (input) panels are expanded
+    const outputPanel = document.querySelector('.output-panel');
+    const inputPanel = document.querySelector('.input-panel');
+    
+    if (outputPanel && panelStates.output.collapsed) {
+        outputPanel.classList.remove('panel-collapsed');
+        if (panelStates.output.originalHeight) {
+            outputPanel.style.height = panelStates.output.originalHeight;
+        }
+        panelStates.output.collapsed = false;
+    }
+    
+    if (inputPanel && panelStates.input.collapsed) {
+        inputPanel.classList.remove('panel-collapsed');
+        inputPanel.style.height = '';
+        panelStates.input.collapsed = false;
+    }
+    
+    // Collapse sidebar by default on mobile if not already collapsed
+    if (!isSidebarCollapsed) {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) {
+            sidebar.classList.add('collapsed');
+            isSidebarCollapsed = true;
+        }
+    }
+}
+
 // Handle maximize panel
 function handleMaximizePanel(panelType) {
     const editorPanel = document.querySelector('.editor-panel');
@@ -1260,7 +1317,23 @@ function handleMaximizePanel(panelType) {
         // Restore
         targetPanel.classList.remove('maximized');
         maximizedPanel = null;
+        
+        // If in mobile mode and it's the editor, restore collapsed state if it was collapsed before
+        if (window.isMobile() && panelType === 'editor' && panelStates.editor.wasCollapsedBeforeMaximize) {
+            targetPanel.classList.add('panel-collapsed');
+            panelStates.editor.collapsed = true;
+            panelStates.editor.wasCollapsedBeforeMaximize = false;
+        }
     } else {
+        // If panel is collapsed, expand it before maximizing
+        if (targetPanel.classList.contains('panel-collapsed')) {
+            targetPanel.classList.remove('panel-collapsed');
+            if (panelStates[panelType]) {
+                panelStates[panelType].wasCollapsedBeforeMaximize = true;
+                panelStates[panelType].collapsed = false;
+            }
+        }
+        
         // Maximize - first remove from any other panel
         editorPanel.classList.remove('maximized');
         outputPanel.classList.remove('maximized');
@@ -1272,11 +1345,24 @@ function handleMaximizePanel(panelType) {
     }
     
     // Trigger Monaco Editor layout update after animation
+    // Use multiple updates to ensure it works in mobile mode
     setTimeout(() => {
         if (monacoEditor) {
             monacoEditor.layout();
         }
-    }, 100);
+    }, 50);
+    
+    setTimeout(() => {
+        if (monacoEditor) {
+            monacoEditor.layout();
+        }
+    }, 150);
+    
+    setTimeout(() => {
+        if (monacoEditor) {
+            monacoEditor.layout();
+        }
+    }, 350);
 }
 
 // Auto-collapse sidebar on small screens
@@ -1284,8 +1370,9 @@ window.addEventListener('resize', function() {
     const isSmallScreen = window.innerWidth < 768;
     const sidebar = document.getElementById('sidebar');
     
-    if (isSmallScreen && !isSidebarCollapsed) {
-        // Auto-collapse on small screens
+    // Don't auto-collapse on desktop mode
+    if (window.isMobile() && isSmallScreen && !isSidebarCollapsed) {
+        // Auto-collapse on small screens in mobile mode
         handleSidebarToggle();
     }
 });
@@ -1327,6 +1414,32 @@ function initPanelResize() {
             e.preventDefault();
         });
         
+        // Touch support for mobile devices
+        handle.addEventListener('touchstart', (e) => {
+            // Don't resize if any panel is maximized
+            if (maximizedPanel) return;
+            
+            isResizing = true;
+            startY = e.touches[0].clientY;
+            
+            const resizeType = handle.getAttribute('data-resize');
+            
+            if (resizeType === 'editor-output') {
+                panel1 = document.querySelector('.editor-panel');
+                panel2 = document.querySelector('.output-panel');
+            } else if (resizeType === 'output-input') {
+                panel1 = document.querySelector('.output-panel');
+                panel2 = document.querySelector('.input-panel');
+            }
+            
+            startHeight1 = panel1.offsetHeight;
+            startHeight2 = panel2.offsetHeight;
+            
+            document.body.style.userSelect = 'none';
+            
+            e.preventDefault();
+        });
+        
         document.addEventListener('mousemove', (e) => {
             if (!isResizing) return;
             
@@ -1346,10 +1459,50 @@ function initPanelResize() {
             }
         });
         
+        // Touch move support for mobile devices
+        document.addEventListener('touchmove', (e) => {
+            if (!isResizing) return;
+            
+            const deltaY = e.touches[0].clientY - startY;
+            const newHeight1 = startHeight1 + deltaY;
+            const newHeight2 = startHeight2 - deltaY;
+            
+            // Check minimum heights (larger for mobile)
+            const minHeight = window.isMobile() ? 150 : 100;
+            if (newHeight1 >= minHeight && newHeight2 >= minHeight) {
+                panel1.style.height = newHeight1 + 'px';
+                panel2.style.height = newHeight2 + 'px';
+                
+                // Trigger Monaco Editor layout update
+                if (monacoEditor && panel1.classList.contains('editor-panel')) {
+                    monacoEditor.layout();
+                }
+            }
+        });
+        
         document.addEventListener('mouseup', () => {
             if (isResizing) {
                 isResizing = false;
                 document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+                
+                // Save panel heights to storage
+                const editorPanel = document.querySelector('.editor-panel');
+                const outputPanel = document.querySelector('.output-panel');
+                const inputPanel = document.querySelector('.input-panel');
+                
+                storage.set('preferences:panelHeights', {
+                    editor: editorPanel.offsetHeight,
+                    output: outputPanel.offsetHeight,
+                    input: inputPanel.offsetHeight
+                });
+            }
+        });
+        
+        // Touch end support for mobile devices
+        document.addEventListener('touchend', () => {
+            if (isResizing) {
+                isResizing = false;
                 document.body.style.userSelect = '';
                 
                 // Save panel heights to storage
@@ -1516,6 +1669,11 @@ function getProjectStats(projectId) {
 function handleAddProjectClick() {
     const dialogOverlay = document.getElementById('project-dialog-overlay');
     const dialogInput = document.getElementById('project-dialog-input');
+    
+    // Auto-collapse sidebar in mobile mode
+    if (window.isMobile() && !isSidebarCollapsed) {
+        handleSidebarToggle();
+    }
     
     // Clear previous input
     dialogInput.value = '';
@@ -2351,6 +2509,12 @@ function updateClarifyButtonStates() {
 // Handle open settings dialog
 function handleOpenSettingsDialog() {
     const settingsDialogOverlay = document.getElementById('settings-dialog-overlay');
+    
+    // Auto-collapse sidebar in mobile mode
+    if (window.isMobile() && !isSidebarCollapsed) {
+        handleSidebarToggle();
+    }
+    
     settingsDialogOverlay.classList.add('active');
     
     // Load current LLM type

@@ -355,6 +355,9 @@ function initializeMonacoEditor() {
         
         // Initialize periodic auto-save
         startPeriodicAutoSave();
+        
+        // Auto-load first project if available (after Monaco is ready)
+        autoLoadFirstProject();
     });
 }
 
@@ -1234,6 +1237,49 @@ function handleRefreshProjects() {
     }, 600);
     
     console.log('[Refresh] Project list refreshed with', projects.length, 'projects');
+}
+
+// Auto-load first project when Monaco Editor is ready
+function autoLoadFirstProject() {
+    // Get all project IDs
+    const projectIds = getAllProjectIds();
+    const projects = [];
+    
+    // Build projects array from metadata
+    for (const projectId of projectIds) {
+        const metadata = storage.get(`project:${projectId}:metadata`);
+        if (metadata) {
+            projects.push({ 
+                id: projectId, 
+                name: metadata.name || projectId.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()),
+                difficulty: metadata.difficulty || 'medium',
+                lastAccessed: metadata.lastAccessed
+            });
+        }
+    }
+    
+    // Sort by lastAccessed (most recent first)
+    projects.sort((a, b) => {
+        const dateA = a.lastAccessed ? new Date(a.lastAccessed) : new Date(0);
+        const dateB = b.lastAccessed ? new Date(b.lastAccessed) : new Date(0);
+        return dateB - dateA;
+    });
+    
+    // Auto-load first project if no project is currently loaded and projects exist
+    if (!currentProject && projects.length > 0) {
+        const firstProject = projects[0];
+        loadProject(firstProject.id);
+        
+        // Update active state in UI
+        const projectItems = document.querySelectorAll('.project-item');
+        projectItems.forEach(item => {
+            if (item.getAttribute('data-project') === firstProject.id) {
+                item.classList.add('active');
+            }
+        });
+        
+        console.log('[Auto-load] First project loaded:', firstProject.id);
+    }
 }
 
 // Populate project list UI

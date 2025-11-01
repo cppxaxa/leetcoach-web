@@ -865,6 +865,22 @@ body {
     }
 }
 
+/* Drafting button animation */
+#draft-btn.drafting {
+    animation: draft-blink 1s ease-in-out infinite;
+}
+
+@keyframes draft-blink {
+    0%, 100% {
+        opacity: 1;
+        background: var(--button-secondary-bg);
+    }
+    50% {
+        opacity: 0.6;
+        background: var(--accent-color);
+    }
+}
+
 
 .btn-danger {
     padding: 3px 10px;

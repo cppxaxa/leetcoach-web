@@ -20,6 +20,7 @@ let panelStates = {
 let currentAbortController = null;
 let dialogAbortController = null;
 let isDialogLLMResponding = false;
+let isDraftInProgress = false;
 
 // Auto-save configuration
 const AUTO_SAVE_INTERVAL = 30000; // 30 seconds
@@ -425,6 +426,10 @@ function initializeEventListeners() {
     // Stop button
     const stopBtn = document.getElementById('stop-btn');
     stopBtn.addEventListener('click', handleStopMessage);
+
+    // Draft button
+    const draftBtn = document.getElementById('draft-btn');
+    draftBtn.addEventListener('click', handleDraftMessage);
 
     // Clear output button
     const clearBtn = document.getElementById('clear-output');
@@ -1015,6 +1020,111 @@ function handleStopMessage() {
     updateButtonStates();
 }
 
+// Handle draft message
+function handleDraftMessage() {
+    // Get the last assistant message from LLM chat history
+    if (!currentProject) {
+        return;
+    }
+    
+    const llmHistory = getLLMChatHistory(currentProject);
+    
+    // Find the last assistant message
+    let lastAssistantMessage = null;
+    for (let i = llmHistory.length - 1; i >= 0; i--) {
+        if (llmHistory[i].role === 'assistant') {
+            lastAssistantMessage = llmHistory[i].content;
+            break;
+        }
+    }
+    
+    if (!lastAssistantMessage) {
+        return;
+    }
+    
+    // Check if LLM is configured
+    try {
+        llm._get();
+    } catch (error) {
+        const outputDiv = document.getElementById('markdown-output');
+        const errorHtml = `
+            <div style="background: #f44336; color: white; padding: 12px; border-radius: 6px; margin-bottom: 16px;">
+                <strong>Error:</strong> ${escapeHtml(error.message)}
+            </div>
+        `;
+        outputDiv.innerHTML += errorHtml;
+        return;
+    }
+    
+    isDraftInProgress = true;
+    updateButtonStates();
+    
+    // Create a draft prompt that asks the assistant to answer based on the last output
+    const draftPrompt = `Based on the following information, please provide a concise response:\n\n${lastAssistantMessage}`;
+    
+    // Get current code from editor
+    const currentCode = monacoEditor ? monacoEditor.getValue() : '';
+    const activeLanguageBtn = document.querySelector('.language-btn.active');
+    const currentLanguage = activeLanguageBtn ? activeLanguageBtn.getAttribute('data-language') : 'csharp';
+    
+    // Call LLM to generate draft
+    sendDraftMessage(draftPrompt, currentCode, currentLanguage);
+}
+
+// Send draft message to LLM
+async function sendDraftMessage(draftPrompt, code, language) {
+    const userInput = document.getElementById('user-input');
+    
+    try {
+        // Create abort controller for this request
+        currentAbortController = new AbortController();
+        
+        // Get LLM instance
+        const llmInstance = llm._get();
+        
+        // Create a temporary chat history for the draft
+        const draftHistory = [
+            { role: 'system', content: 'You are a helpful assistant that provides draft answers to questions. Provide clear, concise responses in plain text without markdown formatting. You respond only with the main content without any meta-comments. Some blacklisted meta-comments are e.g. Here is a concise response: etc.' },
+            { role: 'user', content: draftPrompt }
+        ];
+        
+        // Call LLM
+        const response = await llmInstance.chat(draftHistory);
+        
+        // Check if request was aborted
+        if (currentAbortController.signal.aborted) {
+            return;
+        }
+        
+        // Populate the chat input box with the draft response
+        userInput.value = response.trim();
+        
+        // Focus the input box
+        userInput.focus();
+        
+    } catch (error) {
+        console.error('LLM Error:', error);
+        
+        // Check if request was aborted
+        if (currentAbortController && currentAbortController.signal.aborted) {
+            // Do nothing on abort
+        } else {
+            // Show error in output window
+            const outputDiv = document.getElementById('markdown-output');
+            const errorHtml = `
+                <div style="background: #f44336; color: white; padding: 12px; border-radius: 6px; margin-bottom: 16px;">
+                    <strong>Draft Error:</strong> ${escapeHtml(error.message)}
+                </div>
+            `;
+            outputDiv.innerHTML += errorHtml;
+        }
+    } finally {
+        isDraftInProgress = false;
+        updateButtonStates();
+        currentAbortController = null;
+    }
+}
+
 // Handle clear output
 function handleClearOutput() {
     document.getElementById('markdown-output').innerHTML = '';
@@ -1022,6 +1132,8 @@ function handleClearOutput() {
     if (currentProject) {
         clearLLMChatHistory(currentProject);
     }
+    // Update button states after clearing output
+    updateButtonStates();
 }
 
 // Handle sidebar toggle
@@ -1226,9 +1338,33 @@ function updateHelpButtonBlinkState(shouldBlink) {
 function updateButtonStates() {
     const sendBtn = document.getElementById('send-btn');
     const stopBtn = document.getElementById('stop-btn');
+    const draftBtn = document.getElementById('draft-btn');
     
     sendBtn.disabled = isLLMResponding;
     stopBtn.disabled = !isLLMResponding;
+    
+    // Check if there's a last assistant message for the draft button
+    let hasAssistantMessage = false;
+    if (currentProject) {
+        const llmHistory = getLLMChatHistory(currentProject);
+        // Check if there's at least one assistant message
+        for (let i = llmHistory.length - 1; i >= 0; i--) {
+            if (llmHistory[i].role === 'assistant') {
+                hasAssistantMessage = true;
+                break;
+            }
+        }
+    }
+    
+    // Disable draft button if no assistant message or if draft is in progress
+    draftBtn.disabled = isDraftInProgress || !hasAssistantMessage;
+    
+    // Add or remove blinking class for draft button
+    if (isDraftInProgress) {
+        draftBtn.classList.add('drafting');
+    } else {
+        draftBtn.classList.remove('drafting');
+    }
 }
 
 // Utility function to escape HTML
@@ -1690,6 +1826,9 @@ function loadChatHistory(projectId) {
             throwOnError: false
         });
     }
+    
+    // Update button states after loading chat history
+    updateButtonStates();
 }
 
 // Get LLM chat history (role/content format for LLM API)

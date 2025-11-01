@@ -63,11 +63,28 @@ function simpleMarkdownParse(markdown) {
 
 // Detect if the device is mobile
 window.isMobile = function(){
-  if(window.matchMedia("(any-hover:none)").matches) {
-    return true;
-  } else {
-    return false;
-  }
+  // Check multiple mobile indicators for comprehensive detection
+  const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+  
+  // Check for touch support and pointer type
+  const hasTouchScreen = ('ontouchstart' in window) || 
+                         (navigator.maxTouchPoints > 0) || 
+                         (navigator.msMaxTouchPoints > 0);
+  
+  // Check hover capability (mobile devices typically can't hover)
+  const noHover = window.matchMedia("(any-hover:none)").matches;
+  
+  // Check pointer coarseness (touch screens have coarse pointers)
+  const coarsePointer = window.matchMedia("(pointer:coarse)").matches;
+  
+  // Check user agent string for mobile patterns
+  const mobileUserAgent = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile|tablet/i.test(userAgent);
+  
+  // Check screen width (common mobile breakpoint)
+  const narrowScreen = window.matchMedia("(max-width: 768px)").matches;
+  
+  // Device is mobile if it has touch + (no hover OR coarse pointer OR mobile UA OR narrow screen)
+  return hasTouchScreen && (noHover || coarsePointer || mobileUserAgent || narrowScreen);
 };
 
 // Theme configurations for Monaco Editor

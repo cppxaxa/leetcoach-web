@@ -2039,6 +2039,23 @@ body.mobile-mode .panel-header h4 {
     font-size: 13px;
 }
 
+/* Mobile: Limit output panel height to ensure chat panel title is visible */
+/* Override inline styles set by JavaScript */
+body.mobile-mode .output-panel:not(.panel-collapsed):not(.maximized) {
+    max-height: calc(100vh - 200px) !important; /* Leave ~200px for editor + chat header + resize handles */
+}
+
+/* Mobile: Ensure max-height is maintained when chat panel is toggled */
+body.mobile-mode .main-content:has(.input-panel:not(.panel-collapsed)) .output-panel:not(.panel-collapsed):not(.maximized) {
+    max-height: calc(100vh - 200px) !important;
+}
+
+/* Mobile: Ensure input panel maintains its flex behavior */
+body.mobile-mode .input-panel:not(.panel-collapsed):not(.maximized) {
+    flex: 1 !important;
+    min-height: 100px !important;
+}
+
 /* Mobile: Larger input areas */
 body.mobile-mode #user-input,
 body.mobile-mode #clarify-input,
@@ -2215,6 +2232,12 @@ body.mobile-mode .input-panel.panel-collapsed {
     height: 44px !important;
     min-height: 44px !important;
     max-height: 44px !important;
+}
+
+/* Mobile: Make output panel expand when chat panel is collapsed */
+body.mobile-mode .main-content:has(.input-panel.panel-collapsed) .output-panel:not(.panel-collapsed) {
+    flex: 1;
+    height: auto;
 }
 
 /* Mobile: Ensure collapsed panel headers are still accessible */

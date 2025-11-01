@@ -1316,7 +1316,7 @@ function applyViewMode(viewMode) {
             panelStates.editor.collapsed = true;
         }
         
-        // Ensure Details (output) and Chat (input) panels are expanded
+        // Ensure Details (output) panel is expanded
         const outputPanel = document.querySelector('.output-panel');
         const inputPanel = document.querySelector('.input-panel');
         
@@ -1328,10 +1328,14 @@ function applyViewMode(viewMode) {
             panelStates.output.collapsed = false;
         }
         
-        if (inputPanel && panelStates.input.collapsed) {
-            inputPanel.classList.remove('panel-collapsed');
-            inputPanel.style.height = '';
-            panelStates.input.collapsed = false;
+        // Collapse Chat (input) panel by default on mobile
+        if (inputPanel && !panelStates.input.collapsed) {
+            // Save current height before collapsing
+            const currentHeight = inputPanel.offsetHeight;
+            panelStates.input.originalHeight = currentHeight + 'px';
+            
+            inputPanel.classList.add('panel-collapsed');
+            panelStates.input.collapsed = true;
         }
         
         // Collapse sidebar by default on mobile if not already collapsed
@@ -1354,6 +1358,16 @@ function applyViewMode(viewMode) {
                 editorPanel.style.height = panelStates.editor.originalHeight;
             }
             panelStates.editor.collapsed = false;
+        }
+        
+        // Expand input panel if it was collapsed
+        const inputPanel = document.querySelector('.input-panel');
+        if (inputPanel && panelStates.input.collapsed) {
+            inputPanel.classList.remove('panel-collapsed');
+            if (panelStates.input.originalHeight) {
+                inputPanel.style.height = panelStates.input.originalHeight;
+            }
+            panelStates.input.collapsed = false;
         }
         
         // Expand sidebar if it was collapsed

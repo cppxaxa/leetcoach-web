@@ -61,6 +61,15 @@ function simpleMarkdownParse(markdown) {
     return html;
 }
 
+// Detect if the device is mobile
+window.isMobile = function(){
+  if(window.matchMedia("(any-hover:none)").matches) {
+    return true;
+  } else {
+    return false;
+  }
+};
+
 // Theme configurations for Monaco Editor
 const monacoThemes = {
     'dark': 'vs-dark',

@@ -1483,6 +1483,62 @@ body.mobile-mode .resize-handle:active:before {
     opacity: 1;
 }
 
+/* View Mode Selector Group */
+.view-mode-selector-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.view-mode-btn {
+    background-color: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 16px;
+    border-radius: 0px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+    width: 100%;
+    font-family: inherit;
+}
+
+.view-mode-btn:hover {
+    background-color: var(--hover-color);
+    border-color: var(--accent-color);
+    transform: translateX(4px);
+}
+
+.view-mode-btn.active {
+    background-color: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+}
+
+.view-mode-btn.active:hover {
+    transform: translateX(0);
+    opacity: 0.95;
+}
+
+.view-mode-btn-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.view-mode-btn-content strong {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.view-mode-btn-content small {
+    font-size: 12px;
+    opacity: 0.85;
+}
+
+.view-mode-btn.active .view-mode-btn-content small {
+    opacity: 1;
+}
 
 /* Library Dialog Styles */
 .library-dialog {

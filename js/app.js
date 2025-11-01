@@ -93,6 +93,12 @@ const monacoThemes = {
     'light': 'vs'
 };
 
+// Check if currently in mobile view mode (based on user preference)
+function isInMobileView() {
+    const viewMode = storage.get('setting:view_mode');
+    return viewMode === 'mobile';
+}
+
 // Sample code templates for different problems
 const codeTemplates = {
     'two-sum': {
@@ -197,6 +203,26 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update LLM button active state
     document.querySelectorAll('.llm-btn').forEach(btn => {
         if (btn.getAttribute('data-llm-type') === savedLlmType) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
+    // Initialize view mode from storage or device detection
+    let savedViewMode = storage.get('setting:view_mode');
+    if (!savedViewMode) {
+        // First time - initialize based on device type
+        savedViewMode = window.isMobile() ? 'mobile' : 'desktop';
+        storage.set('setting:view_mode', savedViewMode);
+    }
+    
+    // Apply the view mode
+    applyViewMode(savedViewMode);
+
+    // Update view mode button active state
+    document.querySelectorAll('.view-mode-btn').forEach(btn => {
+        if (btn.getAttribute('data-view-mode') === savedViewMode) {
             btn.classList.add('active');
         } else {
             btn.classList.remove('active');
@@ -514,6 +540,12 @@ function initializeEventListeners() {
         btn.addEventListener('click', handleLlmButtonClick);
     });
 
+    // View mode selector buttons
+    const viewModeBtns = document.querySelectorAll('.view-mode-btn');
+    viewModeBtns.forEach(btn => {
+        btn.addEventListener('click', handleViewModeButtonClick);
+    });
+
     // LLM Help dialog buttons
     const chatHelpBtn = document.getElementById('chat-help-btn');
     const llmHelpDialogCloseBtn = document.getElementById('llm-help-dialog-close-btn');
@@ -776,7 +808,7 @@ function handleProjectClick(event) {
     const projectId = projectItem.getAttribute('data-project');
     
     // Auto-collapse sidebar in mobile mode
-    if (window.isMobile() && !isSidebarCollapsed) {
+    if (isInMobileView() && !isSidebarCollapsed) {
         handleSidebarToggle();
     }
     
@@ -1265,52 +1297,93 @@ function handlePanelCollapse(panelType) {
     }, 300);
 }
 
-// Initialize mobile-specific behavior
-function initializeMobileMode() {
-    if (!window.isMobile()) {
-        // Not a mobile device, skip mobile-specific setup
-        return;
-    }
+// Apply view mode (mobile or desktop)
+function applyViewMode(viewMode) {
+    const isMobileView = viewMode === 'mobile';
     
-    // Add mobile class to body for CSS targeting
-    document.body.classList.add('mobile-mode');
-    
-    // Collapse editor panel by default on mobile
-    const editorPanel = document.querySelector('.editor-panel');
-    if (editorPanel && !panelStates.editor.collapsed) {
-        // Save current height before collapsing
-        const currentHeight = editorPanel.offsetHeight;
-        panelStates.editor.originalHeight = currentHeight + 'px';
+    if (isMobileView) {
+        // Add mobile class to body for CSS targeting
+        document.body.classList.add('mobile-mode');
         
-        editorPanel.classList.add('panel-collapsed');
-        panelStates.editor.collapsed = true;
-    }
-    
-    // Ensure Details (output) and Chat (input) panels are expanded
-    const outputPanel = document.querySelector('.output-panel');
-    const inputPanel = document.querySelector('.input-panel');
-    
-    if (outputPanel && panelStates.output.collapsed) {
-        outputPanel.classList.remove('panel-collapsed');
-        if (panelStates.output.originalHeight) {
-            outputPanel.style.height = panelStates.output.originalHeight;
+        // Collapse editor panel by default on mobile
+        const editorPanel = document.querySelector('.editor-panel');
+        if (editorPanel && !panelStates.editor.collapsed) {
+            // Save current height before collapsing
+            const currentHeight = editorPanel.offsetHeight;
+            panelStates.editor.originalHeight = currentHeight + 'px';
+            
+            editorPanel.classList.add('panel-collapsed');
+            panelStates.editor.collapsed = true;
         }
-        panelStates.output.collapsed = false;
-    }
-    
-    if (inputPanel && panelStates.input.collapsed) {
-        inputPanel.classList.remove('panel-collapsed');
-        inputPanel.style.height = '';
-        panelStates.input.collapsed = false;
-    }
-    
-    // Collapse sidebar by default on mobile if not already collapsed
-    if (!isSidebarCollapsed) {
-        const sidebar = document.getElementById('sidebar');
-        if (sidebar) {
-            sidebar.classList.add('collapsed');
-            isSidebarCollapsed = true;
+        
+        // Ensure Details (output) and Chat (input) panels are expanded
+        const outputPanel = document.querySelector('.output-panel');
+        const inputPanel = document.querySelector('.input-panel');
+        
+        if (outputPanel && panelStates.output.collapsed) {
+            outputPanel.classList.remove('panel-collapsed');
+            if (panelStates.output.originalHeight) {
+                outputPanel.style.height = panelStates.output.originalHeight;
+            }
+            panelStates.output.collapsed = false;
         }
+        
+        if (inputPanel && panelStates.input.collapsed) {
+            inputPanel.classList.remove('panel-collapsed');
+            inputPanel.style.height = '';
+            panelStates.input.collapsed = false;
+        }
+        
+        // Collapse sidebar by default on mobile if not already collapsed
+        if (!isSidebarCollapsed) {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                sidebar.classList.add('collapsed');
+                isSidebarCollapsed = true;
+            }
+        }
+    } else {
+        // Desktop view - remove mobile class
+        document.body.classList.remove('mobile-mode');
+        
+        // Expand editor panel if it was collapsed
+        const editorPanel = document.querySelector('.editor-panel');
+        if (editorPanel && panelStates.editor.collapsed) {
+            editorPanel.classList.remove('panel-collapsed');
+            if (panelStates.editor.originalHeight) {
+                editorPanel.style.height = panelStates.editor.originalHeight;
+            }
+            panelStates.editor.collapsed = false;
+        }
+        
+        // Expand sidebar if it was collapsed
+        if (isSidebarCollapsed) {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                sidebar.classList.remove('collapsed');
+                isSidebarCollapsed = false;
+            }
+        }
+    }
+    
+    // Trigger Monaco Editor layout update
+    setTimeout(() => {
+        if (monacoEditor) {
+            monacoEditor.layout();
+        }
+    }, 300);
+}
+
+// Initialize mobile-specific behavior (deprecated - use applyViewMode instead)
+function initializeMobileMode() {
+    // Get view mode from storage
+    const viewMode = storage.get('setting:view_mode');
+    if (viewMode) {
+        // Use stored preference
+        applyViewMode(viewMode);
+    } else if (window.isMobile()) {
+        // Fallback to device detection if no preference set
+        applyViewMode('mobile');
     }
 }
 
@@ -1336,7 +1409,7 @@ function handleMaximizePanel(panelType) {
         maximizedPanel = null;
         
         // If in mobile mode and it's the editor, restore collapsed state if it was collapsed before
-        if (window.isMobile() && panelType === 'editor' && panelStates.editor.wasCollapsedBeforeMaximize) {
+        if (isInMobileView() && panelType === 'editor' && panelStates.editor.wasCollapsedBeforeMaximize) {
             targetPanel.classList.add('panel-collapsed');
             panelStates.editor.collapsed = true;
             panelStates.editor.wasCollapsedBeforeMaximize = false;
@@ -1388,7 +1461,7 @@ window.addEventListener('resize', function() {
     const sidebar = document.getElementById('sidebar');
     
     // Don't auto-collapse on desktop mode
-    if (window.isMobile() && isSmallScreen && !isSidebarCollapsed) {
+    if (isInMobileView() && isSmallScreen && !isSidebarCollapsed) {
         // Auto-collapse on small screens in mobile mode
         handleSidebarToggle();
     }
@@ -1485,7 +1558,7 @@ function initPanelResize() {
             const newHeight2 = startHeight2 - deltaY;
             
             // Check minimum heights (larger for mobile)
-            const minHeight = window.isMobile() ? 150 : 100;
+            const minHeight = isInMobileView() ? 150 : 100;
             if (newHeight1 >= minHeight && newHeight2 >= minHeight) {
                 panel1.style.height = newHeight1 + 'px';
                 panel2.style.height = newHeight2 + 'px';
@@ -1688,7 +1761,7 @@ function handleAddProjectClick() {
     const dialogInput = document.getElementById('project-dialog-input');
     
     // Auto-collapse sidebar in mobile mode
-    if (window.isMobile() && !isSidebarCollapsed) {
+    if (isInMobileView() && !isSidebarCollapsed) {
         handleSidebarToggle();
     }
     
@@ -2527,8 +2600,11 @@ function updateClarifyButtonStates() {
 function handleOpenSettingsDialog() {
     const settingsDialogOverlay = document.getElementById('settings-dialog-overlay');
     
+    // Get current view mode from storage
+    const currentViewMode = storage.get('setting:view_mode') || 'desktop';
+    
     // Auto-collapse sidebar in mobile mode
-    if (window.isMobile() && !isSidebarCollapsed) {
+    if (currentViewMode === 'mobile' && !isSidebarCollapsed) {
         handleSidebarToggle();
     }
     
@@ -2541,6 +2617,16 @@ function handleOpenSettingsDialog() {
     document.querySelectorAll('.llm-btn').forEach(btn => {
         const llmType = btn.getAttribute('data-llm-type');
         if (llmType === currentLlmType) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    // Update active state of view mode buttons
+    document.querySelectorAll('.view-mode-btn').forEach(btn => {
+        const viewMode = btn.getAttribute('data-view-mode');
+        if (viewMode === currentViewMode) {
             btn.classList.add('active');
         } else {
             btn.classList.remove('active');
@@ -2566,6 +2652,18 @@ function handleLlmButtonClick(event) {
     clickedBtn.classList.add('active');
 }
 
+// Handle view mode button click
+function handleViewModeButtonClick(event) {
+    const clickedBtn = event.currentTarget;
+    const selectedViewMode = clickedBtn.getAttribute('data-view-mode');
+    
+    // Update active state
+    document.querySelectorAll('.view-mode-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    clickedBtn.classList.add('active');
+}
+
 // Handle save settings
 function handleSaveSettings() {
     // Get selected LLM type
@@ -2580,6 +2678,24 @@ function handleSaveSettings() {
         llm.setType(selectedLlmType);
         
         console.log(`[Settings] LLM type changed to: ${selectedLlmType}`);
+    }
+    
+    // Get selected view mode
+    const activeViewModeBtn = document.querySelector('.view-mode-btn.active');
+    if (activeViewModeBtn) {
+        const selectedViewMode = activeViewModeBtn.getAttribute('data-view-mode');
+        const currentViewMode = storage.get('setting:view_mode');
+        
+        // Only apply changes if view mode changed
+        if (selectedViewMode !== currentViewMode) {
+            // Save to storage
+            storage.set('setting:view_mode', selectedViewMode);
+            
+            // Apply the view mode
+            applyViewMode(selectedViewMode);
+            
+            console.log(`[Settings] View mode changed to: ${selectedViewMode}`);
+        }
     }
     
     // Close dialog

@@ -2279,6 +2279,14 @@ Return ONLY the JSON, nothing else.`;
             updateProgressStep(3, 'completed', 'C# template ready');
         }
         
+        // Honor the project name if available.
+        const metaName = document.getElementById('project-dialog-meta-name');
+        const projectName = metaName.value.trim();
+
+        if (projectName && projectName.length > 0) {
+            projectData.name = projectName;
+        }
+
         // Step 4: Finalize project
         updateProgressStep(4, 'active', 'Setting up project structure...');
         
@@ -3272,6 +3280,10 @@ function handleLibraryOpen() {
     const dialogInput = document.getElementById('project-dialog-input');
     dialogInput.value = `${problemName}\n\n${description}`;
     
+    // Populate the meta input tags.
+    const metaName = document.getElementById('project-dialog-meta-name');
+    metaName.value = problemName;
+
     // Close library dialog
     handleCloseLibraryDialog();
 }

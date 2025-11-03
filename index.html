@@ -271,8 +271,36 @@
                     </div>
                 </div>
                 <div class="dialog-actions">
+                    <button class="btn-secondary" id="settings-keys-btn">API Keys</button>
                     <button class="btn-primary" id="settings-ok-btn">OK</button>
                     <button class="btn-secondary" id="settings-cancel-btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Keys Dialog -->
+        <div class="dialog-overlay" id="keys-dialog-overlay">
+            <div class="dialog-box keys-dialog">
+                <div class="dialog-header">
+                    <h4>API Keys</h4>
+                    <button class="dialog-close" id="keys-dialog-close-btn" title="Close">×</button>
+                </div>
+                <div class="dialog-content keys-content">
+                    <div class="keys-section">
+                        <h5>Gemini API Key</h5>
+                        <p class="keys-description">Enter your Google Gemini API key to use Gemini as your LLM provider.</p>
+                        <input type="password" id="gemini-api-key-input" class="api-key-input" placeholder="Enter your Gemini API key">
+                        <button class="toggle-visibility-btn" id="toggle-gemini-key" type="button">
+                            <svg class="eye-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/>
+                                <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="dialog-actions">
+                    <button class="btn-primary" id="keys-save-btn">Save</button>
+                    <button class="btn-secondary" id="keys-cancel-btn">Cancel</button>
                 </div>
             </div>
         </div>

@@ -1586,6 +1586,89 @@ body.mobile-mode .resize-handle:active:before {
     opacity: 1;
 }
 
+/* API Keys Dialog Styles */
+.keys-dialog {
+    max-width: 600px;
+    width: 90%;
+}
+
+.keys-content {
+    padding: 20px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.keys-section {
+    margin-bottom: 24px;
+    position: relative;
+}
+
+.keys-section:last-child {
+    margin-bottom: 0;
+}
+
+.keys-section h5 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.keys-description {
+    margin: 0 0 16px 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.api-key-input {
+    width: 100%;
+    padding: 12px;
+    padding-right: 48px;
+    border: 2px solid var(--border-color);
+    border-radius: 0px;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 13px;
+    transition: border-color 0.2s ease;
+    box-sizing: border-box;
+}
+
+.api-key-input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.api-key-input::placeholder {
+    color: var(--text-tertiary);
+    opacity: 0.6;
+}
+
+.toggle-visibility-btn {
+    position: absolute;
+    right: 8px;
+    top: 75px;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
+}
+
+.toggle-visibility-btn:hover {
+    color: var(--accent-color);
+}
+
+.toggle-visibility-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
 /* Library Dialog Styles */
 .library-dialog {
     width: 800px;

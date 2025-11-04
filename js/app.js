@@ -528,6 +528,7 @@ function initializeEventListeners() {
     const dryRunDialogCloseBtn = document.getElementById('dry-run-dialog-close-btn');
     const dryRunEditBtn = document.getElementById('dry-run-edit-btn');
     const dryRunRestartBtn = document.getElementById('dry-run-restart-btn');
+    const dryRunRotateBtn = document.getElementById('dry-run-rotate-btn');
     const dryRunMaximizeBtn = document.getElementById('dry-run-maximize-btn');
     const dryRunDialogOverlay = document.getElementById('dry-run-dialog-overlay');
     const dryRunIframe = document.getElementById('dry-run-iframe');
@@ -536,6 +537,7 @@ function initializeEventListeners() {
     dryRunDialogCloseBtn.addEventListener('click', handleCloseDryRunDialog);
     dryRunEditBtn.addEventListener('click', handleDryRunEdit);
     dryRunRestartBtn.addEventListener('click', handleDryRunRestart);
+    dryRunRotateBtn.addEventListener('click', handleDryRunRotate);
     dryRunMaximizeBtn.addEventListener('click', handleDryRunMaximize);
     
     // Close dry run dialog when clicking overlay
@@ -2889,6 +2891,7 @@ function updateClarifyButtonStates() {
 
 // ===== DRY RUN DIALOG HANDLERS =====
 let isDryRunMaximized = false;
+let dryRunRotationAngle = 0;
 
 // Convert project name to hyphen-based format
 function toHyphenCase(str) {
@@ -2921,6 +2924,10 @@ function handleDryRunClick() {
     // Reset iframe and error visibility
     dryRunIframe.style.display = 'block';
     dryRunError.style.display = 'none';
+    
+    // Restore rotation angle from storage
+    dryRunRotationAngle = parseInt(storage.get('preferences:dryrunorientation') || '0', 10);
+    dryRunIframe.style.transform = `rotate(${dryRunRotationAngle}deg)`;
     
     // Load the iframe
     dryRunIframe.src = dryRunUrl;
@@ -2961,6 +2968,10 @@ function handleCloseDryRunDialog() {
     // Reset iframe
     dryRunIframe.src = '';
     
+    // Reset rotation
+    dryRunRotationAngle = 0;
+    dryRunIframe.style.transform = 'rotate(0deg)';
+    
     // Reset maximize state
     if (isDryRunMaximized) {
         isDryRunMaximized = false;
@@ -2989,6 +3000,18 @@ function handleDryRunRestart() {
     setTimeout(() => {
         dryRunIframe.src = currentSrc;
     }, 10);
+}
+
+// Handle dry run rotate button
+function handleDryRunRotate() {
+    const dryRunIframe = document.getElementById('dry-run-iframe');
+    
+    // Rotate by 90 degrees
+    dryRunRotationAngle = (dryRunRotationAngle + 90) % 360;
+    dryRunIframe.style.transform = `rotate(${dryRunRotationAngle}deg)`;
+    
+    // Save to storage
+    storage.set('preferences:dryrunorientation', dryRunRotationAngle.toString());
 }
 
 // Handle dry run maximize button

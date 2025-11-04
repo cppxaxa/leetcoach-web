@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Two Sum — Dry Run Visualizer (16:9)</title>
+  <style>
+    :root{
+      --bg:#071019;
+      --panel:#0b1520;
+      --accent:#7fffd4;
+      --muted:#7a8b94;
+      --glow: 0 8px 24px rgba(0,255,200,0.06);
+      --mono: 'Fira Mono', 'Courier New', monospace;
+    }
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,#041018 0%, #071019 60%);font-family:Inter, system-ui, -apple-system, sans-serif;color:var(--accent)}
+
+    .frame{width:100%;max-width:1200px;margin:24px auto;position:relative;padding-top:56.25%;box-shadow:var(--glow);border-radius:14px;overflow:hidden;background:linear-gradient(135deg,#071019 0%, #071a22 100%);border:1px solid rgba(255,255,255,0.03);}
+    .stage{position:absolute;left:0;right:0;top:0;bottom:0;padding:20px;display:flex;gap:16px;box-sizing:border-box;}
+
+    .left{flex:1.2;display:flex;flex-direction:column;gap:12px;}
+    .title{font-family:var(--mono);font-size:20px;color:var(--accent);display:flex;align-items:center;gap:10px}
+    .subtitle{color:var(--muted);font-size:12px}
+
+    .board{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:10px;padding:12px;box-shadow:var(--glow);border:1px solid rgba(255,255,255,0.02)}
+
+    .array-row{display:flex;gap:12px;align-items:center;justify-content:center;padding:8px}
+    .cell{width:60px;height:60px;border-radius:8px;background:rgba(255,255,255,0.02);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:700;font-size:18px;color:var(--accent);border:1px solid rgba(255,255,255,0.03)}
+    .cell.index{height:20px;width:60px;font-size:12px;color:var(--muted);font-weight:600;border-radius:6px}
+
+    .cell.highlight{background:linear-gradient(90deg,#003b2f22,#005b45cc);box-shadow:0 6px 18px rgba(0,255,160,0.08);transform:translateY(-6px)}
+    .cell.found{background:linear-gradient(90deg,#1a3d59,#124b5a);color:#fff;border:1px solid rgba(255,255,255,0.08)}
+
+    .hashmap{display:flex;gap:8px;flex-wrap:wrap;padding:8px}
+    .map-item{min-width:110px;background:rgba(255,255,255,0.02);padding:8px;border-radius:8px;border:1px dashed rgba(255,255,255,0.02);font-family:var(--mono);font-size:13px;color:var(--muted)}
+
+    .right{flex:0.9;display:flex;flex-direction:column;gap:12px}
+    pre.code{background:linear-gradient(180deg,#021018, #021822);padding:12px;border-radius:10px;min-height:220px;font-family:var(--mono);font-size:13px;color:#bfeeee;overflow:auto;border:1px solid rgba(255,255,255,0.02)}
+    .code .line{display:block;padding:2px 6px;border-radius:6px}
+    .code .active{background:linear-gradient(90deg,#003b2f22,#005b45cc);color:#dff;}
+    .controls{display:flex;gap:8px;align-items:center}
+    .btn{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px 12px;border-radius:8px;color:var(--accent);cursor:pointer;font-family:var(--mono);font-weight:700}
+    .btn.primary{background:#002c2a1a;border:1px solid rgba(127,255,212,0.12)}
+    .btn:hover{transform:translateY(-2px)}
+
+    .subtitle-box{background:linear-gradient(180deg,#051417,#072024);padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.02);font-family:var(--mono);font-size:13px;color:var(--muted);min-height:48px}
+
+    .meta{font-size:11px;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
+
+    @media (max-width:900px){.frame{max-width:960px}.cell{width:48px;height:48px}.cell.index{width:48px}}
+  </style>
+</head>
+<body>
+  <div class="frame" aria-label="Two Sum Dry Run">
+    <div class="stage">
+      <div class="left">
+        <div class="title">⌘ Two Sum — Dry run visualizer <span style="font-size:12px;color:var(--muted);margin-left:8px">(nerdy theme)</span></div>
+        <div class="subtitle">Find two indices i, j so that nums[i] + nums[j] = target</div>
+
+        <div class="board">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div style="font-family:var(--mono);font-size:13px;color:var(--muted)">Array (nums)</div>
+            <div style="font-family:var(--mono);font-size:13px;color:var(--muted)">Target: <span id="targetDisplay">9</span></div>
+          </div>
+
+          <div class="array-row" id="indexRow"></div>
+          <div class="array-row" id="valueRow"></div>
+
+          <div style="margin-top:12px;font-family:var(--mono);font-size:13px;color:var(--muted)">Hash map (value → index)</div>
+          <div class="hashmap" id="hashmap"></div>
+        </div>
+
+        <div class="subtitle-box" id="subtitle">Ready. Press play to start the dry run.</div>
+      </div>
+
+      <div class="right">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <pre class="code" id="codeBlock" aria-hidden="false"><code>
+<span class="line" data-line="0">function twoSum(nums, target) {</span>
+<span class="line" data-line="1">  const map = new Map();</span>
+<span class="line" data-line="2">  for (let i = 0; i &lt; nums.length; i++) {</span>
+<span class="line" data-line="3">    const complement = target - nums[i];</span>
+<span class="line" data-line="4">    if (map.has(complement)) {</span>
+<span class="line" data-line="5">      return [map.get(complement), i];</span>
+<span class="line" data-line="6">    }</span>
+<span class="line" data-line="7">    map.set(nums[i], i);</span>
+<span class="line" data-line="8">  }</span>
+<span class="line" data-line="9">}</span>
+          </code></pre>
+        </div>
+
+        <div class="controls">
+          <button class="btn primary" id="pauseBtn">Pause</button>
+          <button class="btn" id="stepBtn">Step</button>
+          <div style="flex:1"></div>
+          <div class="meta">Demo by <span style="color:var(--muted)">Two Sum Lecturer</span></div>
+        </div>
+
+        <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+          <label style="font-family:var(--mono);font-size:13px;color:var(--muted)">Input (comma separated)</label>
+          <input id="inputNums" value="2,7,11,15" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--accent);font-family:var(--mono)" />
+          <input id="inputTarget" value="9" style="width:64px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--accent);font-family:var(--mono)" />
+          <button class="btn" id="applyBtn">Apply</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const pauseBtn = document.getElementById('pauseBtn');
+    const stepBtn = document.getElementById('stepBtn');
+    const subtitle = document.getElementById('subtitle');
+    const indexRow = document.getElementById('indexRow');
+    const valueRow = document.getElementById('valueRow');
+    const hashmapEl = document.getElementById('hashmap');
+    const codeLines = [...document.querySelectorAll('.code .line')];
+    const inputNums = document.getElementById('inputNums');
+    const inputTarget = document.getElementById('inputTarget');
+    const applyBtn = document.getElementById('applyBtn');
+    const targetDisplay = document.getElementById('targetDisplay');
+
+    let nums = [2,7,11,15];
+    let target = 9;
+    let i = 0;
+    let map = new Map();
+    let running = true;
+    let timer = null;
+    let stepMode = false;
+
+    function resetState(){
+      i = 0; map = new Map(); running = true; stepMode=false;
+      subtitle.textContent = 'Ready. Playing dry run...';
+      clearInterval(timer);
+      render();
+      start();
+    }
+
+    function applyInputs(){
+      const parsed = inputNums.value.split(',').map(s => parseInt(s.trim())).filter(x => !Number.isNaN(x));
+      if(parsed.length===0) return;
+      nums = parsed;
+      target = parseInt(inputTarget.value) || 0;
+      targetDisplay.textContent = target;
+      i = 0; map = new Map();
+      subtitle.textContent = 'Inputs applied. Starting dry run.';
+      render();
+    }
+
+    applyBtn.addEventListener('click', ()=>{ applyInputs(); });
+
+    function render(){
+      indexRow.innerHTML = '';
+      valueRow.innerHTML = '';
+      hashmapEl.innerHTML = '';
+      nums.forEach((v,idx)=>{
+        const idxCell = document.createElement('div'); idxCell.className='cell index'; idxCell.textContent=idx;
+        const valCell = document.createElement('div'); valCell.className='cell'; valCell.textContent=v;
+        if(idx===i) valCell.classList.add('highlight');
+        indexRow.appendChild(idxCell);
+        valueRow.appendChild(valCell);
+      });
+      for(const [k,v] of map.entries()){
+        const it = document.createElement('div'); it.className='map-item'; it.textContent = `${k} → ${v}`;
+        hashmapEl.appendChild(it);
+      }
+      codeLines.forEach(l=>l.classList.remove('active'));
+      if(i < nums.length){
+        codeLines[2].classList.add('active');
+        codeLines[3].classList.add('active');
+        codeLines[4].classList.add('active');
+      }
+    }
+
+    function step(){
+      if(i >= nums.length) { subtitle.textContent = 'Reached end. No pair found.'; clearInterval(timer); running=false; return; }
+      const cur = nums[i];
+      const complement = target - cur;
+      subtitle.textContent = `i = ${i}, nums[i] = ${cur}. Checking if complement ${complement} exists in map...`;
+
+      render();
+
+      setTimeout(()=>{
+        if(map.has(complement)){
+          subtitle.textContent = `FOUND! map has ${complement} at index ${map.get(complement)}. Returning [${map.get(complement)}, ${i}]`;
+          const valCells = valueRow.querySelectorAll('.cell');
+          valCells[map.get(complement)]?.classList.add('found');
+          valCells[i]?.classList.add('found');
+          codeLines.forEach(l=>l.classList.remove('active'));
+          codeLines[4].classList.add('active');
+          clearInterval(timer);
+          running=false;
+          return;
+        } else {
+          subtitle.textContent = `${complement} not found. Inserting nums[i]=${cur} → index ${i} into map.`;
+          map.set(cur,i);
+          codeLines.forEach(l=>l.classList.remove('active'));
+          codeLines[7].classList.add('active');
+          render();
+          i += 1;
+        }
+      }, 1000);
+    }
+
+    function start(){
+      clearInterval(timer);
+      timer = setInterval(()=>{
+        if(!running) return;
+        step();
+        if(stepMode){ clearInterval(timer); running=false; stepMode=false; }
+      }, 2500); // slowed down from 1200ms to 2500ms per step
+    }
+
+    pauseBtn.addEventListener('click', ()=>{
+      if(running){
+        running = false; pauseBtn.textContent = 'Resume'; subtitle.textContent = 'Paused.'; clearInterval(timer);
+      } else {
+        running = true; pauseBtn.textContent = 'Pause'; subtitle.textContent = 'Resumed.'; start();
+      }
+    });
+
+    stepBtn.addEventListener('click', ()=>{
+      if(running){
+        stepMode = true;
+      } else {
+        step();
+      }
+    });
+
+    (function init(){
+      targetDisplay.textContent = target;
+      render();
+      start();
+    })();
+
+  </script>
+</body>
+</html>

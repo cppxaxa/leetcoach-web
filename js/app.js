@@ -2318,7 +2318,8 @@ Return ONLY the JSON, nothing else.`;
         
         // Honor the project name if available.
         const metaName = document.getElementById('project-dialog-meta-name');
-        const projectName = metaName.value.trim();
+        // Remove icons/symbols (e.g., emojis, stars) and trim whitespace
+        const projectName = metaName.value.replace(/[\p{Emoji}\p{Symbol}\p{Punctuation}\u2600-\u27BF\uFE0F]/gu, '').trim();
 
         if (projectName && projectName.length > 0) {
             projectData.name = projectName;

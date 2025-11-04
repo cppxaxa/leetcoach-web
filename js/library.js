@@ -2,7 +2,7 @@
 window.problemLibrary = {
     "Blind75": {
         "Array": {
-            "Two Sum": "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.\n\nYou may assume that each input would have exactly one solution, and you may not use the same element twice.\n\nYou can return the answer in any order.",
+            "Two Sum ⭐": "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.\n\nYou may assume that each input would have exactly one solution, and you may not use the same element twice.\n\nYou can return the answer in any order.",
             "Best Time to Buy and Sell Stock": "You are given an array prices where prices[i] is the price of a given stock on the ith day.\n\nYou want to maximize your profit by choosing a single day to buy one stock and choosing a different day in the future to sell that stock.\n\nReturn the maximum profit you can achieve from this transaction. If you cannot achieve any profit, return 0.",
             "Contains Duplicate": "Given an integer array nums, return true if any value appears at least twice in the array, and return false if every element is distinct.",
             "Product of Array Except Self": "Given an integer array nums, return an array answer such that answer[i] is equal to the product of all the elements of nums except nums[i].\n\nThe product of any prefix or suffix of nums is guaranteed to fit in a 32-bit integer.\n\nYou must write an algorithm that runs in O(n) time and without using the division operation.",
@@ -271,7 +271,7 @@ window.problemLibrary = {
             "Find the Width of Columns of a Grid": "Difficulty: EASY\nFrequency: 58.7\nAcceptance Rate: 0.693232244841104\nLink: https://leetcode.com/problems/find-the-width-of-columns-of-a-grid\nTopics: Array, Matrix",
             "Best Time to Buy and Sell Stock": "Difficulty: EASY\nFrequency: 49.5\nAcceptance Rate: 0.5525964317904726\nLink: https://leetcode.com/problems/best-time-to-buy-and-sell-stock\nTopics: Array, Dynamic Programming",
             "Can Place Flowers": "Difficulty: EASY\nFrequency: 46.2\nAcceptance Rate: 0.2889923936767658\nLink: https://leetcode.com/problems/can-place-flowers\nTopics: Array, Greedy",
-            "Two Sum": "Difficulty: EASY\nFrequency: 42.2\nAcceptance Rate: 0.5577699935138669\nLink: https://leetcode.com/problems/two-sum\nTopics: Array, Hash Table",
+            "Two Sum ⭐": "Difficulty: EASY\nFrequency: 42.2\nAcceptance Rate: 0.5577699935138669\nLink: https://leetcode.com/problems/two-sum\nTopics: Array, Hash Table",
             "Assign Cookies": "Difficulty: EASY\nFrequency: 30.0\nAcceptance Rate: 0.5387634784437695\nLink: https://leetcode.com/problems/assign-cookies\nTopics: Array, Two Pointers, Greedy, Sorting",
             "Find Words That Can Be Formed by Characters": "Difficulty: EASY\nFrequency: 30.0\nAcceptance Rate: 0.7106771491390691\nLink: https://leetcode.com/problems/find-words-that-can-be-formed-by-characters\nTopics: Array, Hash Table, String, Counting",
             "Merge Sorted Array": "Difficulty: EASY\nFrequency: 37.1\nAcceptance Rate: 0.5291952521829845\nLink: https://leetcode.com/problems/merge-sorted-array\nTopics: Array, Two Pointers, Sorting",
@@ -414,7 +414,7 @@ window.problemLibrary = {
     },
     "Microsoft Sheet": {
         "Array": {
-            "Two Sum": "Difficulty: EASY\nFrequency: 100.0\nAcceptance Rate: 0.5577699843955036\nLink: https://leetcode.com/problems/two-sum\nTopics: Array, Hash Table",
+            "Two Sum ⭐": "Difficulty: EASY\nFrequency: 100.0\nAcceptance Rate: 0.5577699843955036\nLink: https://leetcode.com/problems/two-sum\nTopics: Array, Hash Table",
             "Merge Sorted Array": "Difficulty: EASY\nFrequency: 83.7\nAcceptance Rate: 0.5291951450619177\nLink: https://leetcode.com/problems/merge-sorted-array\nTopics: Array, Two Pointers, Sorting",
             "Remove Duplicates from Sorted Array": "Difficulty: EASY\nFrequency: 64.5\nAcceptance Rate: 0.6035551112882038\nLink: https://leetcode.com/problems/remove-duplicates-from-sorted-array\nTopics: Array, Two Pointers",
             "Search Insert Position": "Difficulty: EASY\nFrequency: 52.2\nAcceptance Rate: 0.4901241638473952\nLink: https://leetcode.com/problems/search-insert-position\nTopics: Array, Binary Search",
@@ -586,7 +586,7 @@ window.problemLibrary = {
     "Airbnb Sheet": {
         "Array": {
             "Contains Duplicate II": "Difficulty: EASY\nFrequency: 72.4\nAcceptance Rate: 0.4904986450077176\nLink: https://leetcode.com/problems/contains-duplicate-ii\nTopics: Array, Hash Table, Sliding Window",
-            "Two Sum": "Difficulty: EASY\nFrequency: 72.4\nAcceptance Rate: 0.5577699372797245\nLink: https://leetcode.com/problems/two-sum\nTopics: Array, Hash Table",
+            "Two Sum ⭐": "Difficulty: EASY\nFrequency: 72.4\nAcceptance Rate: 0.5577699372797245\nLink: https://leetcode.com/problems/two-sum\nTopics: Array, Hash Table",
             "Contains Duplicate": "Difficulty: EASY\nFrequency: 70.4\nAcceptance Rate: 0.6323635688111491\nLink: https://leetcode.com/problems/contains-duplicate\nTopics: Array, Hash Table, Sorting",
             "Can Place Flowers": "Difficulty: EASY\nFrequency: 36.3\nAcceptance Rate: 0.2889923936767658\nLink: https://leetcode.com/problems/can-place-flowers\nTopics: Array, Greedy",
             "Combination Sum": "Difficulty: MEDIUM\nFrequency: 87.2\nAcceptance Rate: 0.7467468656021409\nLink: https://leetcode.com/problems/combination-sum\nTopics: Array, Backtracking",

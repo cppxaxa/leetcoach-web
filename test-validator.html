@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library.js Validator Test</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+        }
+        .test-case {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #3e3e42;
+            border-radius: 5px;
+        }
+        .test-case h3 {
+            margin-top: 0;
+            color: #4fc3f7;
+        }
+        .result {
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 3px;
+        }
+        .result.pass {
+            background: #1e4620;
+            color: #73c991;
+        }
+        .result.fail {
+            background: #5a1d1d;
+            color: #f48771;
+        }
+        .error-list {
+            margin-left: 20px;
+            margin-top: 5px;
+        }
+        pre {
+            background: #2d2d30;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Library.js Validator Test Suite</h1>
+    <div id="test-results"></div>
+
+    <script>
+        // ============================================
+        // VALIDATOR CODE (from repl.html)
+        // ============================================
+        
+        function validateLibraryJS(originalContent, modifiedContent) {
+            const errors = [];
+            
+            // 1. Syntax validation - check if it's valid JavaScript
+            try {
+                // Create a safe evaluation context
+                const testFunc = new Function(modifiedContent + '; return window.problemLibrary;');
+                const problemLibrary = testFunc();
+                
+                // 2. Structure validation - ensure problemLibrary exists and is an object
+                if (!problemLibrary || typeof problemLibrary !== 'object') {
+                    errors.push('Invalid structure: window.problemLibrary must be an object');
+                    return { valid: false, errors };
+                }
+                
+                // 3. Validate hierarchical structure (should have categories with nested problems)
+                const categories = Object.keys(problemLibrary);
+                if (categories.length === 0) {
+                    errors.push('Invalid structure: problemLibrary must contain at least one category');
+                    return { valid: false, errors };
+                }
+                
+                // Check each category is an object
+                for (const category of categories) {
+                    if (typeof problemLibrary[category] !== 'object' || problemLibrary[category] === null) {
+                        errors.push(`Invalid structure: Category "${category}" must be an object`);
+                    }
+                }
+                
+            } catch (e) {
+                errors.push(`Syntax error: ${e.message}`);
+                return { valid: false, errors };
+            }
+            
+            // 4. Check for deletions - ensure no content was removed
+            if (originalContent && originalContent.trim().length > 0) {
+                try {
+                    // Extract all problem names from original
+                    const originalFunc = new Function(originalContent + '; return window.problemLibrary;');
+                    const originalLibrary = originalFunc();
+                    
+                    const modifiedFunc = new Function(modifiedContent + '; return window.problemLibrary;');
+                    const modifiedLibrary = modifiedFunc();
+                    
+                    // Check that all original entries still exist
+                    const originalEntries = extractAllEntries(originalLibrary);
+                    const modifiedEntries = extractAllEntries(modifiedLibrary);
+                    
+                    // Remove stars for comparison (stars can be added to keys)
+                    const normalizeKey = (key) => key.replace(/\s*⭐\s*/g, '').trim();
+                    
+                    // Build a map of normalized keys to their values for both original and modified
+                    const originalMap = new Map();
+                    originalEntries.forEach(e => {
+                        originalMap.set(normalizeKey(e.key), e.value);
+                    });
+                    
+                    const modifiedMap = new Map();
+                    modifiedEntries.forEach(e => {
+                        modifiedMap.set(normalizeKey(e.key), e.value);
+                    });
+                    
+                    // Check for deletions
+                    const deletedKeys = [];
+                    for (const [key, value] of originalMap.entries()) {
+                        if (!modifiedMap.has(key)) {
+                            deletedKeys.push(key);
+                        }
+                    }
+                    
+                    if (deletedKeys.length > 0) {
+                        errors.push(`Deletions detected: The following entries were removed: ${deletedKeys.join(', ')}`);
+                        return { valid: false, errors };
+                    }
+                    
+                    // Check that problem descriptions (values) weren't modified
+                    // Only check existing problems, not new ones
+                    for (const [key, originalValue] of originalMap.entries()) {
+                        const modifiedValue = modifiedMap.get(key);
+                        
+                        if (modifiedValue && modifiedValue !== originalValue) {
+                            errors.push(`Content modification detected: Problem "${key}" description has been changed`);
+                        }
+                    }
+                    
+                } catch (e) {
+                    errors.push(`Error checking for deletions: ${e.message}`);
+                    return { valid: false, errors };
+                }
+            }
+            
+            if (errors.length > 0) {
+                return { valid: false, errors };
+            }
+            
+            return { valid: true, errors: [] };
+        }
+        
+        // Helper function to extract all entries from problemLibrary recursively
+        function extractAllEntries(obj, path = []) {
+            const entries = [];
+            
+            for (const key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    const value = obj[key];
+                    const currentPath = [...path, key];
+                    
+                    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                        // It's a nested category, recurse
+                        entries.push(...extractAllEntries(value, currentPath));
+                    } else if (typeof value === 'string') {
+                        // It's a problem entry
+                        entries.push({
+                            key: key,
+                            path: currentPath,
+                            value: value
+                        });
+                    }
+                }
+            }
+            
+            return entries;
+        }
+
+        // ============================================
+        // TEST CASES
+        // ============================================
+        
+        const testCases = [
+            {
+                name: "Valid: Adding a star to existing problem",
+                original: `window.problemLibrary = {
+                    "Category1": {
+                        "Problem A": "Description A",
+                        "Problem B": "Description B"
+                    }
+                };`,
+                modified: `window.problemLibrary = {
+                    "Category1": {
+                        "Problem A ⭐": "Description A",
+                        "Problem B": "Description B"
+                    }
+                };`,
+                shouldPass: true
+            },
+            {
+                name: "Valid: Adding new problem",
+                original: `window.problemLibrary = {
+                    "Category1": {
+                        "Problem A": "Description A"
+                    }
+                };`,
+                modified: `window.problemLibrary = {
+                    "Category1": {
+                        "Problem A": "Description A",
+                        "Problem B": "Description B"
+                    }
+                };`,
+                shouldPass: true
+            },
+            {
+                name: "Invalid: Deleting a problem",
+                original: `window.problemLibrary = {
+                    "Category1": {
+                        "Problem A": "Description A",
+                        "Problem B": "Description B"
+                    }
+                };`,
+                modified: `window.problemLibrary = {
+                    "Category1": {
+                        "Problem A": "Description A"
+                    }
+                };`,
+                shouldPass: false
+            },
+            {
+                name: "Invalid: Syntax error (missing semicolon)",
+                original: `window.problemLibrary = {
+                    "Category1": {
+                        "Problem A": "Description A"
+                    }
+                };`,
+                modified: `window.problemLibrary = {
+                    "Category1": {
+                        "Problem A": "Description A"
+                    }
+                }`,
+                shouldPass: false
+            },
+            {
+                name: "Invalid: Modifying problem description",
+                original: `window.problemLibrary = {
+                    "Category1": {
+                        "Problem A": "Original Description"
+                    }
+                };`,
+                modified: `window.problemLibrary = {
+                    "Category1": {
+                        "Problem A": "Modified Description"
+                    }
+                };`,
+                shouldPass: false
+            },
+            {
+                name: "Invalid: Empty library",
+                original: `window.problemLibrary = {
+                    "Category1": {
+                        "Problem A": "Description A"
+                    }
+                };`,
+                modified: `window.problemLibrary = {};`,
+                shouldPass: false
+            },
+            {
+                name: "Invalid: Not an object",
+                original: `window.problemLibrary = {
+                    "Category1": {
+                        "Problem A": "Description A"
+                    }
+                };`,
+                modified: `window.problemLibrary = "invalid";`,
+                shouldPass: false
+            },
+            {
+                name: "Valid: Multiple stars added",
+                original: `window.problemLibrary = {
+                    "Category1": {
+                        "Problem A": "Description A",
+                        "Problem B": "Description B",
+                        "Problem C": "Description C"
+                    }
+                };`,
+                modified: `window.problemLibrary = {
+                    "Category1": {
+                        "Problem A ⭐": "Description A",
+                        "Problem B ⭐": "Description B",
+                        "Problem C ⭐": "Description C"
+                    }
+                };`,
+                shouldPass: true
+            }
+        ];
+
+        // ============================================
+        // RUN TESTS
+        // ============================================
+        
+        function runTests() {
+            const resultsContainer = document.getElementById('test-results');
+            let passCount = 0;
+            let failCount = 0;
+            
+            testCases.forEach((testCase, index) => {
+                const testDiv = document.createElement('div');
+                testDiv.className = 'test-case';
+                
+                const result = validateLibraryJS(testCase.original, testCase.modified);
+                const passed = result.valid === testCase.shouldPass;
+                
+                if (passed) {
+                    passCount++;
+                } else {
+                    failCount++;
+                }
+                
+                let html = `<h3>Test ${index + 1}: ${testCase.name}</h3>`;
+                html += `<div><strong>Expected:</strong> ${testCase.shouldPass ? 'PASS' : 'FAIL'}</div>`;
+                html += `<div class="result ${passed ? 'pass' : 'fail'}">`;
+                html += `<strong>Result:</strong> ${passed ? '✓ PASSED' : '✗ FAILED'}`;
+                
+                if (!passed) {
+                    html += `<div style="margin-top: 10px;"><strong>Validation Result:</strong> ${result.valid ? 'Valid' : 'Invalid'}</div>`;
+                }
+                
+                if (result.errors.length > 0) {
+                    html += '<div class="error-list"><strong>Errors:</strong><ul>';
+                    result.errors.forEach(error => {
+                        html += `<li>${error}</li>`;
+                    });
+                    html += '</ul></div>';
+                }
+                
+                html += '</div>';
+                
+                testDiv.innerHTML = html;
+                resultsContainer.appendChild(testDiv);
+            });
+            
+            // Summary
+            const summaryDiv = document.createElement('div');
+            summaryDiv.className = 'test-case';
+            summaryDiv.innerHTML = `
+                <h2>Test Summary</h2>
+                <div class="result ${failCount === 0 ? 'pass' : 'fail'}">
+                    <strong>Total:</strong> ${testCases.length} tests<br>
+                    <strong>Passed:</strong> ${passCount}<br>
+                    <strong>Failed:</strong> ${failCount}
+                </div>
+            `;
+            resultsContainer.insertBefore(summaryDiv, resultsContainer.firstChild);
+        }
+        
+        // Run tests when page loads
+        window.addEventListener('DOMContentLoaded', runTests);
+    </script>
+</body>
+</html>

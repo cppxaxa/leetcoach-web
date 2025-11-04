@@ -2981,8 +2981,10 @@ function handleCloseDryRunDialog() {
 
 // Handle dry run edit button
 function handleDryRunEdit() {
-    const notImplementedDialogOverlay = document.getElementById('not-implemented-dialog-overlay');
-    notImplementedDialogOverlay.classList.add('active');
+    if (currentProject) {
+        // Open repl.html in a new tab with the project name as a query parameter
+        window.open(`repl.html?projectname=${currentProject}`, '_blank');
+    }
 }
 
 // Handle dry run restart button

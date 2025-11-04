@@ -523,6 +523,43 @@ function initializeEventListeners() {
         // Shift+Enter will allow default behavior (new line)
     });
 
+    // Dry Run dialog buttons
+    const dryRunBtn = document.getElementById('dry-run-btn');
+    const dryRunDialogCloseBtn = document.getElementById('dry-run-dialog-close-btn');
+    const dryRunEditBtn = document.getElementById('dry-run-edit-btn');
+    const dryRunRestartBtn = document.getElementById('dry-run-restart-btn');
+    const dryRunMaximizeBtn = document.getElementById('dry-run-maximize-btn');
+    const dryRunDialogOverlay = document.getElementById('dry-run-dialog-overlay');
+    const dryRunIframe = document.getElementById('dry-run-iframe');
+
+    dryRunBtn.addEventListener('click', handleDryRunClick);
+    dryRunDialogCloseBtn.addEventListener('click', handleCloseDryRunDialog);
+    dryRunEditBtn.addEventListener('click', handleDryRunEdit);
+    dryRunRestartBtn.addEventListener('click', handleDryRunRestart);
+    dryRunMaximizeBtn.addEventListener('click', handleDryRunMaximize);
+    
+    // Close dry run dialog when clicking overlay
+    dryRunDialogOverlay.addEventListener('click', function(e) {
+        if (e.target === dryRunDialogOverlay) {
+            handleCloseDryRunDialog();
+        }
+    });
+
+    // Not Implemented dialog buttons
+    const notImplementedDialogCloseBtn = document.getElementById('not-implemented-dialog-close-btn');
+    const notImplementedOkBtn = document.getElementById('not-implemented-ok-btn');
+    const notImplementedDialogOverlay = document.getElementById('not-implemented-dialog-overlay');
+
+    notImplementedDialogCloseBtn.addEventListener('click', handleCloseNotImplementedDialog);
+    notImplementedOkBtn.addEventListener('click', handleCloseNotImplementedDialog);
+    
+    // Close not implemented dialog when clicking overlay
+    notImplementedDialogOverlay.addEventListener('click', function(e) {
+        if (e.target === notImplementedDialogOverlay) {
+            handleCloseNotImplementedDialog();
+        }
+    });
+
     // Settings dialog buttons
     const settingsBtn = document.getElementById('settings-btn');
     const settingsDialogCloseBtn = document.getElementById('settings-dialog-close-btn');
@@ -2820,6 +2857,131 @@ function updateClarifyButtonStates() {
         stopBtn.disabled = true;
         stopBtn.classList.remove('responding');
     }
+}
+
+// ===== DRY RUN DIALOG HANDLERS =====
+let isDryRunMaximized = false;
+
+// Convert project name to hyphen-based format
+function toHyphenCase(str) {
+    return str
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+}
+
+// Handle dry run button click
+function handleDryRunClick() {
+    if (!currentProject) {
+        alert('Please select a project first.');
+        return;
+    }
+    
+    const dryRunDialogOverlay = document.getElementById('dry-run-dialog-overlay');
+    const dryRunIframe = document.getElementById('dry-run-iframe');
+    const dryRunError = document.getElementById('dry-run-error');
+    
+    // Get current host URL
+    const hostUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '');
+    
+    // Convert project name to hyphen-based format
+    const hyphenProjectName = toHyphenCase(currentProject);
+    
+    // Construct the URL
+    const dryRunUrl = `${hostUrl}/projects/${hyphenProjectName}/dryrun.html`;
+    
+    // Reset iframe and error visibility
+    dryRunIframe.style.display = 'block';
+    dryRunError.style.display = 'none';
+    
+    // Load the iframe
+    dryRunIframe.src = dryRunUrl;
+    
+    // Handle iframe load error
+    dryRunIframe.onerror = function() {
+        dryRunIframe.style.display = 'none';
+        dryRunError.style.display = 'flex';
+    };
+    
+    // Check if iframe loaded successfully after a timeout
+    setTimeout(() => {
+        try {
+            // Try to access iframe document to check if it loaded
+            const iframeDoc = dryRunIframe.contentDocument || dryRunIframe.contentWindow.document;
+            if (!iframeDoc || iframeDoc.body.innerHTML === '') {
+                dryRunIframe.style.display = 'none';
+                dryRunError.style.display = 'flex';
+            }
+        } catch (e) {
+            // Cross-origin or access denied - assume it loaded successfully
+            console.log('Cannot access iframe content, assuming it loaded');
+        }
+    }, 2000);
+    
+    // Show dialog
+    dryRunDialogOverlay.classList.add('active');
+}
+
+// Handle close dry run dialog
+function handleCloseDryRunDialog() {
+    const dryRunDialogOverlay = document.getElementById('dry-run-dialog-overlay');
+    const dryRunIframe = document.getElementById('dry-run-iframe');
+    const dryRunDialog = document.querySelector('.dry-run-dialog');
+    
+    dryRunDialogOverlay.classList.remove('active');
+    
+    // Reset iframe
+    dryRunIframe.src = '';
+    
+    // Reset maximize state
+    if (isDryRunMaximized) {
+        isDryRunMaximized = false;
+        dryRunDialog.classList.remove('maximized');
+    }
+}
+
+// Handle dry run edit button
+function handleDryRunEdit() {
+    const notImplementedDialogOverlay = document.getElementById('not-implemented-dialog-overlay');
+    notImplementedDialogOverlay.classList.add('active');
+}
+
+// Handle dry run restart button
+function handleDryRunRestart() {
+    const dryRunIframe = document.getElementById('dry-run-iframe');
+    const dryRunError = document.getElementById('dry-run-error');
+    
+    // Reset error display
+    dryRunError.style.display = 'none';
+    dryRunIframe.style.display = 'block';
+    
+    // Reload iframe by re-setting src
+    const currentSrc = dryRunIframe.src;
+    dryRunIframe.src = '';
+    setTimeout(() => {
+        dryRunIframe.src = currentSrc;
+    }, 10);
+}
+
+// Handle dry run maximize button
+function handleDryRunMaximize() {
+    const dryRunDialog = document.querySelector('.dry-run-dialog');
+    
+    isDryRunMaximized = !isDryRunMaximized;
+    
+    if (isDryRunMaximized) {
+        dryRunDialog.classList.add('maximized');
+    } else {
+        dryRunDialog.classList.remove('maximized');
+    }
+}
+
+// ===== NOT IMPLEMENTED DIALOG HANDLERS =====
+
+// Handle close not implemented dialog
+function handleCloseNotImplementedDialog() {
+    const notImplementedDialogOverlay = document.getElementById('not-implemented-dialog-overlay');
+    notImplementedDialogOverlay.classList.remove('active');
 }
 
 // ===== SETTINGS DIALOG HANDLERS =====

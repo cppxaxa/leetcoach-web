@@ -226,6 +226,56 @@
             </div>
         </div>
 
+        <!-- Dry Run Dialog -->
+        <div class="dialog-overlay" id="dry-run-dialog-overlay">
+            <div class="dialog-box dry-run-dialog">
+                <div class="dialog-header">
+                    <h4>Dry Run</h4>
+                    <div class="dialog-header-buttons">
+                        <button class="dialog-header-btn" id="dry-run-edit-btn" title="Edit">
+                            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+                            </svg>
+                        </button>
+                        <button class="dialog-header-btn" id="dry-run-restart-btn" title="Restart">
+                            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/>
+                                <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/>
+                            </svg>
+                        </button>
+                        <button class="dialog-header-btn" id="dry-run-maximize-btn" title="Maximize/Restore">
+                            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M1.5 1a.5.5 0 0 0-.5.5v4a.5.5 0 0 1-1 0v-4A1.5 1.5 0 0 1 1.5 0h4a.5.5 0 0 1 0 1h-4zM10 .5a.5.5 0 0 1 .5-.5h4A1.5 1.5 0 0 1 16 1.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 1-.5-.5zM.5 10a.5.5 0 0 1 .5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 1 0 1h-4A1.5 1.5 0 0 1 0 14.5v-4a.5.5 0 0 1 .5-.5zm15 0a.5.5 0 0 1 .5.5v4a1.5 1.5 0 0 1-1.5 1.5h-4a.5.5 0 0 1 0-1h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 1 .5-.5z"/>
+                            </svg>
+                        </button>
+                        <button class="dialog-close" id="dry-run-dialog-close-btn" title="Close">×</button>
+                    </div>
+                </div>
+                <div class="dialog-content dry-run-content">
+                    <iframe id="dry-run-iframe" class="dry-run-iframe"></iframe>
+                    <div id="dry-run-error" class="dry-run-error" style="display: none;">
+                        <p>Dry run is not available for this project.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Not Implemented Dialog -->
+        <div class="dialog-overlay" id="not-implemented-dialog-overlay">
+            <div class="dialog-box not-implemented-dialog">
+                <div class="dialog-header">
+                    <h4>Not Implemented</h4>
+                    <button class="dialog-close" id="not-implemented-dialog-close-btn" title="Close">×</button>
+                </div>
+                <div class="dialog-content">
+                    <p>This feature is not yet implemented.</p>
+                </div>
+                <div class="dialog-actions">
+                    <button class="btn-primary" id="not-implemented-ok-btn">OK</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Settings Dialog -->
         <div class="dialog-overlay" id="settings-dialog-overlay">
             <div class="dialog-box settings-dialog">
@@ -344,7 +394,8 @@
                     <h4>Details</h4>
                     <div class="output-controls">
                         <button id="clarify-btn" class="btn-secondary" title="Clarify">Clarify</button>
-                        <button id="clear-output">Clear</button>
+                        <button id="dry-run-btn" class="btn-secondary" title="Dry Run">Dry Run</button>
+                        <button id="clear-output" class="btn-secondary" title="Clear">Clear</button>
                         <button class="maximize-btn" id="maximize-output" title="Maximize/Restore">
                             <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
                                 <path d="M1.5 1a.5.5 0 0 0-.5.5v4a.5.5 0 0 1-1 0v-4A1.5 1.5 0 0 1 1.5 0h4a.5.5 0 0 1 0 1h-4zM10 .5a.5.5 0 0 1 .5-.5h4A1.5 1.5 0 0 1 16 1.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 1-.5-.5zM.5 10a.5.5 0 0 1 .5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 1 0 1h-4A1.5 1.5 0 0 1 0 14.5v-4a.5.5 0 0 1 .5-.5zm15 0a.5.5 0 0 1 .5.5v4a1.5 1.5 0 0 1-1.5 1.5h-4a.5.5 0 0 1 0-1h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 1 .5-.5z"/>

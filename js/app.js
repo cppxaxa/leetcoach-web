@@ -593,6 +593,7 @@ function initializeEventListeners() {
 
     // API Keys dialog buttons
     const settingsKeysBtn = document.getElementById('settings-keys-btn');
+    const settingsResetLayoutBtn = document.getElementById('settings-reset-layout-btn');
     const keysDialogCloseBtn = document.getElementById('keys-dialog-close-btn');
     const keysSaveBtn = document.getElementById('keys-save-btn');
     const keysCancelBtn = document.getElementById('keys-cancel-btn');
@@ -600,6 +601,7 @@ function initializeEventListeners() {
     const toggleGeminiKeyBtn = document.getElementById('toggle-gemini-key');
 
     settingsKeysBtn.addEventListener('click', handleOpenKeysDialog);
+    settingsResetLayoutBtn.addEventListener('click', handleHardLayoutReset);
     keysDialogCloseBtn.addEventListener('click', handleCloseKeysDialog);
     keysSaveBtn.addEventListener('click', handleSaveKeys);
     keysCancelBtn.addEventListener('click', handleCloseKeysDialog);
@@ -1160,8 +1162,15 @@ async function sendDraftMessage(draftPrompt, code, language) {
         // Populate the chat input box with the draft response
         userInput.value = response.trim();
         
-        // Focus the input box
-        userInput.focus();
+        // In mobile view, keep the input panel collapsed - don't auto-expand or focus
+        if (!isInMobileView()) {
+            // Only focus in desktop view
+            userInput.focus();
+        } else {
+            // In mobile view, just populate the value without focusing
+            // This prevents Android keyboard from appearing and causing layout issues
+            console.log('[Draft] Response populated in mobile view - tap input panel to expand');
+        }
         
     } catch (error) {
         console.error('LLM Error:', error);
@@ -1517,6 +1526,24 @@ function handlePanelCollapse(panelType) {
         }
         
         state.collapsed = false;
+        
+        // In mobile view, ensure main-content container maintains proper constraints
+        if (isInMobileView()) {
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent) {
+                mainContent.style.overflow = 'hidden';
+                mainContent.style.position = 'relative';
+                
+                // Ensure all panels stay within bounds
+                Object.values(panels).forEach(p => {
+                    if (p) {
+                        p.style.position = 'relative';
+                        p.style.top = '0';
+                        p.style.transform = 'none';
+                    }
+                });
+            }
+        }
     } else {
         // Collapse panel
         // Save current height before collapsing (not needed for input panel since it uses flex)
@@ -3151,6 +3178,145 @@ function handleToggleGeminiKeyVisibility() {
             </svg>
         `;
     }
+}
+
+// Handle hard layout reset
+function handleHardLayoutReset() {
+    // Confirm with the user before proceeding
+    const confirmed = confirm('This will reset all layout preferences (panel heights, sidebar state, and view mode) for both mobile and desktop views. Do you want to continue?');
+    
+    if (!confirmed) {
+        return;
+    }
+    
+    // Remove all layout-related storage keys
+    storage.remove('preferences:panelHeights');
+    storage.remove('preferences:sidebarCollapsed');
+    
+    // Get DOM elements
+    const editorPanel = document.querySelector('.editor-panel');
+    const outputPanel = document.querySelector('.output-panel');
+    const inputPanel = document.querySelector('.input-panel');
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.querySelector('.main-content');
+    
+    // Force remove ALL possible CSS classes that could affect layout
+    if (editorPanel) {
+        editorPanel.classList.remove('panel-collapsed', 'maximized');
+        editorPanel.style.cssText = ''; // Clear all inline styles
+        editorPanel.removeAttribute('style');
+    }
+    
+    if (outputPanel) {
+        outputPanel.classList.remove('panel-collapsed', 'maximized');
+        outputPanel.style.cssText = '';
+        outputPanel.removeAttribute('style');
+    }
+    
+    if (inputPanel) {
+        inputPanel.classList.remove('panel-collapsed', 'maximized');
+        inputPanel.style.cssText = '';
+        inputPanel.removeAttribute('style');
+    }
+    
+    if (mainContent) {
+        mainContent.style.cssText = '';
+        mainContent.removeAttribute('style');
+        // Critical: Ensure main-content stays within viewport
+        mainContent.style.position = 'relative';
+        mainContent.style.overflow = 'hidden';
+    }
+    
+    // Reset in-memory panel states
+    maximizedPanel = null;
+    panelStates = {
+        editor: { collapsed: false, originalHeight: null, wasCollapsedBeforeMaximize: false },
+        output: { collapsed: false, originalHeight: null, wasCollapsedBeforeMaximize: false },
+        input: { collapsed: false, originalHeight: null, wasCollapsedBeforeMaximize: false }
+    };
+    
+    // Reset sidebar state
+    isSidebarCollapsed = false;
+    if (sidebar) {
+        sidebar.classList.remove('collapsed');
+        sidebar.style.cssText = '';
+        sidebar.removeAttribute('style');
+    }
+    
+    // Reset body classes
+    document.body.classList.remove('mobile-mode');
+    
+    // Reset view mode to device default
+    const defaultViewMode = window.isMobile() ? 'mobile' : 'desktop';
+    storage.set('setting:view_mode', defaultViewMode);
+    
+    // Apply the view mode (this will set correct classes and states)
+    applyViewMode(defaultViewMode);
+    
+    // Update view mode buttons in settings dialog
+    document.querySelectorAll('.view-mode-btn').forEach(btn => {
+        const viewMode = btn.getAttribute('data-view-mode');
+        if (viewMode === defaultViewMode) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    // Force Monaco Editor to relayout after a short delay
+    setTimeout(() => {
+        if (monacoEditor) {
+            monacoEditor.layout();
+        }
+        
+        // Double-check and force visibility and positioning on all panels
+        if (editorPanel) {
+            editorPanel.style.display = '';
+            editorPanel.style.height = '';
+            editorPanel.style.minHeight = '';
+            editorPanel.style.maxHeight = '';
+            editorPanel.style.flex = '';
+            editorPanel.style.position = 'relative';
+            editorPanel.style.top = '0';
+            editorPanel.style.transform = 'none';
+        }
+        
+        // Ensure all panels are visible and properly positioned
+        [editorPanel, outputPanel, inputPanel].forEach(panel => {
+            if (panel) {
+                panel.style.display = '';
+                panel.style.visibility = 'visible';
+                panel.style.opacity = '1';
+                panel.style.position = 'relative';
+                panel.style.top = '0';
+                panel.style.bottom = '0';
+                panel.style.transform = 'none';
+                panel.style.marginTop = '';
+                panel.style.marginBottom = '';
+            }
+        });
+        
+        // Ensure main-content container is properly bounded
+        if (mainContent) {
+            mainContent.style.position = 'relative';
+            mainContent.style.overflow = 'hidden';
+            mainContent.style.height = '100%';
+            mainContent.style.minHeight = '0';
+        }
+    }, 100);
+    
+    // Additional forced layout after Monaco layout
+    setTimeout(() => {
+        if (monacoEditor) {
+            monacoEditor.layout();
+        }
+    }, 400);
+    
+    console.log('[Settings] Hard layout reset completed - session updated without reload');
+    alert('Layout has been reset to defaults.');
+    
+    // Close the settings dialog
+    handleCloseSettingsDialog();
 }
 
 // Update dialog button states

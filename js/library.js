@@ -643,7 +643,7 @@ window.problemLibrary = {
             "Smallest Common Region": "Difficulty: MEDIUM\nFrequency: 84.1\nAcceptance Rate: 0.679230513317286\nLink: https://leetcode.com/problems/smallest-common-region\nTopics: Array, Hash Table, String, Tree, Depth-First Search, Breadth-First Search",
             "Employee Free Time": "Difficulty: HARD\nFrequency: 74.3\nAcceptance Rate: 0.7259759595862569\nLink: https://leetcode.com/problems/employee-free-time\nTopics: Array, Line Sweep, Sorting, Heap (Priority Queue)",
             "Maximum Candies You Can Get from Boxes": "Difficulty: HARD\nFrequency: 72.4\nAcceptance Rate: 0.6877100758915674\nLink: https://leetcode.com/problems/maximum-candies-you-can-get-from-boxes\nTopics: Array, Breadth-First Search, Graph",
-            "Alien Dictionary": "Difficulty: HARD\nFrequency: 42.3\nAcceptance Rate: 0.3490000000000000\nLink: https://leetcode.com/problems/alien-dictionary\nTopics: Graph, Topological Sort, BFS, DFS"
+            "Alien Dictionary ⭐": "Difficulty: HARD\nFrequency: 42.3\nAcceptance Rate: 0.3490000000000000\nLink: https://leetcode.com/problems/alien-dictionary\nTopics: Graph, Topological Sort, BFS, DFS"
         },
         "Design": {
             "Simple Bank System": "Difficulty: MEDIUM\nFrequency: 74.3\nAcceptance Rate: 0.6142935665806328\nLink: https://leetcode.com/problems/simple-bank-system\nTopics: Array, Hash Table, Design, Simulation",

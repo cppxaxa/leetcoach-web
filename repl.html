@@ -111,6 +111,33 @@
             border: none;
         }
 
+        #render-portrait-container {
+            width: 100%;
+            height: 100%;
+            background: #1e1e1e;
+            display: none;
+            overflow: hidden;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        #render-portrait-wrapper {
+            max-width: 500px;
+            height: 100%;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
+        #render-portrait-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
         .loading {
             display: flex;
             align-items: center;
@@ -388,45 +415,50 @@
 
         /* Custom Scrollbar Styles */
         .modal-content::-webkit-scrollbar {
-            width: 10px;
+            width: 8px;
         }
 
         .modal-content::-webkit-scrollbar-track {
-            background: #1e1e1e;
+            background: transparent;
         }
 
         .modal-content::-webkit-scrollbar-thumb {
             background: #3e3e42;
-            border-radius: 0;
+            border-radius: 4px;
         }
 
         .modal-content::-webkit-scrollbar-thumb:hover {
-            background: #4e4e52;
+            background: #505050;
         }
 
         /* Firefox scrollbar */
         .modal-content {
             scrollbar-width: thin;
-            scrollbar-color: #3e3e42 #1e1e1e;
+            scrollbar-color: #3e3e42 transparent;
         }
 
         /* General scrollbar for other elements */
         *::-webkit-scrollbar {
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
         }
 
         *::-webkit-scrollbar-track {
-            background: #1e1e1e;
+            background: transparent;
         }
 
         *::-webkit-scrollbar-thumb {
             background: #3e3e42;
-            border-radius: 0;
+            border-radius: 4px;
         }
 
         *::-webkit-scrollbar-thumb:hover {
-            background: #4e4e52;
+            background: #505050;
+        }
+
+        /* Force scrollbar styling on iframes */
+        iframe {
+            color-scheme: dark;
         }
 
         /* Spinner Animation */
@@ -456,6 +488,7 @@
             <div class="tabs-left">
                 <button class="tab active" data-tab="source">Source</button>
                 <button class="tab" data-tab="render">Render</button>
+                <button class="tab" data-tab="render-portrait">Render (Portrait)</button>
             </div>
             <div class="tabs-right">
                 <button class="persist-btn" onclick="openPersistDialog()">
@@ -470,6 +503,11 @@
             <div id="editor-container"></div>
             <div id="render-container">
                 <iframe id="render-frame"></iframe>
+            </div>
+            <div id="render-portrait-container">
+                <div id="render-portrait-wrapper">
+                    <iframe id="render-portrait-frame"></iframe>
+                </div>
             </div>
         </div>
     </div>
@@ -1265,10 +1303,17 @@
             if (tabName === 'source') {
                 editorContainer.style.display = 'block';
                 renderContainer.style.display = 'none';
+                document.getElementById('render-portrait-container').style.display = 'none';
             } else if (tabName === 'render') {
                 editorContainer.style.display = 'none';
                 renderContainer.style.display = 'block';
+                document.getElementById('render-portrait-container').style.display = 'none';
                 renderHTML();
+            } else if (tabName === 'render-portrait') {
+                editorContainer.style.display = 'none';
+                renderContainer.style.display = 'none';
+                document.getElementById('render-portrait-container').style.display = 'block';
+                renderHTMLPortrait();
             }
         }
 
@@ -1283,6 +1328,22 @@
             
             // Clean up the old URL when frame loads
             renderFrame.onload = () => {
+                URL.revokeObjectURL(url);
+            };
+        }
+
+        function renderHTMLPortrait() {
+            if (!editor) return;
+            
+            const htmlContent = editor.getValue();
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            
+            const portraitFrame = document.getElementById('render-portrait-frame');
+            portraitFrame.src = url;
+            
+            // Clean up the old URL when frame loads
+            portraitFrame.onload = () => {
                 URL.revokeObjectURL(url);
             };
         }

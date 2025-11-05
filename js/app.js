@@ -2955,6 +2955,11 @@ function handleDryRunClick() {
     
     // Show dialog
     dryRunDialogOverlay.classList.add('active');
+    
+    // Maximize dialog on show
+    const dryRunDialog = document.querySelector('.dry-run-dialog');
+    isDryRunMaximized = true;
+    dryRunDialog.classList.add('maximized');
 }
 
 // Handle close dry run dialog
@@ -2976,6 +2981,13 @@ function handleCloseDryRunDialog() {
     if (isDryRunMaximized) {
         isDryRunMaximized = false;
         dryRunDialog.classList.remove('maximized');
+    }
+    
+    // Reopen library dialog if it was open before
+    if (window.libraryDialogWasOpen) {
+        window.libraryDialogWasOpen = false;
+        const libraryDialogOverlay = document.getElementById('library-dialog-overlay');
+        libraryDialogOverlay.classList.add('active');
     }
 }
 
@@ -3735,6 +3747,23 @@ function createTreeFolder(name, content, level) {
     return itemDiv;
 }
 
+// Helper function to check if a dry run exists for a problem
+function getDryRunPath(problemName) {
+    // Check if the problem name has a star emoji (indicates animation available)
+    if (!problemName.includes('⭐')) {
+        return null;
+    }
+    
+    // Remove star emoji and trim
+    const cleanName = problemName.replace(/\s*⭐\s*/g, '').trim();
+    // Convert to kebab-case for folder name
+    const folderName = cleanName.toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-');
+    
+    return `projects/${folderName}/dryrun.html`;
+}
+
 // Create a tree file element
 function createTreeFile(name, description, level) {
     const itemDiv = document.createElement('div');
@@ -3759,6 +3788,26 @@ function createTreeFile(name, description, level) {
     nodeDiv.appendChild(icon);
     nodeDiv.appendChild(label);
     
+    // Check if this problem has a dry run animation
+    const dryRunPath = getDryRunPath(name);
+    if (dryRunPath) {
+        // Add a preview button
+        const previewBtn = document.createElement('button');
+        previewBtn.className = 'tree-preview-btn';
+        previewBtn.title = 'Preview Animation';
+        previewBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
+            <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/>
+        </svg>`;
+        
+        previewBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openDryRunPreview(dryRunPath);
+        });
+        
+        nodeDiv.appendChild(previewBtn);
+    }
+    
     // Click handler for file selection
     nodeDiv.addEventListener('click', () => {
         // Remove previous selection
@@ -3781,6 +3830,31 @@ function createTreeFile(name, description, level) {
     itemDiv.appendChild(nodeDiv);
     
     return itemDiv;
+}
+
+// Open dry run preview from library
+function openDryRunPreview(dryRunPath) {
+    const dryRunDialogOverlay = document.getElementById('dry-run-dialog-overlay');
+    const dryRunIframe = document.getElementById('dry-run-iframe');
+    const dryRunError = document.getElementById('dry-run-error');
+    
+    // Store the current state (library dialog is open)
+    window.libraryDialogWasOpen = true;
+    
+    // Hide library dialog
+    const libraryDialogOverlay = document.getElementById('library-dialog-overlay');
+    libraryDialogOverlay.classList.remove('active');
+    
+    // Show dry run dialog
+    dryRunIframe.src = dryRunPath;
+    dryRunIframe.style.display = 'block';
+    dryRunError.style.display = 'none';
+    dryRunDialogOverlay.classList.add('active');
+    
+    // Maximize dialog on show
+    const dryRunDialog = document.querySelector('.dry-run-dialog');
+    isDryRunMaximized = true;
+    dryRunDialog.classList.add('maximized');
 }
 
 // Export functions for debugging (optional)

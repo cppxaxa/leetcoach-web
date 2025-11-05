@@ -91,6 +91,7 @@
         // Expected output: "wertf"
         
         let canvasW, canvasH;
+        let isPortrait = false;
         let matrixChars = [];
         let state = {
             step: 0,
@@ -124,17 +125,8 @@
         let stepDuration = 240; // frames per step (doubled from 120)
         
         function setup() {
-            // Calculate canvas size to maintain 16:9 aspect ratio
-            let windowAspect = windowWidth / windowHeight;
-            let targetAspect = 16 / 9;
-            
-            if (windowAspect > targetAspect) {
-                canvasH = windowHeight;
-                canvasW = canvasH * targetAspect;
-            } else {
-                canvasW = windowWidth;
-                canvasH = canvasW / targetAspect;
-            }
+            // Calculate canvas size - responsive for both orientations
+            updateCanvasSize();
             
             let canvas = createCanvas(canvasW, canvasH);
             canvas.parent('canvas-container');
@@ -204,7 +196,7 @@
         function drawSubtitle() {
             push();
             fill(0, 255, 100);
-            textSize(canvasH * 0.025);
+            textSize(min(canvasW, canvasH) * 0.025);
             textAlign(CENTER);
             
             // Glowing text effect
@@ -274,7 +266,7 @@
             // Loading text
             push();
             fill(0, 255, 100);
-            textSize(canvasH * 0.03);
+            textSize(min(canvasW, canvasH) * 0.03);
             textAlign(CENTER);
             let dots = '.'.repeat((frameCount / 20) % 4);
             text('LOADING' + dots, width / 2, height * 0.7);
@@ -284,17 +276,17 @@
         function drawInputWords() {
             push();
             let startY = height * 0.25;
-            let spacing = canvasH * 0.08;
+            let spacing = min(canvasW, canvasH) * 0.08;
             
             fill(100, 200, 255);
-            textSize(canvasH * 0.025);
+            textSize(min(canvasW, canvasH) * 0.025);
             textAlign(LEFT);
             text('INPUT WORDS:', width * 0.15, startY);
             
             for (let i = 0; i < state.words.length; i++) {
                 let alpha = map(stepTimer, 0, stepDuration, 0, 255);
                 fill(0, 255, 100, alpha);
-                textSize(canvasH * 0.04);
+                textSize(min(canvasW, canvasH) * 0.04);
                 textAlign(CENTER);
                 
                 drawingContext.shadowBlur = 10;
@@ -312,11 +304,11 @@
             
             // Show which words we're comparing
             fill(100, 200, 255);
-            textSize(canvasH * 0.025);
+            textSize(min(canvasW, canvasH) * 0.025);
             textAlign(CENTER);
             text('COMPARING ADJACENT WORDS:', width / 2, y);
             
-            y += canvasH * 0.08;
+            y += min(canvasW, canvasH) * 0.08;
             
             // Determine which pair to show based on timer
             let pairIndex = floor(map(stepTimer, 0, stepDuration, 0, state.words.length - 1));
@@ -327,26 +319,26 @@
             
             // Draw words being compared
             fill(0, 255, 100);
-            textSize(canvasH * 0.045);
+            textSize(min(canvasW, canvasH) * 0.045);
             text(word1, width * 0.35, y);
             text(word2, width * 0.65, y);
             
             // Draw VS
             fill(255, 0, 100);
-            textSize(canvasH * 0.03);
+            textSize(min(canvasW, canvasH) * 0.03);
             text('VS', width / 2, y);
             
             // Find first different character
-            y += canvasH * 0.1;
+            y += min(canvasW, canvasH) * 0.1;
             for (let i = 0; i < min(word1.length, word2.length); i++) {
                 if (word1[i] !== word2[i]) {
                     fill(255, 200, 0);
-                    textSize(canvasH * 0.025);
+                    textSize(min(canvasW, canvasH) * 0.025);
                     text(`DIFFERENCE FOUND: '${word1[i]}' → '${word2[i]}'`, width / 2, y);
                     
-                    y += canvasH * 0.06;
+                    y += min(canvasW, canvasH) * 0.06;
                     fill(0, 255, 100);
-                    textSize(canvasH * 0.022);
+                    textSize(min(canvasW, canvasH) * 0.022);
                     text(`RULE: '${word1[i]}' comes before '${word2[i]}'`, width / 2, y);
                     break;
                 }
@@ -358,7 +350,7 @@
         function drawBuildingGraph() {
             push();
             fill(100, 200, 255);
-            textSize(canvasH * 0.025);
+            textSize(min(canvasW, canvasH) * 0.025);
             textAlign(CENTER);
             text('DEPENDENCY GRAPH:', width / 2, height * 0.2);
             
@@ -378,7 +370,7 @@
             // Get unique characters
             let chars = [...new Set(state.words.join('').split(''))];
             let positions = {};
-            let radius = min(width, height) * 0.25;
+            let radius = min(width, height) * 0.22;
             
             // Position characters in a circle
             chars.forEach((char, i) => {
@@ -408,12 +400,12 @@
                 fill(10, 10, 15);
                 stroke(0, 255, 100);
                 strokeWeight(3);
-                circle(pos.x, pos.y, canvasH * 0.08);
+                circle(pos.x, pos.y, min(canvasW, canvasH) * 0.08);
                 
                 // Character
                 fill(0, 255, 100);
                 noStroke();
-                textSize(canvasH * 0.04);
+                textSize(min(canvasW, canvasH) * 0.04);
                 textAlign(CENTER, CENTER);
                 text(char, pos.x, pos.y);
             }
@@ -424,7 +416,7 @@
         function drawInDegrees() {
             push();
             fill(100, 200, 255);
-            textSize(canvasH * 0.025);
+            textSize(min(canvasW, canvasH) * 0.025);
             textAlign(CENTER);
             text('IN-DEGREE CALCULATION:', width / 2, height * 0.18);
             
@@ -446,9 +438,9 @@
             
             // Display in-degrees
             let startY = height * 0.3;
-            let cols = 3;
+            let cols = isPortrait ? 2 : 3;
             let cellW = width / cols;
-            let cellH = canvasH * 0.12;
+            let cellH = min(canvasW, canvasH) * 0.12;
             
             chars.forEach((char, i) => {
                 let col = i % cols;
@@ -465,7 +457,7 @@
                 // Character and degree
                 fill(0, 255, 100);
                 noStroke();
-                textSize(canvasH * 0.035);
+                textSize(min(canvasW, canvasH) * 0.035);
                 textAlign(CENTER, CENTER);
                 text(`'${char}': ${inDeg[char]}`, x, y);
             });
@@ -476,7 +468,7 @@
         function drawInitQueue() {
             push();
             fill(100, 200, 255);
-            textSize(canvasH * 0.025);
+            textSize(min(canvasW, canvasH) * 0.025);
             textAlign(CENTER);
             text('INITIALIZING QUEUE (in-degree = 0):', width / 2, height * 0.2);
             
@@ -501,24 +493,27 @@
             // Draw queue
             let y = height * 0.4;
             fill(255, 200, 0);
-            textSize(canvasH * 0.03);
+            textSize(min(canvasW, canvasH) * 0.03);
             text('QUEUE:', width * 0.25, y);
             
             fill(0, 255, 100);
             strokeWeight(3);
             stroke(0, 255, 100);
             
+            let queueSpacing = isPortrait ? canvasW * 0.2 : canvasW * 0.15;
             queue.forEach((char, i) => {
-                let x = width * 0.4 + i * canvasW * 0.15;
+                let x = width * 0.4 + i * queueSpacing;
+                let boxW = min(canvasW, canvasH) * 0.1;
+                let boxH = min(canvasW, canvasH) * 0.08;
                 
                 // Queue box
                 fill(10, 10, 15);
-                rect(x - canvasW * 0.05, y - canvasH * 0.04, canvasW * 0.1, canvasH * 0.08);
+                rect(x - boxW * 0.5, y - boxH * 0.5, boxW, boxH);
                 
                 // Character
                 fill(0, 255, 100);
                 noStroke();
-                textSize(canvasH * 0.04);
+                textSize(min(canvasW, canvasH) * 0.04);
                 text(char, x, y);
             });
             
@@ -528,7 +523,7 @@
         function drawProcessingQueue() {
             push();
             fill(100, 200, 255);
-            textSize(canvasH * 0.025);
+            textSize(min(canvasW, canvasH) * 0.025);
             textAlign(CENTER);
             text('TOPOLOGICAL SORT - BFS:', width / 2, height * 0.15);
             
@@ -575,23 +570,24 @@
             
             // Draw queue
             let y = height * 0.35;
+            let queueSpacing = isPortrait ? canvasW * 0.18 : canvasW * 0.12;
             fill(255, 200, 0);
-            textSize(canvasH * 0.025);
+            textSize(min(canvasW, canvasH) * 0.025);
             textAlign(LEFT);
             text('QUEUE:', width * 0.15, y);
             
             tempQueue.forEach((char, i) => {
-                let x = width * 0.3 + i * canvasW * 0.12;
+                let x = width * 0.3 + i * queueSpacing;
                 drawBox(char, x, y, color(0, 255, 100));
             });
             
             // Draw result
-            y += canvasH * 0.15;
+            y += min(canvasW, canvasH) * 0.15;
             fill(100, 200, 255);
             text('RESULT:', width * 0.15, y);
             
             result.forEach((char, i) => {
-                let x = width * 0.3 + i * canvasW * 0.12;
+                let x = width * 0.3 + i * queueSpacing;
                 drawBox(char, x, y, color(0, 255, 200));
             });
             
@@ -601,7 +597,7 @@
         function drawTopologicalSortVisualization() {
             push();
             fill(100, 200, 255);
-            textSize(canvasH * 0.025);
+            textSize(min(canvasW, canvasH) * 0.025);
             textAlign(CENTER);
             text('TOPOLOGICAL SORT SEQUENCE:', width / 2, height * 0.15);
             
@@ -635,7 +631,7 @@
             
             // Draw graph at top with nodes
             let positions = {};
-            let radius = min(width, height) * 0.18;
+            let radius = min(width, height) * 0.16;
             chars.forEach((char, i) => {
                 let angle = (TWO_PI / chars.length) * i - PI / 2;
                 positions[char] = {
@@ -695,7 +691,7 @@
                     strokeWeight(2);
                 }
                 
-                circle(pos.x, pos.y, canvasH * 0.06);
+                circle(pos.x, pos.y, min(canvasW, canvasH) * 0.06);
                 
                 // Character
                 if (isVisited) {
@@ -706,14 +702,14 @@
                     fill(0, 255, 100);
                 }
                 noStroke();
-                textSize(canvasH * 0.03);
+                textSize(min(canvasW, canvasH) * 0.03);
                 textAlign(CENTER, CENTER);
                 text(char, pos.x, pos.y);
             }
             
             // Draw legend
             let legendY = height * 0.65;
-            textSize(canvasH * 0.02);
+            textSize(min(canvasW, canvasH) * 0.02);
             textAlign(LEFT);
             
             fill(255, 200, 0);
@@ -726,26 +722,27 @@
             text('● Remaining', width * 0.65, legendY);
             
             // Draw result sequence at bottom
-            legendY += canvasH * 0.08;
+            legendY += min(canvasW, canvasH) * 0.08;
             fill(100, 200, 255);
-            textSize(canvasH * 0.025);
+            textSize(min(canvasW, canvasH) * 0.025);
             textAlign(CENTER);
             text('ORDER:', width / 2, legendY);
             
-            legendY += canvasH * 0.06;
+            legendY += min(canvasW, canvasH) * 0.06;
+            let charSpacing = isPortrait ? canvasW * 0.15 : canvasW * 0.12;
             result.forEach((char, i) => {
-                let x = width / 2 - (result.length * canvasW * 0.06) + i * canvasW * 0.12;
+                let x = width / 2 - (result.length * charSpacing * 0.5) + i * charSpacing;
                 
                 // Arrow between characters
                 if (i > 0) {
                     stroke(0, 255, 200);
                     strokeWeight(2);
-                    let prevX = width / 2 - (result.length * canvasW * 0.06) + (i - 1) * canvasW * 0.12;
-                    line(prevX + canvasW * 0.03, legendY, x - canvasW * 0.03, legendY);
+                    let prevX = width / 2 - (result.length * charSpacing * 0.5) + (i - 1) * charSpacing;
+                    line(prevX + charSpacing * 0.25, legendY, x - charSpacing * 0.25, legendY);
                     
                     // Arrow head
                     push();
-                    translate(x - canvasW * 0.03, legendY);
+                    translate(x - charSpacing * 0.25, legendY);
                     fill(0, 255, 200);
                     noStroke();
                     triangle(0, 0, -8, -4, -8, 4);
@@ -753,15 +750,16 @@
                 }
                 
                 // Box
+                let boxSize = min(canvasW, canvasH) * 0.05;
                 fill(10, 10, 15);
                 stroke(0, 255, 200);
                 strokeWeight(3);
-                rect(x - canvasW * 0.025, legendY - canvasH * 0.025, canvasW * 0.05, canvasH * 0.05);
+                rect(x - boxSize * 0.5, legendY - boxSize * 0.5, boxSize, boxSize);
                 
                 // Character
                 fill(0, 255, 200);
                 noStroke();
-                textSize(canvasH * 0.035);
+                textSize(min(canvasW, canvasH) * 0.035);
                 text(char, x, legendY);
             });
             
@@ -809,16 +807,18 @@
             
             // Title
             fill(100, 200, 255);
-            textSize(canvasH * 0.03);
+            textSize(min(canvasW, canvasH) * 0.03);
             textAlign(CENTER);
             text('ALIEN ALPHABET ORDER:', width / 2, height * 0.25);
             
             // Result with animation
             let resultStr = result.join('');
             let y = height / 2;
+            let charSpacing = isPortrait ? canvasW * 0.18 : canvasW * 0.16;
+            let boxSize = min(canvasW, canvasH) * 0.12;
             
             result.forEach((char, i) => {
-                let x = width / 2 - (result.length * canvasW * 0.08) + i * canvasW * 0.16;
+                let x = width / 2 - (result.length * charSpacing * 0.5) + i * charSpacing;
                 let scaleAmount = 1 + sin(frameCount * 0.1 + i) * 0.1;
                 
                 push();
@@ -831,13 +831,13 @@
                 strokeWeight(4);
                 drawingContext.shadowBlur = 20;
                 drawingContext.shadowColor = 'rgba(0, 255, 100, 0.8)';
-                rect(-canvasW * 0.06, -canvasH * 0.06, canvasW * 0.12, canvasH * 0.12);
+                rect(-boxSize * 0.5, -boxSize * 0.5, boxSize, boxSize);
                 
                 // Character
                 fill(0, 255, 100);
                 noStroke();
                 drawingContext.shadowBlur = 30;
-                textSize(canvasH * 0.06);
+                textSize(min(canvasW, canvasH) * 0.06);
                 textAlign(CENTER, CENTER);
                 text(char, 0, 0);
                 
@@ -847,7 +847,7 @@
             // Success message
             drawingContext.shadowBlur = 0;
             fill(0, 255, 100);
-            textSize(canvasH * 0.025);
+            textSize(min(canvasW, canvasH) * 0.025);
             text(`"${resultStr}"`, width / 2, height * 0.75);
             
             // Checkmark
@@ -868,14 +868,16 @@
         
         function drawBox(char, x, y, col) {
             push();
+            let boxW = min(canvasW, canvasH) * 0.08;
+            let boxH = min(canvasW, canvasH) * 0.06;
             fill(10, 10, 15);
             stroke(col);
             strokeWeight(2);
-            rect(x - canvasW * 0.04, y - canvasH * 0.03, canvasW * 0.08, canvasH * 0.06);
+            rect(x - boxW * 0.5, y - boxH * 0.5, boxW, boxH);
             
             fill(col);
             noStroke();
-            textSize(canvasH * 0.035);
+            textSize(min(canvasW, canvasH) * 0.035);
             textAlign(CENTER, CENTER);
             text(char, x, y);
             pop();
@@ -888,7 +890,7 @@
             
             // Shorten line to not overlap with circles
             let angle = atan2(y2 - y1, x2 - x1);
-            let offset = canvasH * 0.045;
+            let offset = min(canvasW, canvasH) * 0.045;
             let x1n = x1 + cos(angle) * offset;
             let y1n = y1 + sin(angle) * offset;
             let x2n = x2 - cos(angle) * offset;
@@ -989,19 +991,31 @@
         }
         
         function windowResized() {
-            // Recalculate canvas size
-            let windowAspect = windowWidth / windowHeight;
-            let targetAspect = 16 / 9;
-            
-            if (windowAspect > targetAspect) {
-                canvasH = windowHeight;
-                canvasW = canvasH * targetAspect;
-            } else {
-                canvasW = windowWidth;
-                canvasH = canvasW / targetAspect;
-            }
-            
+            updateCanvasSize();
             resizeCanvas(canvasW, canvasH);
+        }
+        
+        function updateCanvasSize() {
+            // Determine if we're in portrait or landscape mode
+            isPortrait = windowWidth < windowHeight;
+            
+            if (isPortrait) {
+                // Portrait mode: use full width, reasonable height
+                canvasW = windowWidth;
+                canvasH = windowHeight;
+            } else {
+                // Landscape mode: maintain 16:9 aspect ratio
+                let windowAspect = windowWidth / windowHeight;
+                let targetAspect = 16 / 9;
+                
+                if (windowAspect > targetAspect) {
+                    canvasH = windowHeight;
+                    canvasW = canvasH * targetAspect;
+                } else {
+                    canvasW = windowWidth;
+                    canvasH = canvasW / targetAspect;
+                }
+            }
         }
     </script>
 </body>

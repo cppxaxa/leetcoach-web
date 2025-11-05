@@ -2061,8 +2061,10 @@ function handleAddProjectClick() {
     // Show dialog
     dialogOverlay.classList.add('active');
     
-    // Focus on textarea
-    setTimeout(() => dialogInput.focus(), 100);
+    // Only auto-focus on desktop (not on mobile to prevent keyboard popup)
+    if (!isMobile()) {
+        setTimeout(() => dialogInput.focus(), 100);
+    }
 }
 
 // Handle close dialog

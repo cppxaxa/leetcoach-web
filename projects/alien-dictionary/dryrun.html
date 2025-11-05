@@ -1,1022 +1,418 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alien Dictionary - Visual Solution</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            background: #000;
-            overflow: hidden;
-            font-family: 'Courier New', monospace;
-        }
-        
-        #canvas-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #0a0a0a;
-        }
-        
-        canvas {
-            display: block;
-            box-shadow: 0 0 50px rgba(0, 255, 100, 0.3);
-        }
-        
-        .controls {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 15px;
-            z-index: 1000;
-        }
-        
-        button {
-            background: rgba(0, 255, 100, 0.1);
-            border: 2px solid #00ff64;
-            color: #00ff64;
-            padding: 12px 24px;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            box-shadow: 0 0 10px rgba(0, 255, 100, 0.3);
-        }
-        
-        button:hover {
-            background: rgba(0, 255, 100, 0.2);
-            box-shadow: 0 0 20px rgba(0, 255, 100, 0.6);
-            transform: translateY(-2px);
-        }
-        
-        button:active {
-            transform: translateY(0);
-        }
-        
-        button.active {
-            background: rgba(255, 0, 100, 0.2);
-            border-color: #ff0064;
-            color: #ff0064;
-            box-shadow: 0 0 20px rgba(255, 0, 100, 0.6);
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alien Dictionary Dry Run (p5)</title>
+  <!-- p5.js CDN with correct SRI hash. Previous integrity mismatch blocked the script, causing 'p5 is not defined'. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js" integrity="sha512-bcfltY+lNLlNxz38yBBm/HLaUB1gTV6I0e+fahbF9pS6roIdzUytozWdnFV8ZnM6cSAG5EbmO0ag0a/fLZSG4Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <style>
+    :root {
+      --bg: #111418;
+      --panel: #1c2228;
+      --accent: #ffb347; /* warm like Visualgo node highlights */
+      --accent2: #6ad1ff; /* cyan for secondary emphasis */
+      --accent3: #7bffb9; /* green mint */
+      --danger: #ff5f56;
+      --text: #d9e1e8;
+      --border-radius: 10px;
+      --transition: 0.25s ease;
+    }
+    * { box-sizing: border-box; margin:0; padding:0; }
+  body { font-family: system-ui, "Segoe UI", Roboto, Arial; background: var(--bg); color: var(--text); display:flex; flex-direction:column; min-height:100vh; }
+    header { padding: .75rem 1.25rem; background:#0d1013; letter-spacing:.5px; font-size: .95rem; display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; border-bottom:1px solid #222; }
+    header h1 { font-size:1.05rem; font-weight:600; margin-right:1rem; }
+    .layout { flex:1; display:grid; grid-template-columns: 280px 1fr 320px; gap:12px; padding:12px; }
+    @media (max-width:1150px){ .layout{ grid-template-columns: 240px 1fr 260px; } }
+    @media (max-width:980px){ .layout{ grid-template-columns: 1fr; grid-template-rows:auto min(50vh,420px) auto; } #canvasWrap{ order:2; } #leftPanel{ order:1; } #rightPanel{ order:3; } }
+    /* Portrait optimization: stack panels vertically, shrink fonts slightly, reduce padding to minimize scroll */
+    @media (orientation: portrait) and (max-width:900px){
+      body { overflow-y:auto; }
+      header { padding:.6rem .9rem; }
+      .layout { padding:8px; gap:8px; grid-template-columns:1fr; grid-template-rows:auto min(48vh,400px) auto; }
+      .panel { padding:.65rem .7rem .75rem; }
+      .panel h2 { font-size:.8rem; }
+      .steps li { padding:.35rem .5rem; }
+      .sequence { gap:.3rem; }
+      .nodeBox { width:30px; height:30px; font-size:.7rem; }
+      #graphCanvas canvas { max-height:400px; }
+      footer { font-size:.55rem; }
+    }
+    .panel { background: var(--panel); border:1px solid #252c33; border-radius: var(--border-radius); padding: .9rem .95rem 1.05rem; display:flex; flex-direction:column; gap:.65rem; position:relative; }
+    .panel h2 { font-size:.9rem; font-weight:600; text-transform:uppercase; letter-spacing:.75px; color: var(--accent2); }
+    .small { font-size:.7rem; opacity:.7; }
+    #canvasWrap { position:relative; display:flex; align-items:center; justify-content:center; }
+    #graphCanvas { width:100%; height:100%; }
+    /* Landscape: ensure graphCanvas flexes to occupy full panel height */
+    @media (min-width:981px){
+      #canvasWrap { display:flex; flex-direction:column; }
+      #graphCanvas { flex:1 1 auto; height:100%; min-height:0; }
+      #graphCanvas canvas { width:100%!important; height:100%!important; display:block; }
+    }
+
+    /* Controls */
+    .controls { display:flex; flex-wrap:wrap; gap:.6rem; }
+    button, input[type="text"], select { font: inherit; }
+    button { background:#222b31; color:var(--text); border:1px solid #2f3b44; padding:.55rem .85rem; border-radius:6px; cursor:pointer; font-size:.8rem; letter-spacing:.5px; font-weight:600; display:inline-flex; align-items:center; gap:.4rem; transition: var(--transition); }
+    button.primary { background:linear-gradient(135deg,#ffb347,#ff7b72); border-color:#ff9961; color:#101214; }
+    button.primary:hover { filter:brightness(1.08); }
+    button.outline { background:#1c242b; }
+    button.outline:hover { background:#263038; }
+    button:disabled { opacity:.35; cursor:not-allowed; }
+    .speedWrap { display:flex; align-items:center; gap:.55rem; font-size:.7rem; }
+    .speedWrap input { width:110px; }
+    .inputRow { display:flex; gap:.5rem; }
+    .inputRow input { flex:1; background:#20282e; border:1px solid #2e3941; padding:.5rem .6rem; border-radius:6px; color:var(--text); font-size:.75rem; }
+    .badge { display:inline-block; padding:.2rem .45rem; border-radius:4px; background:#202b32; font-size:.65rem; margin:.15rem .25rem .15rem 0; }
+
+    /* Step list */
+    .steps { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.4rem; font-size:.7rem; }
+    .steps li { padding:.4rem .55rem; border:1px solid #2a353d; border-radius:5px; background:#1e262c; line-height:1.15; position:relative; }
+    .steps li.active { border-color: var(--accent); background:#262f35; }
+    .steps li.done { opacity:.55; }
+    .steps li::before { content:""; position:absolute; left:0; top:0; bottom:0; width:3px; border-radius:3px 0 0 3px; background:#2a353d; }
+    .steps li.active::before { background:var(--accent); }
+
+    /* Tables */
+    table { width:100%; border-collapse:collapse; font-size:.7rem; }
+    th, td { padding:.35rem .45rem; text-align:left; border-bottom:1px solid #263138; }
+    th { font-weight:600; color:var(--accent2); }
+    tbody tr.highlight td { background:#273038; }
+
+    /* Queue & Result */
+    .sequence { display:flex; flex-wrap:wrap; gap:.4rem; min-height:38px; }
+    .nodeBox { width:34px; height:34px; border-radius:50%; background:linear-gradient(145deg,#27333b,#1d242a); border:2px solid #3a4a55; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:.8rem; position:relative; color:var(--text); transition:var(--transition); }
+    .nodeBox.edgeNew { border-color: var(--accent); box-shadow:0 0 0 2px rgba(255,179,71,.25); }
+    .nodeBox.enqueued { border-color: var(--accent2); }
+    .nodeBox.processed { border-color: var(--accent3); background:linear-gradient(135deg,#7bffb9 0%, #41c9a1 100%); color:#0d1316; }
+    .arrowSpacer { width:10px; height:34px; position:relative; }
+    .arrowSpacer:after { content:""; position:absolute; left:50%; top:50%; width:14px; height:2px; background:#42525d; transform:translate(-50%,-50%); }
+
+    /* Legend */
+    .legend { display:flex; flex-wrap:wrap; gap:.6rem; font-size:.6rem; }
+    .legend span { display:inline-flex; align-items:center; gap:.35rem; }
+    .legend i { width:14px; height:14px; border-radius:50%; display:inline-block; }
+    .l-new i { background:var(--accent); }
+    .l-queue i { background:var(--accent2); }
+    .l-done i { background:var(--accent3); }
+
+  /* Edge derivation detail */
+  .derivation-table { width:100%; border-collapse:collapse; font-size:.65rem; margin-top:.25rem; }
+  .derivation-table th, .derivation-table td { padding:.3rem .4rem; border-bottom:1px solid #263138; }
+  .derivation-table th { color:var(--accent2); font-weight:600; }
+  .derivation-table tr.current td { background:#2a353d; }
+  .derivation-table tr.completed td { opacity:.6; }
+  .derivation-table code { background:#202b32; padding:0 .25rem; border-radius:3px; }
+
+    footer { padding:.5rem .9rem; font-size:.6rem; letter-spacing:.5px; background:#0d1013; border-top:1px solid #222; display:flex; flex-wrap:wrap; align-items:center; gap:.6rem; }
+    code { background:#20282e; padding:.15rem .3rem; border-radius:4px; font-size:.65rem; }
+  </style>
 </head>
 <body>
-    <div id="canvas-container"></div>
-    <div class="controls">
-        <button id="pauseBtn" onclick="togglePause()">PAUSE</button>
-        <button id="restartBtn" onclick="restartAnimation()">RESTART</button>
+  <header>
+    <h1>Alien Dictionary • Dry Run Visualizer (p5.js)</h1>
+    <div class="inputRow" style="flex:1; max-width:520px;">
+      <input id="wordsInput" placeholder='Enter words comma-separated (e.g. wrt, wrf, er, ett, rftt)' />
+      <button id="loadBtn" class="outline" title="Load words">Load</button>
     </div>
-    
-    <script>
-        // Alien Dictionary Problem Visualization
-        // Test case: ["wrt", "wrf", "er", "ett", "rftt"]
-        // Expected output: "wertf"
-        
-        let canvasW, canvasH;
-        let isPortrait = false;
-        let matrixChars = [];
-        let state = {
-            step: 0,
-            paused: false,
-            words: ["wrt", "wrf", "er", "ett", "rftt"],
-            graph: {},
-            inDegree: {},
-            edges: [],
-            queue: [],
-            result: [],
-            currentPair: null,
-            comparing: [],
-            highlightChar: null,
-            particles: []
-        };
-        
-        let stepTitles = [
-            "> INITIALIZING ALIEN DICTIONARY DECODER...",
-            "> ANALYZING INPUT WORDS...",
-            "> COMPARING ADJACENT WORDS...",
-            "> BUILDING DEPENDENCY GRAPH...",
-            "> CALCULATING IN-DEGREES...",
-            "> INITIALIZING TOPOLOGICAL SORT...",
-            "> PROCESSING TOPOLOGICAL SORT (BFS)...",
-            "> TOPOLOGICAL SORT VISUALIZATION...",
-            "> SOLUTION FOUND: ALIEN ALPHABET ORDER",
-            "> VERIFICATION COMPLETE"
-        ];
-        
-        let stepTimer = 0;
-        let stepDuration = 240; // frames per step (doubled from 120)
-        
-        function setup() {
-            // Calculate canvas size - responsive for both orientations
-            updateCanvasSize();
-            
-            let canvas = createCanvas(canvasW, canvasH);
-            canvas.parent('canvas-container');
-            
-            frameRate(60);
-            textFont('Courier New');
-            
-            // Initialize matrix background characters
-            for (let i = 0; i < 50; i++) {
-                matrixChars.push({
-                    x: random(width),
-                    y: random(height),
-                    char: String.fromCharCode(65 + floor(random(26))),
-                    speed: random(1, 3),
-                    opacity: random(50, 150)
-                });
-            }
-            
-            initializeAlgorithm();
-        }
-        
-        function draw() {
-            background(10, 10, 15);
-            
-            // Draw matrix background
-            drawMatrixBackground();
-            
-            if (!state.paused) {
-                stepTimer++;
-                if (stepTimer >= stepDuration && state.step < 9) {
-                    nextStep();
-                }
-            }
-            
-            // Draw current step content
-            drawStepContent();
-            
-            // Draw subtitle
-            drawSubtitle();
-            
-            // Draw particles
-            updateParticles();
-            
-            // Draw glitch effects occasionally
-            if (frameCount % 120 === 0) {
-                drawGlitchEffect();
-            }
-        }
-        
-        function drawMatrixBackground() {
-            for (let mc of matrixChars) {
-                push();
-                fill(0, 255, 100, mc.opacity * 0.3);
-                textSize(12);
-                textAlign(CENTER, CENTER);
-                text(mc.char, mc.x, mc.y);
-                mc.y += mc.speed;
-                if (mc.y > height) {
-                    mc.y = -20;
-                    mc.x = random(width);
-                    mc.char = String.fromCharCode(65 + floor(random(26)));
-                }
-                pop();
-            }
-        }
-        
-        function drawSubtitle() {
-            push();
-            fill(0, 255, 100);
-            textSize(min(canvasW, canvasH) * 0.025);
-            textAlign(CENTER);
-            
-            // Glowing text effect
-            drawingContext.shadowBlur = 15;
-            drawingContext.shadowColor = 'rgba(0, 255, 100, 0.8)';
-            
-            let subtitle = stepTitles[state.step] || stepTitles[0];
-            text(subtitle, width / 2, height * 0.08);
-            
-            drawingContext.shadowBlur = 0;
-            pop();
-        }
-        
-        function drawStepContent() {
-            switch(state.step) {
-                case 0:
-                    drawInitializing();
-                    break;
-                case 1:
-                    drawInputWords();
-                    break;
-                case 2:
-                    drawComparingWords();
-                    break;
-                case 3:
-                    drawBuildingGraph();
-                    break;
-                case 4:
-                    drawInDegrees();
-                    break;
-                case 5:
-                    drawInitQueue();
-                    break;
-                case 6:
-                    drawProcessingQueue();
-                    break;
-                case 7:
-                    drawTopologicalSortVisualization();
-                    break;
-                case 8:
-                case 9:
-                    drawFinalResult();
-                    break;
-            }
-        }
-        
-        function drawInitializing() {
-            push();
-            translate(width / 2, height / 2);
-            
-            // Spinning alien symbol
-            rotate(frameCount * 0.05);
-            stroke(0, 255, 100);
-            strokeWeight(3);
-            noFill();
-            
-            for (let i = 0; i < 6; i++) {
-                push();
-                rotate(TWO_PI / 6 * i);
-                line(0, 30, 0, 60);
-                circle(0, 70, 15);
-                pop();
-            }
-            
-            pop();
-            
-            // Loading text
-            push();
-            fill(0, 255, 100);
-            textSize(min(canvasW, canvasH) * 0.03);
-            textAlign(CENTER);
-            let dots = '.'.repeat((frameCount / 20) % 4);
-            text('LOADING' + dots, width / 2, height * 0.7);
-            pop();
-        }
-        
-        function drawInputWords() {
-            push();
-            let startY = height * 0.25;
-            let spacing = min(canvasW, canvasH) * 0.08;
-            
-            fill(100, 200, 255);
-            textSize(min(canvasW, canvasH) * 0.025);
-            textAlign(LEFT);
-            text('INPUT WORDS:', width * 0.15, startY);
-            
-            for (let i = 0; i < state.words.length; i++) {
-                let alpha = map(stepTimer, 0, stepDuration, 0, 255);
-                fill(0, 255, 100, alpha);
-                textSize(min(canvasW, canvasH) * 0.04);
-                textAlign(CENTER);
-                
-                drawingContext.shadowBlur = 10;
-                drawingContext.shadowColor = 'rgba(0, 255, 100, 0.5)';
-                
-                text(`"${state.words[i]}"`, width / 2, startY + spacing * (i + 1));
-            }
-            drawingContext.shadowBlur = 0;
-            pop();
-        }
-        
-        function drawComparingWords() {
-            push();
-            let y = height * 0.3;
-            
-            // Show which words we're comparing
-            fill(100, 200, 255);
-            textSize(min(canvasW, canvasH) * 0.025);
-            textAlign(CENTER);
-            text('COMPARING ADJACENT WORDS:', width / 2, y);
-            
-            y += min(canvasW, canvasH) * 0.08;
-            
-            // Determine which pair to show based on timer
-            let pairIndex = floor(map(stepTimer, 0, stepDuration, 0, state.words.length - 1));
-            if (pairIndex >= state.words.length - 1) pairIndex = state.words.length - 2;
-            
-            let word1 = state.words[pairIndex];
-            let word2 = state.words[pairIndex + 1];
-            
-            // Draw words being compared
-            fill(0, 255, 100);
-            textSize(min(canvasW, canvasH) * 0.045);
-            text(word1, width * 0.35, y);
-            text(word2, width * 0.65, y);
-            
-            // Draw VS
-            fill(255, 0, 100);
-            textSize(min(canvasW, canvasH) * 0.03);
-            text('VS', width / 2, y);
-            
-            // Find first different character
-            y += min(canvasW, canvasH) * 0.1;
-            for (let i = 0; i < min(word1.length, word2.length); i++) {
-                if (word1[i] !== word2[i]) {
-                    fill(255, 200, 0);
-                    textSize(min(canvasW, canvasH) * 0.025);
-                    text(`DIFFERENCE FOUND: '${word1[i]}' → '${word2[i]}'`, width / 2, y);
-                    
-                    y += min(canvasW, canvasH) * 0.06;
-                    fill(0, 255, 100);
-                    textSize(min(canvasW, canvasH) * 0.022);
-                    text(`RULE: '${word1[i]}' comes before '${word2[i]}'`, width / 2, y);
-                    break;
-                }
-            }
-            
-            pop();
-        }
-        
-        function drawBuildingGraph() {
-            push();
-            fill(100, 200, 255);
-            textSize(min(canvasW, canvasH) * 0.025);
-            textAlign(CENTER);
-            text('DEPENDENCY GRAPH:', width / 2, height * 0.2);
-            
-            // Build graph from words
-            let edges = [];
-            for (let i = 0; i < state.words.length - 1; i++) {
-                let w1 = state.words[i];
-                let w2 = state.words[i + 1];
-                for (let j = 0; j < min(w1.length, w2.length); j++) {
-                    if (w1[j] !== w2[j]) {
-                        edges.push([w1[j], w2[j]]);
-                        break;
-                    }
-                }
-            }
-            
-            // Get unique characters
-            let chars = [...new Set(state.words.join('').split(''))];
-            let positions = {};
-            let radius = min(width, height) * 0.22;
-            
-            // Position characters in a circle
-            chars.forEach((char, i) => {
-                let angle = (TWO_PI / chars.length) * i - PI / 2;
-                positions[char] = {
-                    x: width / 2 + cos(angle) * radius,
-                    y: height / 2 + sin(angle) * radius
-                };
-            });
-            
-            // Draw edges
-            stroke(0, 255, 100, 100);
-            strokeWeight(2);
-            for (let edge of edges) {
-                let from = positions[edge[0]];
-                let to = positions[edge[1]];
-                if (from && to) {
-                    drawArrow(from.x, from.y, to.x, to.y);
-                }
-            }
-            
-            // Draw nodes
-            for (let char of chars) {
-                let pos = positions[char];
-                
-                // Node circle
-                fill(10, 10, 15);
-                stroke(0, 255, 100);
-                strokeWeight(3);
-                circle(pos.x, pos.y, min(canvasW, canvasH) * 0.08);
-                
-                // Character
-                fill(0, 255, 100);
-                noStroke();
-                textSize(min(canvasW, canvasH) * 0.04);
-                textAlign(CENTER, CENTER);
-                text(char, pos.x, pos.y);
-            }
-            
-            pop();
-        }
-        
-        function drawInDegrees() {
-            push();
-            fill(100, 200, 255);
-            textSize(min(canvasW, canvasH) * 0.025);
-            textAlign(CENTER);
-            text('IN-DEGREE CALCULATION:', width / 2, height * 0.18);
-            
-            // Calculate in-degrees
-            let chars = [...new Set(state.words.join('').split(''))];
-            let inDeg = {};
-            chars.forEach(c => inDeg[c] = 0);
-            
-            for (let i = 0; i < state.words.length - 1; i++) {
-                let w1 = state.words[i];
-                let w2 = state.words[i + 1];
-                for (let j = 0; j < min(w1.length, w2.length); j++) {
-                    if (w1[j] !== w2[j]) {
-                        inDeg[w2[j]]++;
-                        break;
-                    }
-                }
-            }
-            
-            // Display in-degrees
-            let startY = height * 0.3;
-            let cols = isPortrait ? 2 : 3;
-            let cellW = width / cols;
-            let cellH = min(canvasW, canvasH) * 0.12;
-            
-            chars.forEach((char, i) => {
-                let col = i % cols;
-                let row = floor(i / cols);
-                let x = cellW * (col + 0.5);
-                let y = startY + cellH * row;
-                
-                // Box
-                fill(0, 255, 100, 20);
-                stroke(0, 255, 100);
-                strokeWeight(2);
-                rect(x - cellW * 0.4, y - cellH * 0.3, cellW * 0.8, cellH * 0.6);
-                
-                // Character and degree
-                fill(0, 255, 100);
-                noStroke();
-                textSize(min(canvasW, canvasH) * 0.035);
-                textAlign(CENTER, CENTER);
-                text(`'${char}': ${inDeg[char]}`, x, y);
-            });
-            
-            pop();
-        }
-        
-        function drawInitQueue() {
-            push();
-            fill(100, 200, 255);
-            textSize(min(canvasW, canvasH) * 0.025);
-            textAlign(CENTER);
-            text('INITIALIZING QUEUE (in-degree = 0):', width / 2, height * 0.2);
-            
-            // Find characters with in-degree 0
-            let chars = [...new Set(state.words.join('').split(''))];
-            let inDeg = {};
-            chars.forEach(c => inDeg[c] = 0);
-            
-            for (let i = 0; i < state.words.length - 1; i++) {
-                let w1 = state.words[i];
-                let w2 = state.words[i + 1];
-                for (let j = 0; j < min(w1.length, w2.length); j++) {
-                    if (w1[j] !== w2[j]) {
-                        inDeg[w2[j]]++;
-                        break;
-                    }
-                }
-            }
-            
-            let queue = chars.filter(c => inDeg[c] === 0);
-            
-            // Draw queue
-            let y = height * 0.4;
-            fill(255, 200, 0);
-            textSize(min(canvasW, canvasH) * 0.03);
-            text('QUEUE:', width * 0.25, y);
-            
-            fill(0, 255, 100);
-            strokeWeight(3);
-            stroke(0, 255, 100);
-            
-            let queueSpacing = isPortrait ? canvasW * 0.2 : canvasW * 0.15;
-            queue.forEach((char, i) => {
-                let x = width * 0.4 + i * queueSpacing;
-                let boxW = min(canvasW, canvasH) * 0.1;
-                let boxH = min(canvasW, canvasH) * 0.08;
-                
-                // Queue box
-                fill(10, 10, 15);
-                rect(x - boxW * 0.5, y - boxH * 0.5, boxW, boxH);
-                
-                // Character
-                fill(0, 255, 100);
-                noStroke();
-                textSize(min(canvasW, canvasH) * 0.04);
-                text(char, x, y);
-            });
-            
-            pop();
-        }
-        
-        function drawProcessingQueue() {
-            push();
-            fill(100, 200, 255);
-            textSize(min(canvasW, canvasH) * 0.025);
-            textAlign(CENTER);
-            text('TOPOLOGICAL SORT - BFS:', width / 2, height * 0.15);
-            
-            // Perform topological sort
-            let chars = [...new Set(state.words.join('').split(''))];
-            let graph = {};
-            let inDeg = {};
-            chars.forEach(c => {
-                graph[c] = [];
-                inDeg[c] = 0;
-            });
-            
-            for (let i = 0; i < state.words.length - 1; i++) {
-                let w1 = state.words[i];
-                let w2 = state.words[i + 1];
-                for (let j = 0; j < min(w1.length, w2.length); j++) {
-                    if (w1[j] !== w2[j]) {
-                        graph[w1[j]].push(w2[j]);
-                        inDeg[w2[j]]++;
-                        break;
-                    }
-                }
-            }
-            
-            let queue = chars.filter(c => inDeg[c] === 0);
-            let result = [];
-            
-            // Simulate BFS progress
-            let stepsToShow = floor(map(stepTimer, 0, stepDuration, 0, chars.length));
-            let tempQueue = [...queue];
-            let tempInDeg = {...inDeg};
-            
-            for (let i = 0; i < stepsToShow && tempQueue.length > 0; i++) {
-                let curr = tempQueue.shift();
-                result.push(curr);
-                
-                for (let neighbor of graph[curr]) {
-                    tempInDeg[neighbor]--;
-                    if (tempInDeg[neighbor] === 0) {
-                        tempQueue.push(neighbor);
-                    }
-                }
-            }
-            
-            // Draw queue
-            let y = height * 0.35;
-            let queueSpacing = isPortrait ? canvasW * 0.18 : canvasW * 0.12;
-            fill(255, 200, 0);
-            textSize(min(canvasW, canvasH) * 0.025);
-            textAlign(LEFT);
-            text('QUEUE:', width * 0.15, y);
-            
-            tempQueue.forEach((char, i) => {
-                let x = width * 0.3 + i * queueSpacing;
-                drawBox(char, x, y, color(0, 255, 100));
-            });
-            
-            // Draw result
-            y += min(canvasW, canvasH) * 0.15;
-            fill(100, 200, 255);
-            text('RESULT:', width * 0.15, y);
-            
-            result.forEach((char, i) => {
-                let x = width * 0.3 + i * queueSpacing;
-                drawBox(char, x, y, color(0, 255, 200));
-            });
-            
-            pop();
-        }
-        
-        function drawTopologicalSortVisualization() {
-            push();
-            fill(100, 200, 255);
-            textSize(min(canvasW, canvasH) * 0.025);
-            textAlign(CENTER);
-            text('TOPOLOGICAL SORT SEQUENCE:', width / 2, height * 0.15);
-            
-            // Perform topological sort
-            let chars = [...new Set(state.words.join('').split(''))];
-            let graph = {};
-            let inDeg = {};
-            chars.forEach(c => {
-                graph[c] = [];
-                inDeg[c] = 0;
-            });
-            
-            for (let i = 0; i < state.words.length - 1; i++) {
-                let w1 = state.words[i];
-                let w2 = state.words[i + 1];
-                for (let j = 0; j < min(w1.length, w2.length); j++) {
-                    if (w1[j] !== w2[j]) {
-                        graph[w1[j]].push(w2[j]);
-                        inDeg[w2[j]]++;
-                        break;
-                    }
-                }
-            }
-            
-            let queue = chars.filter(c => inDeg[c] === 0);
-            let result = [];
-            let visitedNodes = [];
-            
-            // Show the complete topological sort process
-            let y = height * 0.28;
-            
-            // Draw graph at top with nodes
-            let positions = {};
-            let radius = min(width, height) * 0.16;
-            chars.forEach((char, i) => {
-                let angle = (TWO_PI / chars.length) * i - PI / 2;
-                positions[char] = {
-                    x: width / 2 + cos(angle) * radius,
-                    y: y + sin(angle) * radius
-                };
-            });
-            
-            // Draw edges with faded style
-            stroke(0, 255, 100, 50);
-            strokeWeight(1);
-            for (let node in graph) {
-                for (let neighbor of graph[node]) {
-                    let from = positions[node];
-                    let to = positions[neighbor];
-                    if (from && to) {
-                        line(from.x, from.y, to.x, to.y);
-                    }
-                }
-            }
-            
-            // Animate through topological sort
-            let tempQueue = [...queue];
-            let tempInDeg = {...inDeg};
-            let step = floor(map(stepTimer, 0, stepDuration, 0, chars.length + 1));
-            
-            for (let i = 0; i < step && tempQueue.length > 0; i++) {
-                let curr = tempQueue.shift();
-                result.push(curr);
-                visitedNodes.push(curr);
-                
-                for (let neighbor of graph[curr]) {
-                    tempInDeg[neighbor]--;
-                    if (tempInDeg[neighbor] === 0) {
-                        tempQueue.push(neighbor);
-                    }
-                }
-            }
-            
-            // Draw nodes with colors based on state
-            for (let char of chars) {
-                let pos = positions[char];
-                let isVisited = visitedNodes.includes(char);
-                let isInQueue = tempQueue.includes(char);
-                
-                // Node circle
-                fill(10, 10, 15);
-                
-                if (isVisited) {
-                    stroke(0, 255, 200);
-                    strokeWeight(4);
-                } else if (isInQueue) {
-                    stroke(255, 200, 0);
-                    strokeWeight(4);
-                } else {
-                    stroke(0, 255, 100);
-                    strokeWeight(2);
-                }
-                
-                circle(pos.x, pos.y, min(canvasW, canvasH) * 0.06);
-                
-                // Character
-                if (isVisited) {
-                    fill(0, 255, 200);
-                } else if (isInQueue) {
-                    fill(255, 200, 0);
-                } else {
-                    fill(0, 255, 100);
-                }
-                noStroke();
-                textSize(min(canvasW, canvasH) * 0.03);
-                textAlign(CENTER, CENTER);
-                text(char, pos.x, pos.y);
-            }
-            
-            // Draw legend
-            let legendY = height * 0.65;
-            textSize(min(canvasW, canvasH) * 0.02);
-            textAlign(LEFT);
-            
-            fill(255, 200, 0);
-            text('● In Queue', width * 0.15, legendY);
-            
-            fill(0, 255, 200);
-            text('● Processed', width * 0.4, legendY);
-            
-            fill(0, 255, 100);
-            text('● Remaining', width * 0.65, legendY);
-            
-            // Draw result sequence at bottom
-            legendY += min(canvasW, canvasH) * 0.08;
-            fill(100, 200, 255);
-            textSize(min(canvasW, canvasH) * 0.025);
-            textAlign(CENTER);
-            text('ORDER:', width / 2, legendY);
-            
-            legendY += min(canvasW, canvasH) * 0.06;
-            let charSpacing = isPortrait ? canvasW * 0.15 : canvasW * 0.12;
-            result.forEach((char, i) => {
-                let x = width / 2 - (result.length * charSpacing * 0.5) + i * charSpacing;
-                
-                // Arrow between characters
-                if (i > 0) {
-                    stroke(0, 255, 200);
-                    strokeWeight(2);
-                    let prevX = width / 2 - (result.length * charSpacing * 0.5) + (i - 1) * charSpacing;
-                    line(prevX + charSpacing * 0.25, legendY, x - charSpacing * 0.25, legendY);
-                    
-                    // Arrow head
-                    push();
-                    translate(x - charSpacing * 0.25, legendY);
-                    fill(0, 255, 200);
-                    noStroke();
-                    triangle(0, 0, -8, -4, -8, 4);
-                    pop();
-                }
-                
-                // Box
-                let boxSize = min(canvasW, canvasH) * 0.05;
-                fill(10, 10, 15);
-                stroke(0, 255, 200);
-                strokeWeight(3);
-                rect(x - boxSize * 0.5, legendY - boxSize * 0.5, boxSize, boxSize);
-                
-                // Character
-                fill(0, 255, 200);
-                noStroke();
-                textSize(min(canvasW, canvasH) * 0.035);
-                text(char, x, legendY);
-            });
-            
-            pop();
-        }
-        
-        function drawFinalResult() {
-            push();
-            
-            // Calculate final result
-            let chars = [...new Set(state.words.join('').split(''))];
-            let graph = {};
-            let inDeg = {};
-            chars.forEach(c => {
-                graph[c] = [];
-                inDeg[c] = 0;
-            });
-            
-            for (let i = 0; i < state.words.length - 1; i++) {
-                let w1 = state.words[i];
-                let w2 = state.words[i + 1];
-                for (let j = 0; j < min(w1.length, w2.length); j++) {
-                    if (w1[j] !== w2[j]) {
-                        graph[w1[j]].push(w2[j]);
-                        inDeg[w2[j]]++;
-                        break;
-                    }
-                }
-            }
-            
-            let queue = chars.filter(c => inDeg[c] === 0);
-            let result = [];
-            
-            while (queue.length > 0) {
-                let curr = queue.shift();
-                result.push(curr);
-                
-                for (let neighbor of graph[curr]) {
-                    inDeg[neighbor]--;
-                    if (inDeg[neighbor] === 0) {
-                        queue.push(neighbor);
-                    }
-                }
-            }
-            
-            // Title
-            fill(100, 200, 255);
-            textSize(min(canvasW, canvasH) * 0.03);
-            textAlign(CENTER);
-            text('ALIEN ALPHABET ORDER:', width / 2, height * 0.25);
-            
-            // Result with animation
-            let resultStr = result.join('');
-            let y = height / 2;
-            let charSpacing = isPortrait ? canvasW * 0.18 : canvasW * 0.16;
-            let boxSize = min(canvasW, canvasH) * 0.12;
-            
-            result.forEach((char, i) => {
-                let x = width / 2 - (result.length * charSpacing * 0.5) + i * charSpacing;
-                let scaleAmount = 1 + sin(frameCount * 0.1 + i) * 0.1;
-                
-                push();
-                translate(x, y);
-                scale(scaleAmount);
-                
-                // Glowing box
-                fill(0, 255, 100, 50);
-                stroke(0, 255, 100);
-                strokeWeight(4);
-                drawingContext.shadowBlur = 20;
-                drawingContext.shadowColor = 'rgba(0, 255, 100, 0.8)';
-                rect(-boxSize * 0.5, -boxSize * 0.5, boxSize, boxSize);
-                
-                // Character
-                fill(0, 255, 100);
-                noStroke();
-                drawingContext.shadowBlur = 30;
-                textSize(min(canvasW, canvasH) * 0.06);
-                textAlign(CENTER, CENTER);
-                text(char, 0, 0);
-                
-                pop();
-            });
-            
-            // Success message
-            drawingContext.shadowBlur = 0;
-            fill(0, 255, 100);
-            textSize(min(canvasW, canvasH) * 0.025);
-            text(`"${resultStr}"`, width / 2, height * 0.75);
-            
-            // Checkmark
-            if (state.step === 8) {
-                stroke(0, 255, 100);
-                strokeWeight(6);
-                noFill();
-                push();
-                translate(width / 2, height * 0.85);
-                scale(2);
-                line(-10, 0, -2, 8);
-                line(-2, 8, 10, -8);
-                pop();
-            }
-            
-            pop();
-        }
-        
-        function drawBox(char, x, y, col) {
-            push();
-            let boxW = min(canvasW, canvasH) * 0.08;
-            let boxH = min(canvasW, canvasH) * 0.06;
-            fill(10, 10, 15);
-            stroke(col);
-            strokeWeight(2);
-            rect(x - boxW * 0.5, y - boxH * 0.5, boxW, boxH);
-            
-            fill(col);
-            noStroke();
-            textSize(min(canvasW, canvasH) * 0.035);
-            textAlign(CENTER, CENTER);
-            text(char, x, y);
-            pop();
-        }
-        
-        function drawArrow(x1, y1, x2, y2) {
-            push();
-            stroke(0, 255, 100, 150);
-            strokeWeight(2);
-            
-            // Shorten line to not overlap with circles
-            let angle = atan2(y2 - y1, x2 - x1);
-            let offset = min(canvasW, canvasH) * 0.045;
-            let x1n = x1 + cos(angle) * offset;
-            let y1n = y1 + sin(angle) * offset;
-            let x2n = x2 - cos(angle) * offset;
-            let y2n = y2 - sin(angle) * offset;
-            
-            line(x1n, y1n, x2n, y2n);
-            
-            // Arrowhead
-            let arrowSize = 10;
-            push();
-            translate(x2n, y2n);
-            rotate(angle);
-            fill(0, 255, 100, 150);
-            noStroke();
-            triangle(0, 0, -arrowSize, -arrowSize/2, -arrowSize, arrowSize/2);
-            pop();
-            
-            pop();
-        }
-        
-        function updateParticles() {
-            // Add new particles occasionally
-            if (frameCount % 10 === 0 && random() < 0.3) {
-                state.particles.push({
-                    x: random(width),
-                    y: random(height),
-                    vx: random(-1, 1),
-                    vy: random(-1, 1),
-                    life: 255
-                });
-            }
-            
-            // Update and draw particles
-            for (let i = state.particles.length - 1; i >= 0; i--) {
-                let p = state.particles[i];
-                p.x += p.vx;
-                p.y += p.vy;
-                p.life -= 2;
-                
-                push();
-                fill(0, 255, 100, p.life);
-                noStroke();
-                circle(p.x, p.y, 3);
-                pop();
-                
-                if (p.life <= 0) {
-                    state.particles.splice(i, 1);
-                }
-            }
-        }
-        
-        function drawGlitchEffect() {
-            push();
-            stroke(0, 255, 100, 50);
-            strokeWeight(1);
-            for (let i = 0; i < 5; i++) {
-                let y = random(height);
-                line(0, y, width, y);
-            }
-            pop();
-        }
-        
-        function initializeAlgorithm() {
-            state.step = 0;
-            stepTimer = 0;
-        }
-        
-        function nextStep() {
-            state.step++;
-            stepTimer = 0;
-            
-            if (state.step > 9) {
-                state.step = 9;
-            }
-        }
-        
-        function togglePause() {
-            state.paused = !state.paused;
-            let btn = document.getElementById('pauseBtn');
-            if (state.paused) {
-                btn.textContent = 'RESUME';
-                btn.classList.add('active');
-            } else {
-                btn.textContent = 'PAUSE';
-                btn.classList.remove('active');
-            }
-        }
-        
-        function restartAnimation() {
-            state.step = 0;
-            stepTimer = 0;
-            state.paused = false;
-            state.particles = [];
-            
-            let btn = document.getElementById('pauseBtn');
-            btn.textContent = 'PAUSE';
-            btn.classList.remove('active');
-        }
-        
-        function windowResized() {
-            updateCanvasSize();
-            resizeCanvas(canvasW, canvasH);
-        }
-        
-        function updateCanvasSize() {
-            // Determine if we're in portrait or landscape mode
-            isPortrait = windowWidth < windowHeight;
-            
-            if (isPortrait) {
-                // Portrait mode: use full width, reasonable height
-                canvasW = windowWidth;
-                canvasH = windowHeight;
-            } else {
-                // Landscape mode: maintain 16:9 aspect ratio
-                let windowAspect = windowWidth / windowHeight;
-                let targetAspect = 16 / 9;
-                
-                if (windowAspect > targetAspect) {
-                    canvasH = windowHeight;
-                    canvasW = canvasH * targetAspect;
-                } else {
-                    canvasW = windowWidth;
-                    canvasH = canvasW / targetAspect;
-                }
-            }
-        }
-    </script>
+    <div class="controls">
+      <button id="playBtn" class="primary" title="Play / Pause">Play</button>
+      <button id="stepBtn" class="outline" title="Advance one step">Step</button>
+      <button id="resetBtn" class="outline" title="Reset visualization">Reset</button>
+      <div class="speedWrap">
+        <label for="speedRange">Speed</label>
+        <input id="speedRange" type="range" min="0.25" max="2" step="0.25" value="1" />
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Left panel: Steps & Edge Extraction -->
+    <section id="leftPanel" class="panel">
+      <h2>Steps</h2>
+      <ul id="stepsList" class="steps"></ul>
+      <h2 style="margin-top:.4rem;">Derived Edges</h2>
+      <div id="edgesList" style="min-height:70px; font-size:.7rem; line-height:1.2;"></div>
+  <h2 style="margin-top:.4rem;">Derivation Detail</h2>
+  <div id="edgeDerivationDetail" style="max-height:140px; overflow:auto;"></div>
+      <h2 style="margin-top:.4rem;">Characters</h2>
+      <div id="charsList" style="display:flex; flex-wrap:wrap;"></div>
+    </section>
+
+    <!-- Center panel: Graph Canvas -->
+    <section id="canvasWrap" class="panel">
+      <h2 style="position:absolute; left:12px; top:10px;">Graph</h2>
+      <div id="graphCanvas"></div>
+    </section>
+
+    <!-- Right panel: In-Degree / Queue / Result -->
+    <section id="rightPanel" class="panel">
+      <h2>In-Degree</h2>
+      <div style="overflow:auto; max-height:140px;">
+        <table id="indegreeTable"><thead><tr><th>Char</th><th>In</th></tr></thead><tbody></tbody></table>
+      </div>
+      <h2 style="margin-top:.4rem;">Queue</h2>
+      <div id="queueSeq" class="sequence"></div>
+      <h2 style="margin-top:.4rem;">Result Order</h2>
+      <div id="resultSeq" class="sequence"></div>
+      <div class="legend" style="margin-top:.6rem;">
+        <span class="l-new"><i></i> new edge</span>
+        <span class="l-queue"><i></i> in queue</span>
+        <span class="l-done"><i></i> processed</span>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    <span>Algorithm: Build graph from first differing chars, compute in-degrees, BFS (topological sort).</span>
+  </footer>
+
+  <!-- Visualization Script -->
+  <script>
+    /*
+      Alien Dictionary Visualizer (Inline)
+      - Focus: Educational animation sequence.
+      - States:
+        0 Extract unique characters
+        1 Compare adjacent words & derive edges (animated sequentially)
+        2 Compute in-degrees table
+        3 Initialize queue (in-degree = 0)
+        4 Process queue (topological sort BFS) step-by-step
+        5 Finished (display final order)
+      - Additional manual stepping: User can pause and Step.
+    */
+
+  // More illustrative default test case showing branching and multiple dependencies.
+  // Example from common explanations: expected order b d a c
+  // Edges derived:
+  //   "baa" vs "abcd" -> b -> a
+  //   "abcd" vs "abca" -> d -> a
+  //   "abca" vs "cab"  -> a -> c
+  //   "cab"  vs "cad"  -> b -> d (already have b->d implicit via chain)
+  const DEFAULT_WORDS = ["baa","abcd","abca","cab","cad"]; // expected order: bdac
+
+    const state = {
+      words: [...DEFAULT_WORDS],
+      chars: [],
+      edges: [], // {from,to}
+      edgeDerivations: [], // {w1,w2,edge}
+      graph: {},
+      indegree: {},
+      queue: [],
+      result: [],
+      phase: 0,
+      playing: true,
+      speed: 1,
+      tick: 0,
+      subIndex: 0, // for edge derivation / queue processing granularity
+      canvas: null,
+      layoutPositions: {},
+      queuedSet: new Set(),
+      processedSet: new Set(),
+      justAddedEdge: null,
+      lastActionTick: 0
+    };
+
+    const PHASE_LABELS = [
+      "Collect Characters",
+      "Derive Edges",
+      "Compute In-Degrees",
+      "Init Queue",
+      "Process Queue (BFS)",
+      "Done"
+    ];
+
+    function initWords(list){
+      state.words = list.map(w => w.trim()).filter(w => w.length);
+      if(!state.words.length) state.words = [...DEFAULT_WORDS];
+      resetState();
+      buildStepsUI();
+    }
+
+    function resetState(){
+      state.phase = 0; state.edges = []; state.edgeDerivations = []; state.graph = {}; state.indegree = {}; state.queue = []; state.result = []; state.processedSet.clear(); state.queuedSet.clear(); state.justAddedEdge = null; state.subIndex = 0; state.tick=0; state.lastActionTick=0;
+      // phase 0: collect chars
+      const charsSet = new Set();
+      state.words.forEach(w => { for(const c of w) charsSet.add(c); });
+      state.chars = [...charsSet];
+      state.chars.sort();
+      updateCharsPanel();
+      updateIndegreeTable();
+      updateQueueResultPanels();
+      computeLayoutPositions();
+      highlightSteps();
+      renderEdgesList();
+      renderEdgeDerivationDetail();
+    }
+
+    function deriveNextEdge(){
+      // sequentially compare adjacent words; stop after first diff
+      if(state.subIndex >= state.words.length - 1){ // done deriving edges
+        state.phase = 2; state.subIndex = 0; computeIndegrees(); highlightSteps(); return; }
+      const w1 = state.words[state.subIndex];
+      const w2 = state.words[state.subIndex+1];
+      let found = null;
+      for(let i=0;i<Math.min(w1.length,w2.length);i++){ if(w1[i]!==w2[i]) { found={from:w1[i],to:w2[i]}; break; } }
+      if(found){
+        // add edge if not already
+        if(!state.edges.some(e=>e.from===found.from && e.to===found.to)){
+          state.edges.push(found); state.justAddedEdge = found; buildGraph(); renderEdgesList(); }
+      }
+      state.edgeDerivations.push({ w1, w2, edge: found });
+      state.subIndex++;
+      renderEdgeDerivationDetail();
+    }
+
+    function buildGraph(){
+      state.graph={}; state.chars.forEach(c=> state.graph[c] = []);
+      state.edges.forEach(e=> { if(!state.graph[e.from].includes(e.to)) state.graph[e.from].push(e.to); });
+    }
+
+    function computeIndegrees(){
+      state.indegree={}; state.chars.forEach(c=> state.indegree[c]=0);
+      state.edges.forEach(e=> state.indegree[e.to]++);
+      updateIndegreeTable();
+    }
+
+    function initQueue(){
+      state.queue = state.chars.filter(c=> state.indegree[c]===0);
+      state.queue.forEach(c=> state.queuedSet.add(c));
+      updateQueueResultPanels();
+    }
+
+    function processQueueStep(){
+      if(!state.queue.length){ // finished processing
+        state.phase = 5; highlightSteps(); return; }
+      const c = state.queue.shift();
+      state.result.push(c); state.processedSet.add(c); state.queuedSet.delete(c);
+      for(const nei of state.graph[c]){ state.indegree[nei]--; if(state.indegree[nei]===0){ state.queue.push(nei); state.queuedSet.add(nei); } }
+      updateIndegreeTable(); updateQueueResultPanels();
+    }
+
+    function advancePhaseLogic(){
+      switch(state.phase){
+        case 0: // after short delay, move to deriving edges
+          state.phase = 1; highlightSteps(); break;
+        case 1: deriveNextEdge(); break;
+        case 2: // show indegree stable then move
+          state.phase = 3; highlightSteps(); initQueue(); break;
+        case 3: // after visible queue, start processing
+          state.phase = 4; highlightSteps(); break;
+        case 4: processQueueStep(); break;
+      }
+    }
+
+    // UI Building -------------------------------------------------------
+    function buildStepsUI(){
+      const ul = document.getElementById('stepsList'); ul.innerHTML='';
+      PHASE_LABELS.forEach((l,i)=>{ const li=document.createElement('li'); li.dataset.phase=i; li.textContent= (i+1)+'. '+l; ul.appendChild(li); });
+      highlightSteps();
+    }
+    function highlightSteps(){
+      document.querySelectorAll('#stepsList li').forEach(li=>{
+        const p = parseInt(li.dataset.phase); li.classList.remove('active','done');
+        if(p < state.phase) li.classList.add('done'); else if(p===state.phase) li.classList.add('active');
+      });
+    }
+    function renderEdgesList(){
+      const div=document.getElementById('edgesList');
+      if(!state.edges.length){ div.innerHTML='<span class="small" style="opacity:.6;">(none yet)</span>'; return; }
+      div.innerHTML = state.edges.map(e=> `<span class='badge'>${e.from} → ${e.to}</span>`).join('');
+    }
+    function renderEdgeDerivationDetail(){
+      const wrap = document.getElementById('edgeDerivationDetail');
+      if(!wrap) return;
+      if(!state.edgeDerivations.length){ wrap.innerHTML = '<span class="small" style="opacity:.6;">(no comparisons yet)</span>'; return; }
+      let html = '<table class="derivation-table"><thead><tr><th>#</th><th>Pair</th><th>First diff</th><th>Edge</th></tr></thead><tbody>';
+      state.edgeDerivations.forEach((d,i)=>{
+        const diff = d.edge ? `<code>${d.edge.from}</code> vs <code>${d.edge.to}</code>` : '<span style="opacity:.5;">none</span>';
+        const edgeTxt = d.edge ? `<strong>${d.edge.from} → ${d.edge.to}</strong>` : '<span style="opacity:.45;">—</span>';
+        const rowClass = (state.phase===1 && i===state.edgeDerivations.length-1 && state.subIndex < state.words.length-1) ? 'current' : (i < state.edgeDerivations.length ? 'completed' : '');
+        html += `<tr class='${rowClass}'><td>${i+1}</td><td><code>${d.w1}</code> / <code>${d.w2}</code></td><td>${diff}</td><td>${edgeTxt}</td></tr>`;
+      });
+      html += '</tbody></table>';
+      wrap.innerHTML = html;
+    }
+    function updateCharsPanel(){
+      const div=document.getElementById('charsList'); div.innerHTML='';
+      state.chars.forEach(c=>{ const el=document.createElement('span'); el.className='badge'; el.textContent=c; div.appendChild(el); });
+    }
+    function updateIndegreeTable(){
+      const tbody=document.querySelector('#indegreeTable tbody'); tbody.innerHTML='';
+      state.chars.forEach(c=>{ const tr=document.createElement('tr'); if(state.justAddedEdge && state.justAddedEdge.to===c) tr.classList.add('highlight');
+        tr.innerHTML=`<td>${c}</td><td>${state.indegree[c]??0}</td>`; tbody.appendChild(tr); });
+    }
+    function updateQueueResultPanels(){
+      const qDiv=document.getElementById('queueSeq'); qDiv.innerHTML='';
+      state.queue.forEach(c=>{ const box=document.createElement('div'); box.className='nodeBox enqueued'; box.textContent=c; qDiv.appendChild(box); });
+      const rDiv=document.getElementById('resultSeq'); rDiv.innerHTML='';
+      state.result.forEach((c,i)=>{ const box=document.createElement('div'); box.className='nodeBox processed'; box.textContent=c; rDiv.appendChild(box); if(i < state.result.length-1){ const spacer=document.createElement('div'); spacer.className='arrowSpacer'; rDiv.appendChild(spacer); } });
+    }
+
+    // p5 Sketch ----------------------------------------------------------
+    let sketch = (p)=>{
+      p.setup = function(){
+        const wrap=document.getElementById('graphCanvas');
+        const c=p.createCanvas(wrap.clientWidth, wrap.clientHeight);
+        c.parent('graphCanvas');
+        p.textFont('Segoe UI'); p.textAlign(p.CENTER,p.CENTER);
+        // Defer a resize one frame later to capture final flex height in landscape.
+        setTimeout(()=>{ const w=document.getElementById('graphCanvas'); p.resizeCanvas(w.clientWidth, w.clientHeight); computeLayoutPositions(); }, 50);
+      }
+      p.windowResized = function(){ const wrap=document.getElementById('graphCanvas'); p.resizeCanvas(wrap.clientWidth, wrap.clientHeight); computeLayoutPositions(); }
+      p.draw = function(){ p.background(28,34,40);
+        if(state.playing){ state.tick += state.speed; if(state.tick - state.lastActionTick > 50 / state.speed){ state.lastActionTick = state.tick; advancePhaseLogic(); } }
+        drawGraph(p);
+        // subtle pulse for recently added edge
+        if(state.justAddedEdge && state.tick - state.lastActionTick > 25){ state.justAddedEdge = null; updateIndegreeTable(); }
+      }
+    };
+    new p5(sketch);
+
+    function computeLayoutPositions(){
+      // Radial layout with vertical margins so bottom nodes don't clip outside panel in landscape.
+      const W = document.getElementById('graphCanvas').clientWidth;
+      const H = document.getElementById('graphCanvas').clientHeight;
+      const topMargin = 50;      // space for heading
+      const bottomMargin = 80;   // space for footer note
+      const usableH = Math.max(100, H - topMargin - bottomMargin);
+      const cx = W/2;
+      const cy = topMargin + usableH/2; // center shifted down within usable vertical space
+      const R = Math.min(W, usableH)/2 - 30; // radius with extra margin so circle fully visible
+      state.layoutPositions={};
+      state.chars.forEach((c,i)=>{ const angle = (i/state.chars.length)*Math.PI*2 - Math.PI/2; state.layoutPositions[c]={x: cx + Math.cos(angle)*R, y: cy + Math.sin(angle)*R}; });
+    }
+
+    function drawGraph(p){
+      // edges
+      p.strokeWeight(2);
+      state.edges.forEach(e=>{ const from=state.layoutPositions[e.from]; const to=state.layoutPositions[e.to]; if(!from||!to) return; const col = (state.justAddedEdge===e)? p.color(255,179,71): p.color(106,209,255,130); p.stroke(col); drawArrow(p, from.x, from.y, to.x, to.y, col); });
+      // nodes
+      state.chars.forEach(c=>{ const pos=state.layoutPositions[c]; if(!pos) return; p.push();
+        let baseCol = p.color(58,74,85);
+        if(state.processedSet.has(c)) baseCol = p.color(123,255,185);
+        else if(state.queuedSet.has(c)) baseCol = p.color(106,209,255);
+        const r = 32; p.noStroke(); p.fill(29,36,42); p.circle(pos.x,pos.y,r*1.15);
+        p.strokeWeight(3); p.stroke(baseCol); p.fill(29,36,42); p.circle(pos.x,pos.y,r);
+        p.noStroke(); p.fill(220); p.textSize(16); p.text(c,pos.x,pos.y);
+        if(state.processedSet.has(c)){ p.noFill(); p.stroke(123,255,185,140); p.circle(pos.x,pos.y,r + 6 + Math.sin(state.tick/15)*3); }
+      p.pop(); });
+    }
+
+    function drawArrow(p,x1,y1,x2,y2, col){
+      const angle = Math.atan2(y2-y1,x2-x1); const d = 20; const sx = x1 + Math.cos(angle)*18; const sy = y1 + Math.sin(angle)*18; const ex = x2 - Math.cos(angle)*18; const ey = y2 - Math.sin(angle)*18; p.line(sx,sy,ex,ey); // arrowhead
+      p.push(); p.translate(ex,ey); p.rotate(angle); p.noStroke(); p.fill(col); p.triangle(0,0,-8,-4,-8,4); p.pop();
+    }
+
+    // Event Listeners ----------------------------------------------------
+    document.getElementById('loadBtn').addEventListener('click',()=>{ initWords(document.getElementById('wordsInput').value.split(',')); });
+    document.getElementById('playBtn').addEventListener('click',()=>{ state.playing=!state.playing; document.getElementById('playBtn').textContent = state.playing? 'Pause':'Play'; });
+    document.getElementById('stepBtn').addEventListener('click',()=>{ if(state.playing) return; advancePhaseLogic(); });
+    document.getElementById('resetBtn').addEventListener('click',()=>{ resetState(); document.getElementById('playBtn').textContent='Pause'; state.playing=true; });
+    document.getElementById('speedRange').addEventListener('input',e=>{ state.speed = parseFloat(e.target.value); });
+
+    // Initialize on load
+    buildStepsUI(); initWords(DEFAULT_WORDS); document.getElementById('wordsInput').value = DEFAULT_WORDS.join(',');
+  </script>
 </body>
 </html>

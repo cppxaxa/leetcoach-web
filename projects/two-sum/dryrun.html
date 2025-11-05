@@ -31,6 +31,15 @@
       height: 100vh;
     }
     
+    @media (max-width: 1400px) or (max-height: 800px) {
+      #canvas-container canvas {
+        max-width: 100% !important;
+        max-height: 100% !important;
+        width: auto !important;
+        height: auto !important;
+      }
+    }
+    
     .controls-overlay {
       position: absolute;
       bottom: 30px;
@@ -45,6 +54,43 @@
       border: 1px solid rgba(255, 255, 255, 0.06);
       backdrop-filter: blur(10px);
       z-index: 1000;
+      flex-wrap: wrap;
+      max-width: 90%;
+      justify-content: center;
+    }
+    
+    @media (max-width: 768px) or (orientation: portrait) {
+      .controls-overlay {
+        top: 10px;
+        bottom: auto;
+        left: auto;
+        right: 10px;
+        transform: none;
+        padding: 12px 16px;
+        gap: 8px;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .controls-overlay > div {
+        display: none;
+      }
+      
+      .btn {
+        padding: 8px 12px;
+        font-size: 11px;
+        width: 100%;
+      }
+      
+      input {
+        padding: 8px 10px;
+        font-size: 11px;
+        width: 100%;
+      }
+      
+      label {
+        font-size: 11px;
+      }
     }
     
     .btn {
@@ -123,14 +169,17 @@
     let statusMessage = "Ready. Playing dry run...";
     let currentLine = [2, 3, 4];
     
-    // UI positions and dimensions
+    // UI positions and dimensions - will be responsive
     let canvasWidth = 1400;
     let canvasHeight = 800;
+    let isPortrait = false;
+    let scaleFactor = 1;
     
     // Fonts
     let monoFont;
     
     function setup() {
+      updateCanvasSize();
       let canvas = createCanvas(canvasWidth, canvasHeight);
       canvas.parent('canvas-container');
       textFont('monospace');
@@ -144,8 +193,44 @@
       phaseStartTime = millis();
     }
     
+    function windowResized() {
+      updateCanvasSize();
+      resizeCanvas(canvasWidth, canvasHeight);
+    }
+    
+    function updateCanvasSize() {
+      let w = windowWidth;
+      let h = windowHeight;
+      
+      // Determine if portrait or landscape
+      isPortrait = h > w;
+      
+      if (isPortrait) {
+        // Portrait mode - adjust layout vertically
+        canvasWidth = min(w, 800);
+        canvasHeight = h - 20;
+        scaleFactor = canvasWidth / 800;
+      } else {
+        // Landscape mode - use 16:9 ratio
+        let targetWidth = 1400;
+        let targetHeight = 800;
+        
+        // Scale to fit window
+        let scaleW = w / targetWidth;
+        let scaleH = (h - 20) / targetHeight;
+        scaleFactor = min(scaleW, scaleH, 1);
+        
+        canvasWidth = targetWidth * scaleFactor;
+        canvasHeight = targetHeight * scaleFactor;
+      }
+    }
+    
     function draw() {
       background(7, 16, 25);
+      
+      // Apply scaling for responsiveness
+      push();
+      scale(scaleFactor);
       
       // Auto-step logic
       if (running && !stepMode && millis() - lastStepTime > stepDelay) {
@@ -160,6 +245,16 @@
         }
       }
       
+      if (isPortrait) {
+        drawPortraitLayout();
+      } else {
+        drawLandscapeLayout();
+      }
+      
+      pop();
+    }
+    
+    function drawLandscapeLayout() {
       // Draw title
       drawTitle();
       
@@ -177,6 +272,16 @@
       
       // Draw target display
       drawTarget();
+    }
+    
+    function drawPortraitLayout() {
+      // Adjusted layout for portrait
+      drawTitlePortrait();
+      drawArrayPortrait();
+      drawHashMapPortrait();
+      drawStatusPortrait();
+      drawCodePortrait();
+      drawTargetPortrait();
     }
     
     function drawTitle() {
@@ -401,7 +506,222 @@
       pop();
     }
     
-    function drawTarget() {
+    // Portrait layout functions
+    function drawTitlePortrait() {
+      fill(127, 255, 212);
+      textSize(18);
+      textAlign(CENTER);
+      text("⌘ Two Sum", 400, 30);
+      
+      fill(122, 139, 148);
+      textSize(11);
+      text("Find two indices where nums[i] + nums[j] = target", 400, 50);
+    }
+    
+    function drawArrayPortrait() {
+      push();
+      translate(50, 80);
+      
+      fill(122, 139, 148);
+      textSize(12);
+      textAlign(LEFT);
+      text("Array (nums)", 0, 0);
+      
+      translate(0, 20);
+      let cellSize = min(60, (700 - nums.length * 10) / nums.length);
+      
+      // Index row
+      for (let i = 0; i < nums.length; i++) {
+        push();
+        translate(i * (cellSize + 10), 0);
+        
+        fill(11, 21, 32, 100);
+        stroke(255, 255, 255, 10);
+        strokeWeight(1);
+        rect(0, 0, cellSize, 25, 4);
+        
+        fill(122, 139, 148);
+        noStroke();
+        textSize(11);
+        textAlign(CENTER, CENTER);
+        text(i, cellSize / 2, 12);
+        
+        pop();
+      }
+      
+      // Value row
+      translate(0, 30);
+      for (let i = 0; i < nums.length; i++) {
+        push();
+        translate(i * (cellSize + 10), 0);
+        
+        let isHighlight = i === currentIndex && !foundIndices;
+        let isFound = foundIndices && (i === foundIndices[0] || i === foundIndices[1]);
+        
+        if (isFound) {
+          fill(26, 61, 89, 200);
+          stroke(255, 255, 255, 20);
+        } else if (isHighlight) {
+          fill(0, 59, 47, 100);
+          stroke(0, 91, 69, 200);
+        } else {
+          fill(255, 255, 255, 5);
+          stroke(255, 255, 255, 8);
+        }
+        
+        strokeWeight(1);
+        rect(0, 0, cellSize, cellSize, 6);
+        
+        fill(127, 255, 212);
+        noStroke();
+        textSize(16);
+        textAlign(CENTER, CENTER);
+        text(nums[i], cellSize / 2, cellSize / 2);
+        
+        pop();
+      }
+      
+      pop();
+    }
+    
+    function drawHashMapPortrait() {
+      push();
+      translate(50, 230);
+      
+      fill(122, 139, 148);
+      textSize(12);
+      textAlign(LEFT);
+      text("Hash map", 0, 0);
+      
+      translate(0, 20);
+      let x = 0;
+      let y = 0;
+      let maxWidth = 700;
+      
+      for (let [key, value] of hashMap.entries()) {
+        let entryWidth = 100;
+        
+        if (x + entryWidth > maxWidth) {
+          x = 0;
+          y += 38;
+        }
+        
+        push();
+        translate(x, y);
+        
+        fill(255, 255, 255, 5);
+        stroke(255, 255, 255, 5);
+        strokeWeight(1);
+        drawingContext.setLineDash([4, 4]);
+        rect(0, 0, entryWidth, 30, 6);
+        drawingContext.setLineDash([]);
+        
+        fill(122, 139, 148);
+        noStroke();
+        textSize(11);
+        textAlign(CENTER, CENTER);
+        text(`${key} → ${value}`, entryWidth / 2, 15);
+        
+        pop();
+        
+        x += entryWidth + 8;
+      }
+      
+      pop();
+    }
+    
+    function drawStatusPortrait() {
+      push();
+      translate(50, 340);
+      
+      fill(5, 20, 23);
+      stroke(255, 255, 255, 5);
+      strokeWeight(1);
+      rect(0, 0, 700, 100, 8);
+      
+      fill(122, 139, 148);
+      noStroke();
+      textSize(11);
+      textAlign(LEFT, TOP);
+      
+      let words = statusMessage.split(' ');
+      let line = '';
+      let y = 15;
+      for (let word of words) {
+        let testLine = line + word + ' ';
+        if (textWidth(testLine) > 670 && line !== '') {
+          text(line, 15, y);
+          line = word + ' ';
+          y += 18;
+        } else {
+          line = testLine;
+        }
+      }
+      text(line, 15, y);
+      
+      pop();
+    }
+    
+    function drawCodePortrait() {
+      push();
+      translate(50, 460);
+      
+      fill(2, 16, 24);
+      stroke(255, 255, 255, 5);
+      strokeWeight(1);
+      rect(0, 0, 700, 320, 8);
+      
+      let codeLines = [
+        "function twoSum(nums, target) {",
+        "  const map = new Map();",
+        "  for (let i = 0; i < nums.length; i++) {",
+        "    const complement = target - nums[i];",
+        "    if (map.has(complement)) {",
+        "      return [map.get(complement), i];",
+        "    }",
+        "    map.set(nums[i], i);",
+        "  }",
+        "}"
+      ];
+      
+      translate(12, 15);
+      for (let i = 0; i < codeLines.length; i++) {
+        push();
+        
+        if (currentLine.includes(i)) {
+          fill(0, 59, 47, 100);
+          noStroke();
+          rect(-4, i * 28 - 4, 680, 26, 4);
+        }
+        
+        fill(191, 238, 238);
+        if (currentLine.includes(i)) {
+          fill(223, 255, 255);
+        }
+        noStroke();
+        textSize(11);
+        textAlign(LEFT, TOP);
+        text(codeLines[i], 0, i * 28);
+        
+        pop();
+      }
+      
+      pop();
+    }
+    
+    function drawTargetPortrait() {
+      push();
+      translate(50, 795);
+      
+      fill(122, 139, 148);
+      textSize(12);
+      textAlign(LEFT);
+      text(`Target: ${target}`, 0, 0);
+      
+      pop();
+    }
+    
+    function drawTitle() {
       push();
       translate(770, 560);
       

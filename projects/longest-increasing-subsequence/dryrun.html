@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Longest Increasing Subsequence Visualization</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0f0f1a;
+            color: #e0e0ff;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: #1a1a2e;
+            padding: 15px 20px;
+            border-bottom: 1px solid #33334d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: #64b5f6;
+            text-shadow: 0 0 5px rgba(100, 181, 246, 0.5);
+        }
+
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .visualization {
+            flex: 3;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            position: relative;
+        }
+
+        .controls {
+            flex: 1;
+            background: #1a1a2e;
+            padding: 20px;
+            border-left: 1px solid #33334d;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .control-group {
+            background: #252540;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #33334d;
+        }
+
+        h2 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: #64b5f6;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: #2c2c54;
+            color: #e0e0ff;
+            border: 1px solid #444466;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            flex: 1;
+            min-width: 100px;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: #3a3a6a;
+            border-color: #64b5f6;
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .speed-control {
+            margin: 15px 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+        }
+
+        .input-section {
+            margin-top: 15px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            background: #1e1e38;
+            border: 1px solid #444466;
+            border-radius: 4px;
+            color: #e0e0ff;
+            font-family: 'Courier New', monospace;
+        }
+
+        .code-block {
+            background: #1e1e38;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #33334d;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            overflow-x: auto;
+        }
+
+        .code-line {
+            padding: 3px 5px;
+            border-radius: 3px;
+        }
+
+        .highlight {
+            background: rgba(100, 181, 246, 0.3);
+            border-left: 3px solid #64b5f6;
+        }
+
+        .explanation {
+            background: #1e1e38;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #33334d;
+            margin-top: 15px;
+        }
+
+        .instructions {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #aaaaaa;
+        }
+
+        #canvas-container {
+            flex: 1;
+            background: #161625;
+            border-radius: 8px;
+            border: 1px solid #33334d;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .info-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(26, 26, 46, 0.8);
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid #33334d;
+            max-width: calc(100% - 40px);
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .controls {
+                border-left: none;
+                border-top: 1px solid #33334d;
+            }
+        }
+
+        @media (max-height: 600px) {
+            .container {
+                flex-direction: row;
+            }
+            
+            .controls {
+                border-top: none;
+                border-left: 1px solid #33334d;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="visualization">
+            <div id="canvas-container">
+                <div class="info-panel">
+                    <strong>LIS Length:</strong> <span id="lis-length">0</span> | 
+                    <strong>Current State:</strong> <span id="current-state">Ready to start</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <h2>Controls</h2>
+                <div class="buttons">
+                    <button id="play-btn">▶ Play</button>
+                    <button id="pause-btn" disabled>⏸ Pause</button>
+                    <button id="step-btn">⏭ Step</button>
+                    <button id="reset-btn">↺ Reset</button>
+                </div>
+                
+                <div class="speed-control">
+                    <label for="speed-slider">Animation Speed:</label>
+                    <input type="range" id="speed-slider" min="1" max="10" value="5">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h2>Input</h2>
+                <div class="input-section">
+                    <label for="array-input">Enter your sequence:</label>
+                    <input type="text" id="array-input" value="10, 9, 2, 5, 3, 7, 101, 18" placeholder="e.g., 10, 9, 2, 5, 3, 7, 101, 18">
+                    <button id="load-btn" style="margin-top: 10px;">Load Sequence</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h2>Pseudocode</h2>
+                <div class="code-block">
+                    <div class="code-line">function lis(arr):</div>
+                    <div class="code-line" id="line1">    n = length(arr)</div>
+                    <div class="code-line" id="line2">    dp[0..n-1] = 1</div>
+                    <div class="code-line" id="line3">    parent[0..n-1] = -1</div>
+                    <div class="code-line" id="line4">    for i = 1 to n-1:</div>
+                    <div class="code-line" id="line5">        for j = 0 to i-1:</div>
+                    <div class="code-line" id="line6">            if arr[j] &lt; arr[i] and dp[j] + 1 &gt; dp[i]:</div>
+                    <div class="code-line" id="line7">                dp[i] = dp[j] + 1</div>
+                    <div class="code-line" id="line8">                parent[i] = j</div>
+                    <div class="code-line" id="line9">    return max(dp)</div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h2>Explanation</h2>
+                <div class="explanation">
+                    <p><strong>Algorithm Intuition:</strong> For each element, we track the length of the longest increasing subsequence ending at that position by checking all previous smaller elements.</p>
+                    <p><strong>Key Idea:</strong> Dynamic programming builds solutions incrementally using previously computed values.</p>
+                    <p><strong>Time Complexity:</strong> O(n²) where n is the length of the sequence.</p>
+                    <p><strong>Space Complexity:</strong> O(n) for storing DP and parent arrays.</p>
+                </div>
+                
+                <div class="instructions">
+                    <p>←→ Use buttons to control execution</p>
+                    <p>📁 Adjust speed with slider</p>
+                    <p>📝 Enter custom sequence</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let sequence = [10, 9, 2, 5, 3, 7, 101, 18];
+        let dp = [];
+        let parent = [];
+        let animationSpeed = 5;
+        let isPlaying = false;
+        let animationTimer;
+        let currentStep = 0;
+        let steps = [];
+        let maxLisLength = 0;
+        let currentLisLength = 0;
+
+        // DOM elements
+        const playBtn = document.getElementById('play-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const stepBtn = document.getElementById('step-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const speedSlider = document.getElementById('speed-slider');
+        const arrayInput = document.getElementById('array-input');
+        const loadBtn = document.getElementById('load-btn');
+        const lisLengthDisplay = document.getElementById('lis-length');
+        const currentStateDisplay = document.getElementById('current-state');
+
+        // Initialize the sketch
+        function setup() {
+            const container = document.getElementById('canvas-container');
+            const canvas = createCanvas(container.clientWidth, container.clientHeight);
+            canvas.parent('canvas-container');
+            resetAlgorithm();
+            noLoop();
+        }
+
+        // Handle window resize
+        function windowResized() {
+            const container = document.getElementById('canvas-container');
+            resizeCanvas(container.clientWidth, container.clientHeight);
+            redraw();
+        }
+
+        // Reset the algorithm to initial state
+        function resetAlgorithm() {
+            dp = new Array(sequence.length).fill(1);
+            parent = new Array(sequence.length).fill(-1);
+            steps = [];
+            currentStep = 0;
+            maxLisLength = 1;
+            currentLisLength = 1;
+            
+            // Generate all steps for visualization
+            generateSteps();
+            
+            // Update UI
+            lisLengthDisplay.textContent = maxLisLength;
+            currentStateDisplay.textContent = "Ready to start";
+            isPlaying = false;
+            pauseBtn.disabled = true;
+            playBtn.disabled = false;
+            
+            // Clear highlight from code
+            for (let i = 1; i <= 9; i++) {
+                document.getElementById(`line${i}`).classList.remove('highlight');
+            }
+            
+            redraw();
+        }
+
+        // Generate steps for the visualization
+        function generateSteps() {
+            steps = [];
+            
+            // Step 0: Initialization
+            steps.push({
+                type: "init",
+                text: `Initialized dp array with 1s (every element forms a subsequence of length 1)`,
+                highlight: [2],
+                lisLength: 1
+            });
+            
+            // Step 1: Processing elements
+            for (let i = 1; i < sequence.length; i++) {
+                steps.push({
+                    type: "processing",
+                    index: i,
+                    text: `Processing element at index ${i} (value: ${sequence[i]})`,
+                    highlight: [4],
+                    lisLength: currentLisLength
+                });
+                
+                // Check previous elements
+                for (let j = 0; j < i; j++) {
+                    steps.push({
+                        type: "comparison",
+                        i: i,
+                        j: j,
+                        valid: sequence[j] < sequence[i],
+                        text: `Comparing with element at index ${j} (value: ${sequence[j]})`,
+                        highlight: [5, 6],
+                        lisLength: currentLisLength
+                    });
+                    
+                    if (sequence[j] < sequence[i]) {
+                        steps.push({
+                            type: "update",
+                            i: i,
+                            j: j,
+                            prevDp: dp[i],
+                            newDp: dp[j] + 1,
+                            text: `Found increasing sequence: ${sequence[j]} < ${sequence[i]}. Updating dp[${i}] = ${dp[j] + 1}`,
+                            highlight: [7, 8],
+                            lisLength: currentLisLength
+                        });
+                        
+                        // Update if we have a better LIS
+                        if (dp[j] + 1 > dp[i]) {
+                            dp[i] = dp[j] + 1;
+                            parent[i] = j;
+                            if (dp[i] > maxLisLength) maxLisLength = dp[i];
+                        }
+                    }
+                }
+            }
+            
+            // Final step: Result
+            steps.push({
+                type: "result",
+                text: `Algorithm completed. LIS length: ${maxLisLength}`,
+                highlight: [9],
+                lisLength: maxLisLength
+            });
+        }
+
+        // Draw the visualization
+        function draw() {
+            background(22, 22, 37);
+            
+            // Draw array elements
+            const elementWidth = width / (sequence.length + 1);
+            const startY = height * 0.4;
+            const radius = Math.min(30, elementWidth * 0.4);
+            
+            // Draw elements
+            for (let i = 0; i < sequence.length; i++) {
+                const x = elementWidth * (i + 1);
+                const y = startY;
+                
+                // Draw element background
+                fill(30, 30, 56);
+                stroke(51, 51, 77);
+                strokeWeight(1);
+                ellipse(x, y, radius * 2);
+                
+                // Draw element value
+                fill(224, 224, 255);
+                noStroke();
+                textAlign(CENTER, CENTER);
+                textSize(16);
+                text(sequence[i], x, y);
+                
+                // Draw dp value
+                textSize(12);
+                fill(100, 181, 246);
+                text(`dp: ${dp[i]}`, x, y + radius + 20);
+                
+                // Draw index
+                fill(160, 160, 190);
+                textSize(12);
+                text(`i: ${i}`, x, y - radius - 20);
+            }
+            
+            // Draw arrows
+            stroke(100, 181, 246);
+            strokeWeight(2);
+            
+            for (let i = 0; i < sequence.length; i++) {
+                if (parent[i] !== -1) {
+                    const startX = elementWidth * (parent[i] + 1);
+                    const endX = elementWidth * (i + 1);
+                    
+                    // Draw arc arrow
+                    drawArcArrow(startX, startY, endX, startY, radius);
+                }
+            }
+            
+            // Draw current step highlight
+            if (currentStep < steps.length) {
+                const step = steps[currentStep];
+                
+                if (step.type === "processing") {
+                    // Highlight current element
+                    const x = elementWidth * (step.index + 1);
+                    fill(255, 204, 0, 100);
+                    noStroke();
+                    ellipse(x, startY, radius * 2.5);
+                } else if (step.type === "comparison") {
+                    // Highlight both elements
+                    const x1 = elementWidth * (step.j + 1);
+                    const x2 = elementWidth * (step.i + 1);
+                    
+                    // Highlight compared elements
+                    fill(100, 181, 246, 100);
+                    noStroke();
+                    ellipse(x1, startY, radius * 2.2);
+                    ellipse(x2, startY, radius * 2.2);
+                    
+                    // Draw line between them
+                    stroke(100, 181, 246);
+                    strokeWeight(1);
+                    line(x1, startY, x2, startY);
+                } else if (step.type === "update") {
+                    // Highlight updated element
+                    const x = elementWidth * (step.i + 1);
+                    fill(76, 175, 80, 100);
+                    noStroke();
+                    ellipse(x, startY, radius * 2.5);
+                }
+            }
+        }
+
+        // Draw an arc arrow between two points
+        function drawArcArrow(x1, y1, x2, y2, radius) {
+            const midX = (x1 + x2) / 2;
+            const midY = y1 - 50; // Curve height
+            
+            // Draw the arc
+            noFill();
+            stroke(100, 181, 246);
+            strokeWeight(2);
+            beginShape();
+            for (let i = 0; i <= 20; i++) {
+                const t = i / 20;
+                const x = (1 - t) * (1 - t) * x1 + 2 * (1 - t) * t * midX + t * t * x2;
+                const y = (1 - t) * (1 - t) * y1 + 2 * (1 - t) * t * midY + t * t * y2;
+                vertex(x, y);
+            }
+            endShape();
+            
+            // Draw arrowhead
+            const arrowSize = 8;
+            const angle = atan2(midY - y2, midX - x2);
+            fill(100, 181, 246);
+            noStroke();
+            push();
+            translate(x2, y2);
+            rotate(angle);
+            triangle(0, 0, -arrowSize, -arrowSize/2, -arrowSize, arrowSize/2);
+            pop();
+        }
+
+        // Execute next step
+        function executeStep() {
+            if (currentStep >= steps.length) return;
+            
+            const step = steps[currentStep];
+            
+            // Update LIS length display
+            lisLengthDisplay.textContent = step.lisLength;
+            currentStateDisplay.textContent = step.text;
+            
+            // Update highlighted code lines
+            for (let i = 1; i <= 9; i++) {
+                document.getElementById(`line${i}`).classList.remove('highlight');
+            }
+            
+            step.highlight.forEach(line => {
+                document.getElementById(`line${line}`).classList.add('highlight');
+            });
+            
+            // Redraw visualization
+            redraw();
+            
+            currentStep++;
+            if (currentStep >= steps.length) {
+                playBtn.disabled = true;
+                pauseBtn.disabled = true;
+                return false;
+            }
+            
+            return true;
+        }
+
+        // Animation functions
+        function playAnimation() {
+            if (currentStep >= steps.length) return;
+            
+            isPlaying = true;
+            playBtn.disabled = true;
+            pauseBtn.disabled = false;
+            
+            const delay = 1000 - (animationSpeed * 90);
+            animationTimer = setInterval(() => {
+                if (!executeStep()) {
+                    clearInterval(animationTimer);
+                }
+            }, delay);
+        }
+
+        function pauseAnimation() {
+            isPlaying = false;
+            playBtn.disabled = false;
+            pauseBtn.disabled = true;
+            clearInterval(animationTimer);
+        }
+
+        function stepAnimation() {
+            if (isPlaying) pauseAnimation();
+            executeStep();
+        }
+
+        // Event listeners
+        playBtn.addEventListener('click', playAnimation);
+        
+        pauseBtn.addEventListener('click', pauseAnimation);
+        
+        stepBtn.addEventListener('click', stepAnimation);
+        
+        resetBtn.addEventListener('click', () => {
+            if (isPlaying) pauseAnimation();
+            resetAlgorithm();
+        });
+        
+        speedSlider.addEventListener('input', () => {
+            animationSpeed = parseInt(speedSlider.value);
+            if (isPlaying) {
+                pauseAnimation();
+                playAnimation();
+            }
+        });
+        
+        loadBtn.addEventListener('click', () => {
+            if (isPlaying) pauseAnimation();
+            
+            const input = arrayInput.value.trim();
+            if (!input) return;
+            
+            try {
+                const newArray = input.split(',').map(x => parseInt(x.trim()));
+                if (newArray.some(isNaN)) {
+                    throw new Error("Invalid number in sequence");
+                }
+                sequence = newArray;
+                resetAlgorithm();
+            } catch (e) {
+                alert("Please enter a valid comma-separated sequence of numbers");
+            }
+        });
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            resetAlgorithm();
+        });
+    </script>
+</body>
+</html>

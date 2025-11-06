@@ -136,6 +136,7 @@
         }
 
         .code-block {
+            white-space: pre;
             background: #1e1e38;
             padding: 15px;
             border-radius: 8px;
@@ -147,7 +148,7 @@
         }
 
         .code-line {
-            padding: 3px 5px;
+            padding: 0px 0px;
             border-radius: 3px;
         }
 
@@ -252,21 +253,22 @@
                 </div>
             </div>
 
-            <div class="control-group">
-                <h2>Pseudocode</h2>
-                <div class="code-block">
-                    <div class="code-line">function lis(arr):</div>
-                    <div class="code-line" id="line1">    n = length(arr)</div>
-                    <div class="code-line" id="line2">    dp[0..n-1] = 1</div>
-                    <div class="code-line" id="line3">    parent[0..n-1] = -1</div>
-                    <div class="code-line" id="line4">    for i = 1 to n-1:</div>
-                    <div class="code-line" id="line5">        for j = 0 to i-1:</div>
-                    <div class="code-line" id="line6">            if arr[j] &lt; arr[i] and dp[j] + 1 &gt; dp[i]:</div>
-                    <div class="code-line" id="line7">                dp[i] = dp[j] + 1</div>
-                    <div class="code-line" id="line8">                parent[i] = j</div>
-                    <div class="code-line" id="line9">    return max(dp)</div>
-                </div>
-            </div>
+<div class="control-group">
+  <h2>Pseudocode</h2>
+  <pre class="code-block"><code>
+<span class="code-line" id="line0">function lis(arr):</span>
+<span class="code-line" id="line1">    n = length(arr)</span>
+<span class="code-line" id="line2">    dp[0..n-1] = 1</span>
+<span class="code-line" id="line3">    parent[0..n-1] = -1</span>
+<span class="code-line" id="line4">    for i = 1 to n-1:</span>
+<span class="code-line" id="line5">        for j = 0 to i-1:</span>
+<span class="code-line" id="line6">            if arr[j] &lt; arr[i] and dp[j] + 1 &gt; dp[i]:</span>
+<span class="code-line" id="line7">                dp[i] = dp[j] + 1</span>
+<span class="code-line" id="line8">                parent[i] = j</span>
+<span class="code-line" id="line9">    return max(dp)</span>
+  </code></pre>
+</div>
+
 
             <div class="control-group">
                 <h2>Explanation</h2>

@@ -115,7 +115,7 @@ window.problemLibrary = {
             "Beautiful Towers I": "Difficulty: MEDIUM\nFrequency: 70.8\nAcceptance Rate: 0.433646463471382\nLink: https://leetcode.com/problems/beautiful-towers-i\nTopics: Array, Stack, Monotonic Stack",
             "Beautiful Towers II": "Difficulty: MEDIUM\nFrequency: 70.8\nAcceptance Rate: 0.3459771366358193\nLink: https://leetcode.com/problems/beautiful-towers-ii\nTopics: Array, Stack, Monotonic Stack",
             "Split Array Largest Sum": "Difficulty: MEDIUM\nFrequency: 68.3\nAcceptance Rate: 0.580995560819648\nLink: https://leetcode.com/problems/split-array-largest-sum\nTopics: Array, Binary Search, Dynamic Programming, Greedy, Prefix Sum",
-            "Trapping Rain Water": "Difficulty: MEDIUM\nFrequency: 68.3\nAcceptance Rate: 0.6510193782985645\nLink: https://leetcode.com/problems/trapping-rain-water\nTopics: Array, Two Pointers, Dynamic Programming, Stack, Monotonic Stack",
+            "Trapping Rain Water ⭐": "Difficulty: MEDIUM\nFrequency: 68.3\nAcceptance Rate: 0.6510193782985645\nLink: https://leetcode.com/problems/trapping-rain-water\nTopics: Array, Two Pointers, Dynamic Programming, Stack, Monotonic Stack",
             "Kth Largest Element in an Array": "Difficulty: MEDIUM\nFrequency: 65.5\nAcceptance Rate: 0.6797700833982673\nLink: https://leetcode.com/problems/kth-largest-element-in-an-array\nTopics: Array, Divide and Conquer, Sorting, Heap (Priority Queue), Quickselect",
             "Beautiful Arrangement": "Difficulty: MEDIUM\nFrequency: 65.5\nAcceptance Rate: 0.6452784543104094\nLink: https://leetcode.com/problems/beautiful-arrangement\nTopics: Array, Dynamic Programming, Backtracking, Bit Manipulation, Bitmask",
             "Asteroid Collision": "Difficulty: MEDIUM\nFrequency: 62.3\nAcceptance Rate: 0.45500659848234903\nLink: https://leetcode.com/problems/asteroid-collision\nTopics: Array, Stack, Simulation",
@@ -180,7 +180,7 @@ window.problemLibrary = {
         "Dynamic Programming": {
             "Word Break": "Difficulty: MEDIUM\nFrequency: 93.6\nAcceptance Rate: 0.48273764959175913\nLink: https://leetcode.com/problems/word-break\nTopics: Array, Hash Table, String, Dynamic Programming, Trie, Memoization",
             "Split Array Largest Sum": "Difficulty: MEDIUM\nFrequency: 68.3\nAcceptance Rate: 0.580995560819648\nLink: https://leetcode.com/problems/split-array-largest-sum\nTopics: Array, Binary Search, Dynamic Programming, Greedy, Prefix Sum",
-            "Trapping Rain Water": "Difficulty: MEDIUM\nFrequency: 68.3\nAcceptance Rate: 0.6510193782985645\nLink: https://leetcode.com/problems/trapping-rain-water\nTopics: Array, Two Pointers, Dynamic Programming, Stack, Monotonic Stack",
+            "Trapping Rain Water ⭐": "Difficulty: MEDIUM\nFrequency: 68.3\nAcceptance Rate: 0.6510193782985645\nLink: https://leetcode.com/problems/trapping-rain-water\nTopics: Array, Two Pointers, Dynamic Programming, Stack, Monotonic Stack",
             "Beautiful Arrangement": "Difficulty: MEDIUM\nFrequency: 65.5\nAcceptance Rate: 0.6452784543104094\nLink: https://leetcode.com/problems/beautiful-arrangement\nTopics: Array, Dynamic Programming, Backtracking, Bit Manipulation, Bitmask",
             "Coin Change": "Difficulty: MEDIUM\nFrequency: 58.6\nAcceptance Rate: 0.46495443407851283\nLink: https://leetcode.com/problems/coin-change\nTopics: Array, Dynamic Programming, Breadth-First Search",
             "Longest Palindromic Substring": "Difficulty: MEDIUM\nFrequency: 58.6\nAcceptance Rate: 0.35846104860827005\nLink: https://leetcode.com/problems/longest-palindromic-substring\nTopics: Two Pointers, String, Dynamic Programming",
@@ -303,7 +303,7 @@ window.problemLibrary = {
             "Verbal Arithmetic Puzzle": "Difficulty: HARD\nFrequency: 58.7\nAcceptance Rate: 0.3477800583342335\nLink: https://leetcode.com/problems/verbal-arithmetic-puzzle\nTopics: Array, Math, String, Backtracking",
             "Cherry Pickup": "Difficulty: HARD\nFrequency: 58.7\nAcceptance Rate: 0.3786948581341589\nLink: https://leetcode.com/problems/cherry-pickup\nTopics: Array, Dynamic Programming, Matrix",
             "Russian Doll Envelopes": "Difficulty: HARD\nFrequency: 42.2\nAcceptance Rate: 0.3732991914997274\nLink: https://leetcode.com/problems/russian-doll-envelopes\nTopics: Array, Binary Search, Dynamic Programming, Sorting",
-            "Trapping Rain Water": "Difficulty: HARD\nFrequency: 30.0\nAcceptance Rate: 0.6510195479297859\nLink: https://leetcode.com/problems/trapping-rain-water\nTopics: Array, Two Pointers, Dynamic Programming, Stack, Monotonic Stack",
+            "Trapping Rain Water ⭐": "Difficulty: HARD\nFrequency: 30.0\nAcceptance Rate: 0.6510195479297859\nLink: https://leetcode.com/problems/trapping-rain-water\nTopics: Array, Two Pointers, Dynamic Programming, Stack, Monotonic Stack",
             "Tallest Billboard": "Difficulty: HARD\nFrequency: 30.0\nAcceptance Rate: 0.5187288448273096\nLink: https://leetcode.com/problems/tallest-billboard\nTopics: Array, Dynamic Programming",
             "Last Day Where You Can Still Cross": "Difficulty: HARD\nFrequency: 30.0\nAcceptance Rate: 0.6231939687413881\nLink: https://leetcode.com/problems/last-day-where-you-can-still-cross\nTopics: Array, Binary Search, Depth-First Search, Breadth-First Search, Union Find, Matrix",
             "Online Election": "Difficulty: MEDIUM\nFrequency: 46.2\nAcceptance Rate: 0.5184691560254644\nLink: https://leetcode.com/problems/online-election\nTopics: Array, Hash Table, Binary Search, Design",
@@ -380,7 +380,7 @@ window.problemLibrary = {
         },
         "Stack": {
             "Crawler Log Folder": "Difficulty: EASY\nFrequency: 37.1\nAcceptance Rate: 0.7160418239109896\nLink: https://leetcode.com/problems/crawler-log-folder\nTopics: Array, String, Stack",
-            "Trapping Rain Water": "Difficulty: HARD\nFrequency: 30.0\nAcceptance Rate: 0.6510195479297859\nLink: https://leetcode.com/problems/trapping-rain-water\nTopics: Array, Two Pointers, Dynamic Programming, Stack, Monotonic Stack"
+            "Trapping Rain Water ⭐": "Difficulty: HARD\nFrequency: 30.0\nAcceptance Rate: 0.6510195479297859\nLink: https://leetcode.com/problems/trapping-rain-water\nTopics: Array, Two Pointers, Dynamic Programming, Stack, Monotonic Stack"
         },
         "Heap": {
             "Meeting Rooms II": "Difficulty: MEDIUM\nFrequency: 58.7\nAcceptance Rate: 0.5214164447683243\nLink: https://leetcode.com/problems/meeting-rooms-ii\nTopics: Array, Two Pointers, Greedy, Sorting, Heap (Priority Queue), Prefix Sum",
@@ -486,7 +486,7 @@ window.problemLibrary = {
             "Unique Paths II": "Difficulty: MEDIUM\nFrequency: 24.1\nAcceptance Rate: 0.43154364997722033\nLink: https://leetcode.com/problems/unique-paths-ii\nTopics: Array, Dynamic Programming, Matrix",
             "Unique Binary Search Trees": "Difficulty: MEDIUM\nFrequency: 21.0\nAcceptance Rate: 0.6244520536210353\nLink: https://leetcode.com/problems/unique-binary-search-trees\nTopics: Math, Dynamic Programming, Tree, Binary Search Tree, Binary Tree",
             "Unique Binary Search Trees II": "Difficulty: MEDIUM\nFrequency: 13.2\nAcceptance Rate: 0.6039807221122715\nLink: https://leetcode.com/problems/unique-binary-search-trees-ii\nTopics: Dynamic Programming, Backtracking, Tree, Binary Search Tree, Binary Tree",
-            "Trapping Rain Water": "Difficulty: HARD\nFrequency: 75.7\nAcceptance Rate: 0.6510192988277056\nLink: https://leetcode.com/problems/trapping-rain-water\nTopics: Array, Two Pointers, Dynamic Programming, Stack, Monotonic Stack",
+            "Trapping Rain Water ⭐": "Difficulty: HARD\nFrequency: 75.7\nAcceptance Rate: 0.6510192988277056\nLink: https://leetcode.com/problems/trapping-rain-water\nTopics: Array, Two Pointers, Dynamic Programming, Stack, Monotonic Stack",
             "Largest Rectangle in Histogram": "Difficulty: HARD\nFrequency: 54.6\nAcceptance Rate: 0.4737765317407914\nLink: https://leetcode.com/problems/largest-rectangle-in-histogram\nTopics: Array, Stack, Monotonic Stack",
             "Maximal Rectangle": "Difficulty: HARD\nFrequency: 44.5\nAcceptance Rate: 0.5370845822665518\nLink: https://leetcode.com/problems/maximal-rectangle\nTopics: Array, Dynamic Programming, Stack, Matrix, Monotonic Stack",
             "Regular Expression Matching": "Difficulty: HARD\nFrequency: 51.6\nAcceptance Rate: 0.29280131010169236\nLink: https://leetcode.com/problems/regular-expression-matching\nTopics: String, Dynamic Programming, Recursion",
@@ -552,7 +552,7 @@ window.problemLibrary = {
             "Simplify Path": "Difficulty: MEDIUM\nFrequency: 49.5\nAcceptance Rate: 0.4785432317744196\nLink: https://leetcode.com/problems/simplify-path\nTopics: String, Stack",
             "Largest Rectangle in Histogram": "Difficulty: HARD\nFrequency: 54.6\nAcceptance Rate: 0.4737765317407914\nLink: https://leetcode.com/problems/largest-rectangle-in-histogram\nTopics: Array, Stack, Monotonic Stack",
             "Longest Valid Parentheses": "Difficulty: HARD\nFrequency: 47.2\nAcceptance Rate: 0.3631311456770452\nLink: https://leetcode.com/problems/longest-valid-parentheses\nTopics: String, Dynamic Programming, Stack",
-            "Trapping Rain Water": "Difficulty: HARD\nFrequency: 75.7\nAcceptance Rate: 0.6510192988277056\nLink: https://leetcode.com/problems/trapping-rain-water\nTopics: Array, Two Pointers, Dynamic Programming, Stack, Monotonic Stack",
+            "Trapping Rain Water ⭐": "Difficulty: HARD\nFrequency: 75.7\nAcceptance Rate: 0.6510192988277056\nLink: https://leetcode.com/problems/trapping-rain-water\nTopics: Array, Two Pointers, Dynamic Programming, Stack, Monotonic Stack",
             "Maximal Rectangle": "Difficulty: HARD\nFrequency: 44.5\nAcceptance Rate: 0.5370845822665518\nLink: https://leetcode.com/problems/maximal-rectangle\nTopics: Array, Dynamic Programming, Stack, Matrix, Monotonic Stack",
             "Wildcard Matching": "Difficulty: HARD\nFrequency: 39.0\nAcceptance Rate: 0.2989833857244126\nLink: https://leetcode.com/problems/wildcard-matching\nTopics: String, Dynamic Programming, Greedy, Recursion"
         },
@@ -601,7 +601,7 @@ window.problemLibrary = {
             "Coin Change": "Difficulty: MEDIUM\nFrequency: 36.3\nAcceptance Rate: 0.4649545396006711\nLink: https://leetcode.com/problems/coin-change\nTopics: Array, Dynamic Programming, Breadth-First Search",
             "Text Justification": "Difficulty: HARD\nFrequency: 100.0\nAcceptance Rate: 0.48149935664104093\nLink: https://leetcode.com/problems/text-justification\nTopics: Array, String, Simulation",
             "Maximum Profit in Job Scheduling": "Difficulty: HARD\nFrequency: 94.5\nAcceptance Rate: 0.5441735043380527\nLink: https://leetcode.com/problems/maximum-profit-in-job-scheduling\nTopics: Array, Binary Search, Dynamic Programming, Sorting",
-            "Trapping Rain Water": "Difficulty: HARD\nFrequency: 80.4\nAcceptance Rate: 0.6510194684590559\nLink: https://leetcode.com/problems/trapping-rain-water\nTopics: Array, Two Pointers, Dynamic Programming, Stack, Monotonic Stack",
+            "Trapping Rain Water ⭐": "Difficulty: HARD\nFrequency: 80.4\nAcceptance Rate: 0.6510194684590559\nLink: https://leetcode.com/problems/trapping-rain-water\nTopics: Array, Two Pointers, Dynamic Programming, Stack, Monotonic Stack",
             "Sliding Puzzle": "Difficulty: HARD\nFrequency: 79.0\nAcceptance Rate: 0.7313248932064185\nLink: https://leetcode.com/problems/sliding-puzzle\nTopics: Array, Dynamic Programming, Backtracking, Breadth-First Search, Memoization, Matrix",
             "Shortest Path to Get All Keys": "Difficulty: HARD\nFrequency: 74.3\nAcceptance Rate: 0.537030042053839\nLink: https://leetcode.com/problems/shortest-path-to-get-all-keys\nTopics: Array, Bit Manipulation, Breadth-First Search, Matrix",
             "Employee Free Time": "Difficulty: HARD\nFrequency: 74.3\nAcceptance Rate: 0.7259759595862569\nLink: https://leetcode.com/problems/employee-free-time\nTopics: Array, Line Sweep, Sorting, Heap (Priority Queue)",
@@ -634,7 +634,7 @@ window.problemLibrary = {
             "Coin Change": "Difficulty: MEDIUM\nFrequency: 36.3\nAcceptance Rate: 0.4649545396006711\nLink: https://leetcode.com/problems/coin-change\nTopics: Array, Dynamic Programming, Breadth-First Search",
             "Cheapest Flights Within K Stops": "Difficulty: MEDIUM\nFrequency: 80.4\nAcceptance Rate: 0.4039897286127686\nLink: https://leetcode.com/problems/cheapest-flights-within-k-stops\nTopics: Dynamic Programming, Depth-First Search, Breadth-First Search, Graph, Heap (Priority Queue), Shortest Path",
             "Maximum Profit in Job Scheduling": "Difficulty: HARD\nFrequency: 94.5\nAcceptance Rate: 0.5441735043380527\nLink: https://leetcode.com/problems/maximum-profit-in-job-scheduling\nTopics: Array, Binary Search, Dynamic Programming, Sorting",
-            "Trapping Rain Water": "Difficulty: HARD\nFrequency: 80.4\nAcceptance Rate: 0.6510194684590559\nLink: https://leetcode.com/problems/trapping-rain-water\nTopics: Array, Two Pointers, Dynamic Programming, Stack, Monotonic Stack",
+            "Trapping Rain Water ⭐": "Difficulty: HARD\nFrequency: 80.4\nAcceptance Rate: 0.6510194684590559\nLink: https://leetcode.com/problems/trapping-rain-water\nTopics: Array, Two Pointers, Dynamic Programming, Stack, Monotonic Stack",
             "Sliding Puzzle": "Difficulty: HARD\nFrequency: 79.0\nAcceptance Rate: 0.7313248932064185\nLink: https://leetcode.com/problems/sliding-puzzle\nTopics: Array, Dynamic Programming, Backtracking, Breadth-First Search, Memoization, Matrix"
         },
         "Graph": {

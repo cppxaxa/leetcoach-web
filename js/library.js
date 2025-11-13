@@ -201,7 +201,7 @@ window.problemLibrary = {
             "Populating Next Right Pointers in Each Node": "Difficulty: MEDIUM\nFrequency: 49.0\nAcceptance Rate: 0.6544149639689759\nLink: https://leetcode.com/problems/populating-next-right-pointers-in-each-node\nTopics: Linked List, Tree, Depth-First Search, Breadth-First Search, Binary Tree",
             "Construct Binary Tree from Preorder and Inorder Traversal": "Difficulty: MEDIUM\nFrequency: 42.3\nAcceptance Rate: 0.6683774773521286\nLink: https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal\nTopics: Array, Hash Table, Divide and Conquer, Tree, Binary Tree",
             "Smallest Subtree with all the Deepest Nodes": "Difficulty: MEDIUM\nFrequency: 42.3\nAcceptance Rate: 0.7247234518141739\nLink: https://leetcode.com/problems/smallest-subtree-with-all-the-deepest-nodes\nTopics: Hash Table, Tree, Depth-First Search, Breadth-First Search, Binary Tree",
-            "Lowest Common Ancestor of a Binary Tree": "Difficulty: MEDIUM\nFrequency: 42.3\nAcceptance Rate: 0.6675499347216417\nLink: https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree\nTopics: Tree, Depth-First Search, Binary Tree",
+            "Lowest Common Ancestor of a Binary Tree ⭐": "Difficulty: MEDIUM\nFrequency: 42.3\nAcceptance Rate: 0.6675499347216417\nLink: https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree\nTopics: Tree, Depth-First Search, Binary Tree",
             "Flatten Binary Tree to Linked List": "Difficulty: MEDIUM\nFrequency: 33.0\nAcceptance Rate: 0.6851010744073592\nLink: https://leetcode.com/problems/flatten-binary-tree-to-linked-list\nTopics: Linked List, Stack, Tree, Depth-First Search, Binary Tree",
             "LFU Cache": "Difficulty: HARD\nFrequency: 80.4\nAcceptance Rate: 0.4660898637811462\nLink: https://leetcode.com/problems/lfu-cache\nTopics: Hash Table, Linked List, Design, Doubly-Linked List",
             "Serialize and Deserialize Binary Tree": "Difficulty: HARD\nFrequency: 42.3\nAcceptance Rate: 0.5896946953630543\nLink: https://leetcode.com/problems/serialize-and-deserialize-binary-tree\nTopics: String, Tree, Depth-First Search, Breadth-First Search, Design, Binary Tree"
@@ -343,7 +343,7 @@ window.problemLibrary = {
         },
         "Tree": {
             "Kth Largest Element in a Stream": "Difficulty: EASY\nFrequency: 30.0\nAcceptance Rate: 0.5985304879240446\nLink: https://leetcode.com/problems/kth-largest-element-in-a-stream\nTopics: Tree, Design, Binary Search Tree, Heap (Priority Queue), Binary Tree, Data Stream",
-            "Lowest Common Ancestor of a Binary Tree": "Difficulty: MEDIUM\nFrequency: 54.6\nAcceptance Rate: 0.6675501387816432\nLink: https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree\nTopics: Tree, Depth-First Search, Binary Tree",
+            "Lowest Common Ancestor of a Binary Tree ⭐": "Difficulty: MEDIUM\nFrequency: 54.6\nAcceptance Rate: 0.6675501387816432\nLink: https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree\nTopics: Tree, Depth-First Search, Binary Tree",
             "Lowest Common Ancestor of a Binary Tree III": "Difficulty: MEDIUM\nFrequency: 30.0\nAcceptance Rate: 0.8246674945153157\nLink: https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree-iii\nTopics: Hash Table, Two Pointers, Tree, Binary Tree"
         },
         "Graph": {

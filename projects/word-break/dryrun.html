@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Word Break DP Visualizer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+<style>
+  html, body {
+    margin: 0;
+    background: #0e0e0e;
+    color: #eee;
+    font-family: "Segoe UI", sans-serif;
+    overflow: hidden;
+  }
+
+  #layout {
+    display: flex;
+    flex-direction: row;
+    height: 100vh;
+    width: 100%;
+  }
+
+  #vis-container {
+    flex: 2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  #pseudocode-container {
+    flex: 1;
+    background: rgba(25,25,25,0.9);
+    border-left: 1px solid rgba(255,255,255,0.1);
+    overflow-y: auto;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+
+  #pseudocode {
+    font-family: monospace;
+    font-size: 14px;
+    color: #ccc;
+    white-space: pre;
+    padding-bottom: 80px;
+  }
+
+  .code-line {
+    padding: 4px 6px;
+    border-radius: 6px;
+    transition: background 0.25s;
+  }
+  .highlight {
+    background: rgba(255,255,120,0.2);
+    color: #fff;
+    box-shadow: inset 0 0 6px rgba(255,255,120,0.3);
+  }
+
+  #desc {
+    position: fixed;
+    top: 6px;
+    width: 100%;
+    text-align: center;
+    font-size: 20px;
+    color: #ffefc0;
+    z-index: 15;
+  }
+
+  #controls {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    background: rgba(0,0,0,0.5);
+    padding: 8px 0;
+    z-index: 10;
+  }
+
+  button {
+    background: #2b2b2b;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  button:hover {
+    background: #444;
+  }
+
+  input[type=range] {
+    width: 120px;
+  }
+
+  /* ---------- PORTRAIT FIXES ---------- */
+  @media (max-aspect-ratio: 1/1) {
+    html, body {
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    #layout {
+      flex-direction: column;
+      height: auto;
+    }
+
+    #vis-container {
+      width: 100%;
+      height: 60vh;
+      overflow: visible;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding-top: 40px;
+    }
+
+    #pseudocode-container {
+      border-left: none;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      width: 100%;
+      height: auto;
+      overflow-x: hidden;
+      padding-bottom: 90px;
+    }
+
+    #controls {
+      position: sticky;
+      bottom: 0;
+      background: rgba(0,0,0,0.8);
+      padding: 10px;
+    }
+
+    #desc {
+      position: relative;
+      top: 0;
+      margin: 12px 0 0 0;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- ✅ TITLE MOVED OUTSIDE vis-container -->
+<div id="desc">Word Break DP — s = "leetcode", dict = ["leet", "code"]</div>
+
+<div id="layout">
+  <div id="vis-container"></div>
+  <div id="pseudocode-container">
+    <pre id="pseudocode"></pre>
+  </div>
+</div>
+
+<div id="controls"></div>
+
+<script>
+let s = "leetcode";
+let dict = ["leet", "code"];
+let slides = [];
+let dp = new Array(s.length + 1).fill(false);
+dp[0] = true;
+
+// Build slides
+for (let i = 1; i <= s.length; i++) {
+  for (let j = 0; j < i; j++) {
+    let sub = s.substring(j, i);
+    let cond1 = dp[j];
+    let cond2 = dict.includes(sub);
+    let valid = cond1 && cond2;
+    slides.push({
+      text: `Checking s[${j}:${i}] = "${sub}" → ${valid ? "✅ valid" : "❌ not valid"}`,
+      i, j, sub, cond1, cond2, valid, dp: [...dp], lines: [6,7,8],
+    });
+    if (valid) {
+      dp[i] = true;
+      slides.push({
+        text: `dp[${i}] = True (because dp[${j}] and "${sub}" in dict)`,
+        i, j, sub, cond1, cond2, valid, dp: [...dp], lines: [9,10],
+      });
+      break;
+    }
+  }
+}
+slides.push({ text: `Final answer: dp[${s.length}] = ${dp[s.length]} → ${dp[s.length] ? "Segmentable" : "Not segmentable"}`, dp, lines: [11] });
+
+let pseudocodeLines = [
+  "def wordBreak(s, wordDict):",
+  "    word_set = set(wordDict)",
+  "    n = len(s)",
+  "    dp = [False] * (n + 1)",
+  "    dp[0] = True",
+  "    for i in range(1, n + 1):",
+  "        for j in range(i):",
+  "            if dp[j] and s[j:i] in word_set:",
+  "                dp[i] = True",
+  "                break",
+  "    return dp[n]"
+];
+
+let slideIndex = 0, playing = false, speed = 1.5, lastSwitch = 0;
+let portrait = false;
+
+function setup() {
+  let canvas = createCanvas(windowWidth * 0.66, windowHeight);
+  canvas.parent("vis-container");
+  textAlign(CENTER, CENTER);
+  textSize(18);
+  createUI();
+  renderPseudocode(slides[slideIndex].lines);
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth * 0.66, windowHeight);
+}
+
+function createUI() {
+  const controls = select("#controls");
+  const prev = createButton("⟨ Prev").parent(controls);
+  const play = createButton("▶ Play").parent(controls);
+  const next = createButton("Next ⟩").parent(controls);
+  const speedLabel = createSpan("Speed").style("color", "#fff").style("font-size", "16px").parent(controls);
+  const slider = createSlider(0.5, 3, 1.5, 0.1).parent(controls);
+
+  slider.input(() => speed = slider.value());
+  prev.mousePressed(() => { changeSlide(-1); playing=false; play.html("▶ Play"); });
+  next.mousePressed(() => { changeSlide(1); playing=false; play.html("▶ Play"); });
+  play.mousePressed(() => { playing=!playing; play.html(playing?"⏸ Pause":"▶ Play"); });
+
+  window.playBtn = play;
+}
+
+function changeSlide(dir){
+  slideIndex = constrain(slideIndex + dir, 0, slides.length-1);
+  renderPseudocode(slides[slideIndex].lines);
+}
+
+function draw() {
+  background(15);
+  portrait = windowWidth < windowHeight;
+
+  if (playing && millis()-lastSwitch > speed*1000){
+    if (slideIndex < slides.length-1) {
+      changeSlide(1);
+      lastSwitch = millis();
+    } else {
+      playing = false;
+      window.playBtn.html("▶ Play");
+    }
+  }
+
+  push();
+  if (portrait) {
+    let scaleFactor = windowWidth / 1200;
+    translate(width/2, height/2);
+    scale(scaleFactor);
+    translate(-width/2, -height/2);
+  }
+  drawDP(slides[slideIndex]);
+  pop();
+
+  drawFooter(slides[slideIndex]);
+}
+
+function drawDP(snap){
+  const yBase = height * 0.5;
+  const boxW = 55, boxH = 35;
+  const startX = width/2 - (boxW*(snap.dp.length))/2;
+
+  textSize(20);
+  fill(255);
+  text("DP Array", width/2, yBase - 70);
+
+  for (let i=0; i<snap.dp.length; i++){
+    let x = startX + i*boxW;
+    let val = snap.dp[i];
+    stroke(200);
+    strokeWeight(2);
+    fill(val ? color(0,160,90) : color(50));
+    rect(x, yBase, boxW, boxH, 8);
+    fill(255);
+    textSize(16);
+    text(val ? "T" : "F", x + boxW/2, yBase + boxH/2);
+    textSize(13);
+    fill(180);
+    text(i, x + boxW/2, yBase + boxH + 15);
+    if (i > 0) {
+      textSize(15);
+      fill(200,200,255);
+      text(s[i-1], x + boxW/2, yBase + boxH + 35);
+    }
+  }
+
+  stroke(255,220,0);
+  strokeWeight(4);
+  noFill();
+  rect(startX + snap.i*boxW, yBase, boxW, boxH, 8);
+  stroke(0,255,255);
+  rect(startX + snap.j*boxW, yBase, boxW, boxH, 8);
+}
+
+function drawFooter(snap) {
+  noStroke();
+  textAlign(CENTER);
+  let txt = `Step ${slideIndex + 1}/${slides.length}: ${snap.text}`;
+
+  // Determine scale factor for portrait mode
+  let scaleFactor = portrait ? (windowWidth / 800) : 1;
+  let fontSize = portrait ? 14 * scaleFactor * 2 : 18; // dynamically scale text
+
+  push();
+  fill(255);
+  textSize(fontSize);
+
+  if (portrait) {
+    // scale down and keep footer near bottom of visible area
+    translate(10, height - 60 * scaleFactor);
+    scale(scaleFactor);
+    text(txt, 0, 0, width / scaleFactor - 40); // wrap text to avoid overflow
+  } else {
+    // regular landscape layout
+    text(txt, 50, height - 80, width - 80);
+  }
+  pop();
+}
+
+
+function renderPseudocode(activeLines){
+  let html = "";
+  for (let i=0;i<pseudocodeLines.length;i++){
+    let line = pseudocodeLines[i];
+    let cls = activeLines.includes(i+1) ? "code-line highlight" : "code-line";
+    html += `<div class="${cls}">${line}</div>`;
+  }
+  document.getElementById("pseudocode").innerHTML = html;
+}
+</script>
+</body>
+</html>

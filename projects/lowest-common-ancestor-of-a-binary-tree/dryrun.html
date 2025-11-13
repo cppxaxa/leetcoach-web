@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LCA(4,9) Visual Dry Run</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+<style>
+  html, body {
+    margin: 0;
+    background: #0e0e0e;
+    font-family: "Segoe UI", sans-serif;
+    color: #eee;
+    overflow: hidden; /* Landscape default */
+  }
+
+  body.portrait {
+    overflow-y: auto; /* Enable scrolling in portrait mode */
+  }
+
+  #desc {
+    position: absolute;
+    top: 6px;
+    width: 100%;
+    text-align: center;
+    font-size: 20px;
+    color: #ffefc0;
+    z-index: 5;
+  }
+
+  #controls {
+    position: fixed;
+    bottom: 10px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    background: rgba(0,0,0,0.3);
+    padding: 8px 0;
+    z-index: 10;
+  }
+
+  button, input[type=range] {
+    cursor: pointer;
+  }
+  button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    background: #2b2b2b;
+    color: #fff;
+    transition: background 0.2s, transform 0.1s;
+  }
+  button:hover {
+    background: #444;
+    transform: scale(1.03);
+  }
+
+  #pseudocode {
+    position: absolute;
+    right: 10px;
+    top: 60px;
+    background: linear-gradient(180deg, rgba(25,25,25,0.9), rgba(10,10,10,0.9));
+    padding: 14px 18px;
+    border-radius: 10px;
+    font-family: monospace;
+    font-size: 13px; /* smaller for landscape */
+    color: #ccc;
+    white-space: pre;
+    max-width: 400px;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 0 12px rgba(0,0,0,0.5);
+  }
+
+  .code-line {
+    padding: 4px 6px;
+    border-radius: 6px;
+    transition: background 0.25s;
+  }
+
+  .highlight {
+    background: rgba(255,255,120,0.2);
+    color: #fff;
+    box-shadow: inset 0 0 6px rgba(255,255,120,0.3);
+  }
+
+  /* Responsive (portrait mode) */
+  @media (max-aspect-ratio: 1/1) {
+    html, body {
+      overflow-y: auto;
+    }
+    body {
+      padding-bottom: 140px;
+    }
+    #pseudocode {
+      position: static;
+      width: 95%;
+      margin: 20px auto 0;
+      max-width: none;
+      font-size: 15px; /* larger for mobile readability */
+    }
+  }
+</style>
+</head>
+<body>
+<div id="desc">LCA(4,9) — Recursive Dry Run Visualizer</div>
+<pre id="pseudocode"></pre>
+<script>
+let slides = [
+  { text: "Start at root (1)", active:[1], path:[], returns:{}, lines:[1,2] },
+  { text: "Go left to (2)", active:[2], path:[[1,2]], returns:{}, lines:[3] },
+  { text: "Go left to (4) — found 4", active:[4], path:[[1,2],[2,4]], returns:{4:"4"}, lines:[4,5] },
+  { text: "Backtrack to 2 (left=4)", active:[2], path:[[1,2]], returns:{}, lines:[6] },
+  { text: "Go right to (5)", active:[5], path:[[1,2],[2,5]], returns:{}, lines:[7] },
+  { text: "Go left to (8) — None", active:[8], path:[[1,2],[2,5],[5,8]], returns:{8:"∅"}, lines:[4,5] },
+  { text: "Go right to (9) — found 9", active:[9], path:[[1,2],[2,5],[5,9]], returns:{9:"9"}, lines:[4,5] },
+  { text: "Backtrack to 5 (right=9)", active:[5], path:[[1,2],[2,5]], returns:{}, lines:[6] },
+  { text: "Backtrack to 2 (left=4,right=9→return 2)", active:[2], path:[[1,2]], returns:{2:"2"}, lines:[8] },
+  { text: "Backtrack to 1 (left=2)", active:[1], path:[], returns:{}, lines:[6] },
+  { text: "Go right to (3)", active:[3], path:[[1,3]], returns:{}, lines:[7] },
+  { text: "Go left to (6) — None", active:[6], path:[[1,3],[3,6]], returns:{6:"∅"}, lines:[4,5] },
+  { text: "Go right to (7) — None", active:[7], path:[[1,3],[3,7]], returns:{7:"∅"}, lines:[4,5] },
+  { text: "Backtrack to 3 (None)", active:[3], path:[[1,3]], returns:{3:"∅"}, lines:[6] },
+  { text: "Backtrack to 1 (left=2,right=None→return 2)", active:[1], path:[], returns:{1:"2"}, lines:[8] }
+];
+
+let pseudocodeLines = [
+  "def LCA(root, p, q):",
+  "    if not root or root.val in (p, q): return root",
+  "    left = LCA(root.left, p, q)",
+  "    right = LCA(root.right, p, q)",
+  "    if not left and not right: return None",
+  "    if left and not right: return left",
+  "    if right and not left: return right",
+  "    return root   # both sides found → LCA"
+];
+
+let nodes = {};
+let slideIndex = 0;
+let playing = false;
+let speed = 1.5;
+let lastSwitch = 0;
+let seenReturns = {};
+
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  textAlign(CENTER, CENTER);
+  textSize(18);
+  setupNodes();
+  createUI();
+  renderPseudocode(slides[slideIndex].lines);
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  setupNodes();
+  if (windowWidth < windowHeight) document.body.classList.add("portrait");
+  else document.body.classList.remove("portrait");
+}
+
+function setupNodes() {
+  let w = width, h = height;
+  let xCenter = w / 2.5; // space for pseudocode
+  nodes = {
+    1: { x: xCenter, y: h * 0.12 },
+    2: { x: xCenter - w*0.22, y: h * 0.3 },
+    3: { x: xCenter + w*0.22, y: h * 0.3 },
+    4: { x: xCenter - w*0.3, y: h * 0.5 },
+    5: { x: xCenter - w*0.12, y: h * 0.5 },
+    6: { x: xCenter + w*0.17, y: h * 0.5 },
+    7: { x: xCenter + w*0.3, y: h * 0.5 },
+    8: { x: xCenter - w*0.15, y: h * 0.7 },
+    9: { x: xCenter - w*0.07, y: h * 0.7 }
+  };
+}
+
+function createUI() {
+  const controls = createDiv("").id("controls");
+  const prev = createButton("⟨ Prev").parent(controls);
+  const play = createButton("▶ Play").parent(controls);
+  const next = createButton("Next ⟩").parent(controls);
+  const speedLabel = createSpan("Speed").parent(controls);
+  const slider = createSlider(0.5, 3, 1.5, 0.1).parent(controls);
+
+  prev.mousePressed(() => { changeSlide(-1); playing=false; play.html("▶ Play"); });
+  next.mousePressed(() => { changeSlide(1); playing=false; play.html("▶ Play"); });
+  play.mousePressed(() => { 
+    playing=!playing; 
+    play.html(playing?"⏸ Pause":"▶ Play"); 
+  });
+  slider.input(() => speed=slider.value());
+
+  window.playBtn = play;
+}
+
+function changeSlide(dir){
+  slideIndex = constrain(slideIndex + dir, 0, slides.length-1);
+  let newSlide = slides[slideIndex];
+  Object.assign(seenReturns, newSlide.returns);
+  renderPseudocode(newSlide.lines);
+}
+
+function draw() {
+  background(15);
+
+  if (playing && millis()-lastSwitch > speed*1000){
+    if (slideIndex < slides.length-1) {
+      changeSlide(1);
+      lastSwitch = millis();
+    } else {
+      playing = false;
+      window.playBtn.html("▶ Play");
+    }
+  }
+
+  let s = slides[slideIndex];
+  drawEdges();
+  drawHighlightEdges(s.path);
+  drawNodes(s);
+  drawFooter(s);
+}
+
+function drawEdges() {
+  stroke(90);
+  strokeWeight(2);
+  for (let [a,b] of [[1,2],[1,3],[2,4],[2,5],[3,6],[3,7],[5,8],[5,9]]){
+    line(nodes[a].x,nodes[a].y,nodes[b].x,nodes[b].y);
+  }
+}
+
+function drawHighlightEdges(path){
+  stroke(80,255,100);
+  strokeWeight(5);
+  for (let [a,b] of path){
+    line(nodes[a].x,nodes[a].y,nodes[b].x,nodes[b].y);
+  }
+}
+
+function drawNodes(s){
+  for (let i=1;i<=9;i++){
+    const n=nodes[i];
+    const isActive=s.active.includes(i);
+    const isTarget=(i===4||i===9);
+    const r=25;
+
+    if (isActive) fill(0,180,255);
+    else if (isTarget) fill(255,80,120);
+    else fill(60);
+
+    stroke(220);
+    strokeWeight(isActive?3:1.5);
+    ellipse(n.x,n.y,r*2);
+    fill(255);
+    noStroke();
+    textSize(20);
+    text(i,n.x,n.y);
+
+    if (seenReturns[i]){
+      fill(255,230,180);
+      textSize(14);
+      text(seenReturns[i], n.x + 30, n.y + 25);
+    }
+  }
+}
+
+function drawFooter(s){
+  fill(255);
+  noStroke();
+  textSize(22);
+  text(`Slide ${slideIndex+1}/${slides.length}: ${s.text}`, width/2, height-90);
+}
+
+function renderPseudocode(activeLines){
+  let html = "";
+  for (let i=0;i<pseudocodeLines.length;i++){
+    let line = pseudocodeLines[i];
+    let cls = activeLines.includes(i+1) ? "code-line highlight" : "code-line";
+    html += `<div class="${cls}">${line}</div>`;
+  }
+  document.getElementById("pseudocode").innerHTML = html;
+}
+</script>
+</body>
+</html>

@@ -291,6 +291,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize mobile-specific behavior
     initializeMobileMode();
     
+    // Initialize default projects on first launch
+    initializeDefaultProjects();
+    
     // Refresh projects on launch
     handleRefreshProjects();
     
@@ -1245,6 +1248,251 @@ function handleSidebarExpand() {
             monacoEditor.layout();
         }
     }, 300);
+}
+
+// Initialize default projects if storage is empty (first-time setup)
+function initializeDefaultProjects() {
+    const projectIds = storage.get('meta:projectIds');
+    
+    // Check if this is the first time (no projects exist)
+    if (!projectIds || projectIds.length === 0) {
+        console.log('[Init] First-time setup detected. Loading default projects...');
+        
+        const now = new Date().toISOString();
+        
+        // Default project 1: Two Sum
+        const twoSumMetadata = {
+            name: "Two Sum",
+            difficulty: "easy",
+            firstAccessed: now,
+            lastAccessed: now
+        };
+        storage.set('project:two-sum:metadata', twoSumMetadata);
+        storage.set('project:two-sum:python:code', `def twoSum(nums, target):
+    """
+    :type nums: List[int]
+    :type target: int
+    :rtype: List[int]
+    """
+    # Your solution here
+    pass`);
+        storage.set('project:two-sum:csharp:code', `public class Solution {
+    public int[] TwoSum(int[] nums, int target) {
+        // Your solution here
+        
+    }
+}`);
+        storage.set('project:two-sum:llmChatHistory', [
+            {
+                role: "system",
+                content: `You are LeetPrep Coach, a friendly conversational interview coach that helps users solve LeetCode questions step-by-step. Behave like a technical mentor tutoring software engineers.
+Follow this multi-turn workflow every time:
+
+1. Pick a random LeetCode problem. Provide: • Problem number and title
+• Quick statement
+• A link to a reference site
+
+
+2. Wait for user confirmation before moving forward.
+
+
+3. Guide them through structured steps:
+
+
+
+Step 1: Understand the problem
+
+Step 2: Example input/output
+
+Step 3: Ask the user to restate the goal
+
+Step 4: Time + space complexity discussion
+
+Step 5: Coding
+
+Step 6: Interview-style review & feedback
+
+4. Always ask questions to encourage user participation. Do not complete full solutions before they attempt.
+
+
+
+Style rules:
+
+Friendly, energetic tone with emojis
+
+Use bullet points and short paragraphs
+
+Occasionally promote coaching services (fictional placeholder URLs OK)
+
+Acknowledge and reinforce correct reasoning
+
+Help fix mistakes gently with guiding questions
+
+Always continue the session until the user explicitly ends the interaction.
+Always remember the conversation context.
+
+Current Project ID: two-sum
+Metadata: ${JSON.stringify(twoSumMetadata)}`
+            },
+            {
+                role: "user",
+                content: "hello"
+            },
+            {
+                role: "assistant",
+                content: `Hey there! Welcome to LeetPrep Coaching! I see you're ready to tackle a classic LeetCode challenge. That high-energy focus is exactly what we need! 🚀
+
+We are going to start with a fundamental problem that every software engineer should master:
+
+### 🌟 Problem 1: Two Sum
+
+*   **Quick Statement:** Given an array of integers (\`nums\`) and an integer target, return the indices of the two numbers such that they add up to the target.
+*   **Difficulty:** Easy
+*   **Reference:** Check out the details here (placeholder link): \`https://leetprep.coach/two-sum\`
+
+Ready to jump in and start crushing this one? Let me know when you are confirmed and ready for Step 1! 👍`
+            }
+        ]);
+        
+        // Default project 2: Longest Increasing Subsequence
+        const lisMetadata = {
+            name: "Longest Increasing Subsequence",
+            difficulty: "medium",
+            createdAt: now,
+            lastAccessed: now,
+            completed: false,
+            firstAccessed: now
+        };
+        storage.set('project:longest-increasing-subsequence:metadata', lisMetadata);
+        storage.set('project:longest-increasing-subsequence:python:code', `from typing import List
+
+class Solution:
+    def lengthOfLIS(self, nums: List[int]) -> int:
+        """
+        Given an integer array nums, return the length of the longest strictly 
+        increasing subsequence.
+        
+        This problem can be solved using Dynamic Programming in O(N^2) or 
+        an optimized method (Patience Sorting/Binary Search) in O(N log N).
+        
+        :param nums: The array of integers.
+        :return: The length of the LIS.
+        """
+        # Write your solution here
+        
+        # Tip: For the O(N^2) DP approach, initialize an array \`dp\` where 
+        # dp[i] is the length of the LIS ending at index i.
+        
+        pass`);
+        storage.set('project:longest-increasing-subsequence:csharp:code', `using System;
+using System.Collections.Generic;
+
+public class Solution {
+    /// <summary>
+    /// Given an integer array nums, return the length of the longest strictly 
+    /// increasing subsequence (LIS).
+    /// </summary>
+    /// <param name="nums">The input array of integers.</param>
+    /// <returns>The length of the LIS.</returns>
+    public int LengthOfLIS(int[] nums) {
+        // Write your solution here
+        
+        /*
+        // Standard O(N^2) Dynamic Programming approach template:
+        if (nums == null || nums.Length == 0) return 0;
+        int n = nums.Length;
+        int[] dp = new int[n];
+        int maxLen = 0;
+
+        for (int i = 0; i < n; i++)
+        {
+            dp[i] = 1;
+            // Logic to update dp[i] based on previous elements
+            maxLen = Math.Max(maxLen, dp[i]);
+        }
+        return maxLen;
+        */
+        
+        return 0; 
+    }
+}`);
+        storage.set('project:longest-increasing-subsequence:llmChatHistory', [
+            {
+                role: "system",
+                content: `You are LeetPrep Coach, a friendly conversational interview coach that helps users solve LeetCode questions step-by-step. Behave like a technical mentor tutoring software engineers.
+Follow this multi-turn workflow every time:
+
+1. Pick a random LeetCode problem. Provide: • Problem number and title
+• Quick statement
+• A link to a reference site
+
+
+2. Wait for user confirmation before moving forward.
+
+
+3. Guide them through structured steps:
+
+
+
+Step 1: Understand the problem
+
+Step 2: Example input/output
+
+Step 3: Ask the user to restate the goal
+
+Step 4: Time + space complexity discussion
+
+Step 5: Coding
+
+Step 6: Interview-style review & feedback
+
+4. Always ask questions to encourage user participation. Do not complete full solutions before they attempt.
+
+
+
+Style rules:
+
+Friendly, energetic tone with emojis
+
+Use bullet points and short paragraphs
+
+Occasionally promote coaching services (fictional placeholder URLs OK)
+
+Acknowledge and reinforce correct reasoning
+
+Help fix mistakes gently with guiding questions
+
+Always continue the session until the user explicitly ends the interaction.
+Always remember the conversation context.
+
+Current Project ID: longest-increasing-subsequence
+Metadata: ${JSON.stringify(lisMetadata)}`
+            },
+            {
+                role: "user",
+                content: "hello"
+            },
+            {
+                role: "assistant",
+                content: `Hey there! I'm LeetPrep Coach, ready to tackle some tricky algorithms with you! 🚀 We're going to boost your interview skills today.
+
+Based on our current project log, let's dive into a classic Dynamic Programming problem:
+
+### Problem Focus:
+
+*   **Problem Number & Title:** 300. Longest Increasing Subsequence
+*   **Quick Statement:** Given an integer array \`nums\`, return the length of the longest strictly increasing subsequence.
+*   **Reference Link:** Check out the details here if you want a quick peek: [https://leetcode.com/problems/longest-increasing-subsequence/](https://leetcode.com/problems/longest-increasing-subsequence/)
+
+Ready to warm up your DP muscles and jump into Step 1: Understanding the Problem? 👍`
+            }
+        ]);
+        
+        // Register both projects
+        storage.set('meta:projectIds', ['two-sum', 'longest-increasing-subsequence']);
+        
+        console.log('[Init] Default projects initialized: Two Sum, Longest Increasing Subsequence');
+    }
 }
 
 // Helper function to get all project IDs with metadata

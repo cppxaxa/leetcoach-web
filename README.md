@@ -16,7 +16,11 @@ It is possible because it is completely client side application.
 
 ## Screenshot
 
+#### Web App
 ![LeetCoach Application](docs/snap002.jpg)
+
+#### Dry Run
+![LeetCoach Application](docs/snap003.jpg)
 
 ## Getting Started
 
@@ -37,4 +41,4 @@ It is possible because it is completely client side application.
 
 Consider MIT License or Apache 2.0 License
 
-It is a vibe coded application. Feel free to reuse.
+It is a vibe coded application. Feel free to reuse without limitations.

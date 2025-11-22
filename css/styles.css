@@ -581,6 +581,28 @@ body {
     background: var(--accent-hover);
 }
 
+/* GitHub Link */
+.github-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+    margin-left: 8px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.github-link:hover {
+    color: var(--text-primary);
+    background: var(--hover-color);
+}
+
+.github-link svg {
+    display: block;
+}
+
 /* Editor Panel */
 .editor-panel {
     height: 40%;

@@ -2870,6 +2870,9 @@ function handlePopOutClick() {
         return;
     }
     
+    // Get current theme
+    const currentTheme = document.body.getAttribute('data-theme') || 'light';
+    
     // Escape the content for JavaScript string
     const escapedContent = lastAssistantMessage
         .replace(/\\/g, '\\\\')
@@ -2878,7 +2881,7 @@ function handlePopOutClick() {
         .replace(/\n/g, '\\n')
         .replace(/\r/g, '\\r');
     
-    // Create the HTML content
+    // Create the HTML content with theme support
     const htmlContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2899,29 +2902,91 @@ function handlePopOutClick() {
 <!-- Marked.js for Markdown -->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-<!-- Optional: Highlight.js for code blocks -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js/styles/default.min.css">
+<!-- Highlight.js for code blocks -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js/styles/${currentTheme === 'dark' ? 'vs2015' : 'default'}.min.css">
 <script src="https://cdn.jsdelivr.net/npm/highlight.js/lib/highlight.min.js"></script>
 <script>hljs.highlightAll();</script>
 
 <style>
+  /* Theme Variables */
+  [data-theme="dark"] {
+    --bg-primary: #1e1e1e;
+    --text-primary: #d4d4d4;
+    --text-secondary: #858585;
+    --code-bg: #2d2d30;
+    --border-color: #3e3e42;
+  }
+
+  [data-theme="light"] {
+    --bg-primary: #ffffff;
+    --text-primary: #333333;
+    --text-secondary: #666666;
+    --code-bg: #f5f5f5;
+    --border-color: #e0e0e0;
+  }
+
   body {
     font-family: Arial, sans-serif;
     max-width: auto;
     margin: 10px;
     padding: 32px;
     line-height: 1.6;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background-color 0.3s, color 0.3s;
   }
+  
   pre {
     padding: 12px;
-    background: #f5f5f5;
+    background: var(--code-bg);
     border-radius: 6px;
     overflow-x: auto;
+    border: 1px solid var(--border-color);
+  }
+  
+  code {
+    background: var(--code-bg);
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+  }
+  
+  pre code {
+    background: transparent;
+    padding: 0;
+  }
+  
+  a {
+    color: ${currentTheme === 'dark' ? '#4fc3f7' : '#0078d4'};
+  }
+  
+  blockquote {
+    border-left: 4px solid var(--border-color);
+    padding-left: 16px;
+    margin-left: 0;
+    color: var(--text-secondary);
+  }
+  
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 16px 0;
+  }
+  
+  th, td {
+    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+    text-align: left;
+  }
+  
+  th {
+    background: var(--code-bg);
+    font-weight: bold;
   }
 </style>
 </head>
 
-<body>
+<body data-theme="${currentTheme}">
 <div id="content"></div>
 
 <script>

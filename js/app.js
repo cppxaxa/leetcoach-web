@@ -26,6 +26,19 @@ let isDraftInProgress = false;
 const AUTO_SAVE_INTERVAL = 30000; // 30 seconds
 let autoSaveTimer = null;
 
+// Parse markdown with marked.js
+function parseMarkdown(markdown) {
+    if (typeof marked !== 'undefined' && marked.parse) {
+        try {
+            return marked.parse(markdown);
+        } catch (e) {
+            console.error('marked.js error:', e);
+            return simpleMarkdownParse(markdown);
+        }
+    }
+    return simpleMarkdownParse(markdown);
+}
+
 // Simple markdown parser fallback (if marked.js doesn't load)
 function simpleMarkdownParse(markdown) {
     let html = markdown;
@@ -98,6 +111,33 @@ const monacoThemes = {
 function isInMobileView() {
     const viewMode = storage.get('setting:view_mode');
     return viewMode === 'mobile';
+}
+
+// Helper function to render KaTeX math expressions
+function renderKaTeX(element, retryCount = 0) {
+    const maxRetries = 50; // Max 5 seconds (50 * 100ms)
+    
+    // Wait for both katex and auto-render to be loaded
+    if (typeof renderMathInElement !== 'undefined') {
+        try {
+            renderMathInElement(element, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false},
+                    {left: '\\[', right: '\\]', display: true}
+                ],
+                throwOnError: false
+            });
+        } catch (e) {
+            console.warn('KaTeX rendering error:', e);
+        }
+    } else if (retryCount < maxRetries) {
+        // Wait for KaTeX to load, but with a retry limit
+        setTimeout(() => renderKaTeX(element, retryCount + 1), 100);
+    } else {
+        console.warn('KaTeX failed to load after maximum retries');
+    }
 }
 
 // Sample code templates for different problems
@@ -1014,22 +1054,12 @@ async function sendLLMMessage(userMessage, code, language) {
         }
         
         // Parse markdown to HTML
-        let parsedContent = response;
-        try {
-            if (typeof marked !== 'undefined') {
-                parsedContent = marked.parse ? marked.parse(response) : marked(response);
-            } else {
-                console.warn('marked.js not available, using simple parser');
-                parsedContent = simpleMarkdownParse(response);
-            }
-        } catch (e) {
-            console.error('Error parsing markdown:', e);
-            parsedContent = simpleMarkdownParse(response);
-        }
+        const parsedContent = parseMarkdown(response);
+        console.log('Parsed HTML preview:', parsedContent.substring(0, 500));
         
         // Add assistant message to output
         const assistantMessageHtml = `
-            <div style="background: var(--bg-secondary); padding: 12px; border-radius: 6px; margin-bottom: 16px;">
+            <div class="markdown-content" style="background: var(--bg-secondary); padding: 12px; border-radius: 6px; margin-bottom: 16px;">
                 ${parsedContent}
             </div>
         `;
@@ -1037,15 +1067,7 @@ async function sendLLMMessage(userMessage, code, language) {
         outputDiv.innerHTML = assistantMessageHtml;
         
         // Render math expressions with KaTeX
-        if (typeof renderMathInElement !== 'undefined') {
-            renderMathInElement(outputDiv, {
-                delimiters: [
-                    {left: '$$', right: '$$', display: true},
-                    {left: '$', right: '$', display: false}
-                ],
-                throwOnError: false
-            });
-        }
+        renderKaTeX(outputDiv);
         
         // Save to LLM chat history
         saveLLMChatMessage(currentProject, 'assistant', response);
@@ -2176,20 +2198,10 @@ function loadChatHistory(projectId) {
     
     if (lastAssistantMessage) {
         // Parse markdown to HTML
-        let parsedContent = lastAssistantMessage;
-        try {
-            if (typeof marked !== 'undefined') {
-                parsedContent = marked.parse ? marked.parse(lastAssistantMessage) : marked(lastAssistantMessage);
-            } else {
-                parsedContent = simpleMarkdownParse(lastAssistantMessage);
-            }
-        } catch (e) {
-            console.error('Error parsing markdown:', e);
-            parsedContent = simpleMarkdownParse(lastAssistantMessage);
-        }
+        const parsedContent = parseMarkdown(lastAssistantMessage);
         
         html += `
-            <div style="background: var(--bg-secondary); padding: 12px; border-radius: 6px; margin-bottom: 16px;">
+            <div class="markdown-content" style="background: var(--bg-secondary); padding: 12px; border-radius: 6px; margin-bottom: 16px;">
                 ${parsedContent}
             </div>
         `;
@@ -2198,15 +2210,7 @@ function loadChatHistory(projectId) {
     outputDiv.innerHTML = html;
     
     // Render math expressions with KaTeX
-    if (typeof renderMathInElement !== 'undefined') {
-        renderMathInElement(outputDiv, {
-            delimiters: [
-                {left: '$$', right: '$$', display: true},
-                {left: '$', right: '$', display: false}
-            ],
-            throwOnError: false
-        });
-    }
+    renderKaTeX(outputDiv);
     
     // Update button states after loading chat history
     updateButtonStates();
@@ -3022,16 +3026,7 @@ function displayClarifyHistory() {
         
         // Parse markdown for assistant messages
         if (msg.role === 'assistant') {
-            try {
-                if (typeof marked !== 'undefined') {
-                    messageContent = marked.parse ? marked.parse(msg.content) : marked(msg.content);
-                } else {
-                    messageContent = simpleMarkdownParse(msg.content);
-                }
-            } catch (e) {
-                console.error('Error parsing markdown:', e);
-                messageContent = simpleMarkdownParse(msg.content);
-            }
+            messageContent = parseMarkdown(msg.content);
         } else {
             messageContent = escapeHtml(msg.content);
         }
@@ -3042,14 +3037,8 @@ function displayClarifyHistory() {
         `;
         
         // Render math expressions with KaTeX for assistant messages
-        if (msg.role === 'assistant' && typeof renderMathInElement !== 'undefined') {
-            renderMathInElement(messageDiv, {
-                delimiters: [
-                    {left: '$$', right: '$$', display: true},
-                    {left: '$', right: '$', display: false}
-                ],
-                throwOnError: false
-            });
+        if (msg.role === 'assistant') {
+            renderKaTeX(messageDiv);
         }
         
         chatHistoryDiv.appendChild(messageDiv);
@@ -3081,16 +3070,7 @@ function addClarifyMessage(role, content, isSystemMessage = false) {
         
         // Parse markdown for assistant messages
         if (role === 'assistant') {
-            try {
-                if (typeof marked !== 'undefined') {
-                    messageContent = marked.parse ? marked.parse(content) : marked(content);
-                } else {
-                    messageContent = simpleMarkdownParse(content);
-                }
-            } catch (e) {
-                console.error('Error parsing markdown:', e);
-                messageContent = simpleMarkdownParse(content);
-            }
+            messageContent = parseMarkdown(content);
         } else {
             messageContent = escapeHtml(content);
         }
@@ -3101,20 +3081,14 @@ function addClarifyMessage(role, content, isSystemMessage = false) {
         `;
         
         // Render math expressions with KaTeX for assistant messages
-        if (role === 'assistant' && typeof renderMathInElement !== 'undefined') {
-            renderMathInElement(messageDiv, {
-                delimiters: [
-                    {left: '$$', right: '$$', display: true},
-                    {left: '$', right: '$', display: false}
-                ],
-                throwOnError: false
-            });
+        if (role === 'assistant') {
+            renderKaTeX(messageDiv);
         }
     }
     
     chatHistoryDiv.appendChild(messageDiv);
     
-    // Store in history
+    // Save to clarify chat history (exclude system messages)
     if (!isSystemMessage) {
         clarifyChatHistory.push({ role, content });
     }
@@ -4137,16 +4111,8 @@ window.LeetCoach = {
         const outputDiv = document.getElementById('markdown-output');
         
         try {
-            let parsed;
-            if (typeof marked !== 'undefined') {
-                // Use marked.js if available
-                parsed = marked.parse ? marked.parse(testMd) : marked(testMd);
-                console.log('Using marked.js for parsing');
-            } else {
-                // Use fallback parser
-                console.warn('Marked.js is not loaded, using simple parser fallback');
-                parsed = simpleMarkdownParse(testMd);
-            }
+            const parsed = parseMarkdown(testMd);
+            console.log('Using marked.js for parsing');
             
             outputDiv.innerHTML = `<div style="background: var(--bg-secondary); padding: 12px; border-radius: 6px;">${parsed}</div>`;
             console.log('Markdown test successful!');

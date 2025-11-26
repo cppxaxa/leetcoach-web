@@ -2900,18 +2900,23 @@ function handlePopOutClick() {
           ]
         });"></script>
 
+<!-- Google Fonts for Bionic Reading -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@200;400;500;700&family=Montserrat:wght@300;400;500;700&display=swap" rel="stylesheet">
+
 <!-- Marked.js for Markdown -->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 <!-- Optional: Highlight.js for code blocks -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js/styles/default.min.css">
-<script src="https://cdn.jsdelivr.net/npm/highlight.js/lib/highlight.min.js"></script>
-<script>hljs.highlightAll();</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/default.min.css">
+<script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/highlight.min.js"></script>
 
 <style>
   :root {
     --base-font-size: 16px;
     --scale-factor: 1;
+    --content-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   }
   
   /* Light Theme (Default) */
@@ -2951,7 +2956,7 @@ function handlePopOutClick() {
   }
   
   body {
-    font-family: Arial, sans-serif;
+    font-family: var(--content-font);
     max-width: 100%;
     margin: 0;
     padding: 16px;
@@ -2973,7 +2978,7 @@ function handlePopOutClick() {
     padding: 10px;
     border-bottom: 2px solid var(--border-color);
     display: flex;
-    gap: 8px;
+    gap: 0;
     flex-wrap: wrap;
     align-items: center;
     margin-bottom: 16px;
@@ -3010,6 +3015,32 @@ function handlePopOutClick() {
   .control-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+  
+  /* Grouped font control buttons */
+  .font-first,
+  .font-middle,
+  .font-last {
+    border-radius: 0;
+    margin-left: -1px;
+  }
+  
+  .font-first {
+    margin-left: 0;
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+  }
+  
+  .font-last {
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+  }
+  
+  .font-first:hover,
+  .font-middle:hover,
+  .font-last:hover {
+    z-index: 1;
+    position: relative;
   }
   
   #font-size-display {
@@ -3137,6 +3168,72 @@ function handlePopOutClick() {
     padding: 0.5em 0;
   }
   
+  /* Bionic reading styles */
+  body.bionic-mode {
+    --content-font: 'Raleway', 'Montserrat', 'Roboto', 'Segoe UI', system-ui, sans-serif;
+  }
+  
+  body.bionic-mode #content {
+    font-family: var(--content-font);
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    line-height: 1.75;
+  }
+  
+  .bionic-word {
+    font-weight: 600;
+  }
+  
+  body.bionic-mode .bionic-word {
+    font-weight: 600;
+  }
+  
+  .fixation-btn {
+    padding: 8px 16px;
+    border: 1px solid var(--control-border);
+    background: var(--control-bg);
+    color: var(--control-text);
+    border-radius: 0;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: bold;
+    touch-action: manipulation;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    margin-left: -1px;
+  }
+  
+  .fixation-btn:first-of-type {
+    margin-left: 0;
+  }
+  
+  .fixation-first {
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+  }
+  
+  .fixation-last {
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+  }
+  
+  .fixation-btn:hover {
+    background: var(--control-hover-bg);
+    z-index: 1;
+    position: relative;
+  }
+  
+  .fixation-btn.active {
+    background: var(--control-active-bg);
+    color: var(--control-active-text);
+    z-index: 2;
+    position: relative;
+  }
+  
   /* Mobile optimizations */
   @media (max-width: 768px) {
     :root {
@@ -3185,16 +3282,27 @@ function handlePopOutClick() {
 
 <body data-theme="${currentTheme}">
 <div id="control-panel">
-  <button class="control-btn" id="decrease-font" title="Decrease font size">T-</button>
-  <span id="font-size-display">100%</span>
-  <button class="control-btn" id="increase-font" title="Increase font size">T+</button>
-  <button class="control-btn" id="reset-font" title="Reset font size">Reset</button>
-  <button class="theme-toggle-btn" id="theme-toggle" title="Toggle dark/light mode">
+  <button class="control-btn font-first" id="decrease-font" title="Decrease font size">T-</button>
+  <button class="control-btn font-middle" id="reset-font" title="Reset font size">
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+      <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="2" fill="none"/>
+    </svg>
+  </button>
+  <button class="control-btn font-last" id="increase-font" title="Increase font size">T+</button>
+  <button class="theme-toggle-btn" id="theme-toggle" title="Toggle dark/light mode" style="margin-left: 8px;">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" id="theme-icon">
       <!-- Sun icon (light mode) -->
       <path d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
     </svg>
   </button>
+  <div style="display: flex; align-items: center; gap: 0; margin-left: 8px;">
+    <button class="fixation-btn fixation-first" data-fixation="0">F0</button>
+    <button class="fixation-btn fixation-middle" data-fixation="1">F1</button>
+    <button class="fixation-btn fixation-middle" data-fixation="2">F2</button>
+    <button class="fixation-btn fixation-middle" data-fixation="3">F3</button>
+    <button class="fixation-btn fixation-middle" data-fixation="4">F4</button>
+    <button class="fixation-btn fixation-last" data-fixation="5">F5</button>
+  </div>
 </div>
 <div id="content"></div>
 
@@ -3202,7 +3310,25 @@ function handlePopOutClick() {
   // Example: Insert Markdown content and render
   const markdownText = '${escapedContent}';
 
-  document.getElementById("content").innerHTML = marked.parse(markdownText);
+  let originalHTML = marked.parse(markdownText);
+  document.getElementById("content").innerHTML = originalHTML;
+  
+  // Highlight code blocks after DOM is ready
+  if (typeof hljs !== 'undefined') {
+    setTimeout(() => {
+      hljs.highlightAll();
+    }, 10);
+  }
+  
+  // Render math initially
+  if (window.renderMathInElement) {
+    renderMathInElement(document.getElementById('content'), {
+      delimiters: [
+        {left: '$$', right: '$$', display: true},
+        {left: '$', right: '$', display: false}
+      ]
+    });
+  }
   
   // Font size control
   let scaleFactor = 1;
@@ -3212,7 +3338,6 @@ function handlePopOutClick() {
   
   function updateFontSize() {
     document.documentElement.style.setProperty('--scale-factor', scaleFactor);
-    document.getElementById('font-size-display').textContent = Math.round(scaleFactor * 100) + '%';
     
     // Save to localStorage
     try {
@@ -3311,7 +3436,194 @@ function handlePopOutClick() {
   if (window.innerWidth < 768) {
     ensureProperViewport();
   }
+  
+  // Bionic reading functionality
+  let currentFixation = 0;
+  let mathRendered = false;
+  
+  // Load saved fixation level and apply after math is rendered
+  try {
+    const savedFixation = localStorage.getItem('bionicFixation');
+    if (savedFixation !== null) {
+      currentFixation = parseInt(savedFixation);
+      updateFixationButtons();
+    }
+  } catch (e) {
+    console.log('localStorage not available');
+  }
+  
+  // Wait for KaTeX auto-render and highlight.js to complete, then apply bionic reading if needed
+  setTimeout(() => {
+    mathRendered = true;
+    if (currentFixation > 0) {
+      applyBionicReading(currentFixation);
+    }
+  }, 300);
+  
+  function updateFixationButtons() {
+    document.querySelectorAll('.fixation-btn').forEach(btn => {
+      const fixation = parseInt(btn.getAttribute('data-fixation'));
+      if (fixation === currentFixation) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+  }
+  
+  function applyBionicReading(fixationLevel) {
+    const contentDiv = document.getElementById('content');
+    
+    // Reset to original first
+    contentDiv.innerHTML = originalHTML;
+    
+    // Render math first
+    if (window.renderMathInElement) {
+      renderMathInElement(contentDiv, {
+        delimiters: [
+          {left: '$$', right: '$$', display: true},
+          {left: '$', right: '$', display: false}
+        ]
+      });
+    }
+    
+    if (fixationLevel === 0) {
+      // Remove bionic mode class
+      document.body.classList.remove('bionic-mode');
+      return;
+    }
+    
+    // Add bionic mode class for font switching
+    document.body.classList.add('bionic-mode');
+    
+    // Apply bionic reading to text nodes after math is rendered
+    processTextNodes(contentDiv, fixationLevel);
+  }
+  
+  function processTextNodes(element, fixationLevel) {
+    const walker = document.createTreeWalker(
+      element,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode: function(node) {
+          // Skip if parent is code, pre, or katex rendered elements
+          let parent = node.parentElement;
+          while (parent && parent !== element) {
+            const tagName = parent.tagName;
+            if (['CODE', 'PRE', 'SCRIPT', 'STYLE', 'MATH', 'SVG'].includes(tagName)) {
+              return NodeFilter.FILTER_REJECT;
+            }
+            // Skip KaTeX rendered content
+            if (parent.classList && (parent.classList.contains('katex') || 
+                parent.classList.contains('katex-mathml') ||
+                parent.classList.contains('katex-html'))) {
+              return NodeFilter.FILTER_REJECT;
+            }
+            parent = parent.parentElement;
+          }
+          
+          // Only accept non-empty text nodes
+          return node.textContent.trim().length > 0 ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+        }
+      }
+    );
+    
+    const nodesToProcess = [];
+    let node;
+    while (node = walker.nextNode()) {
+      nodesToProcess.push(node);
+    }
+    
+    // Process collected nodes
+    nodesToProcess.forEach(textNode => {
+      const text = textNode.textContent;
+      const bionicHTML = convertToBionic(text, fixationLevel);
+      
+      if (bionicHTML !== text) {
+        const span = document.createElement('span');
+        span.innerHTML = bionicHTML;
+        textNode.parentNode.replaceChild(span, textNode);
+      }
+    });
+  }
+  
+  function convertToBionic(text, fixationLevel) {
+    // Split by spaces but preserve the spaces
+    const parts = text.split(/(\\s+)/);
+    
+    return parts.map(part => {
+      // If it's whitespace, return as-is
+      if (/^\\s+$/.test(part)) {
+        return part;
+      }
+      
+      // If it's a word, apply bionic reading
+      if (part.length > 0) {
+        return makeBionicWord(part, fixationLevel);
+      }
+      
+      return part;
+    }).join('');
+  }
+  
+  function makeBionicWord(word, fixationLevel) {
+    // Check if word contains emoticons/emojis - if so, return as-is
+    const emojiRegex = /[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F000}-\u{1F02F}\u{1F0A0}-\u{1F0FF}\u{1F100}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2300}-\u{23FF}\u{2B50}\u{2B55}\u{231A}\u{231B}\u{2328}\u{23CF}\u{23E9}-\u{23F3}\u{23F8}-\u{23FA}\u{25AA}\u{25AB}\u{25B6}\u{25C0}\u{25FB}-\u{25FE}\u{2602}\u{2603}\u{2604}\u{260E}\u{2611}\u{2614}\u{2615}\u{2618}\u{2620}\u{2622}\u{2623}\u{2626}\u{262A}\u{262E}\u{262F}\u{2638}-\u{263A}\u{2640}\u{2642}\u{2648}-\u{2653}\u{2660}\u{2663}\u{2665}\u{2666}\u{2668}\u{267B}\u{267E}\u{267F}\u{2692}-\u{2697}\u{2699}\u{269B}\u{269C}\u{26A0}\u{26A1}\u{26A7}\u{26AA}\u{26AB}\u{26B0}\u{26B1}\u{26BD}\u{26BE}\u{26C4}\u{26C5}\u{26C8}\u{26CE}\u{26CF}\u{26D1}\u{26D3}\u{26D4}\u{26E9}\u{26EA}\u{26F0}-\u{26F5}\u{26F7}-\u{26FA}\u{26FD}]/u;
+    
+    if (emojiRegex.test(word)) {
+      return word;
+    }
+    
+    const len = word.length;
+    
+    // Don't process very short words or single characters
+    if (len <= 1) {
+      return word;
+    }
+    
+    // Calculate how many characters to bold based on fixation level
+    let boldCount;
+    
+    if (len <= 3) {
+      boldCount = fixationLevel >= 3 ? 1 : 0;
+    } else if (len <= 5) {
+      boldCount = Math.min(Math.ceil(fixationLevel / 2), len - 1);
+    } else {
+      // For longer words, scale based on fixation level
+      const ratio = 0.1 + (fixationLevel * 0.1); // 10% to 60%
+      boldCount = Math.max(1, Math.min(Math.ceil(len * ratio), len - 1));
+    }
+    
+    if (boldCount === 0) {
+      return word;
+    }
+    
+    const boldPart = word.substring(0, boldCount);
+    const normalPart = word.substring(boldCount);
+    
+    return '<strong class="bionic-word">' + boldPart + '</strong>' + normalPart;
+  }
+  
+  // Fixation button event listeners
+  document.querySelectorAll('.fixation-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const fixation = parseInt(btn.getAttribute('data-fixation'));
+      
+      currentFixation = fixation;
+      
+      updateFixationButtons();
+      applyBionicReading(currentFixation);
+      
+      // Save to localStorage
+      try {
+        localStorage.setItem('bionicFixation', currentFixation);
+      } catch (e) {
+        console.log('localStorage not available');
+      }
+    });
+  });
 </script>
+
 
 </body>
 </html>`;

@@ -2886,7 +2886,8 @@ function handlePopOutClick() {
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>LeetCoach - Details Pop Out</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<title>Complexity Analysis Render</title>
 
 <!-- KaTeX for Math Rendering -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
@@ -2902,96 +2903,399 @@ function handlePopOutClick() {
 <!-- Marked.js for Markdown -->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-<!-- Highlight.js for code blocks -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js/styles/${currentTheme === 'dark' ? 'vs2015' : 'default'}.min.css">
+<!-- Optional: Highlight.js for code blocks -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js/styles/default.min.css">
 <script src="https://cdn.jsdelivr.net/npm/highlight.js/lib/highlight.min.js"></script>
 <script>hljs.highlightAll();</script>
 
 <style>
-  /* Theme Variables */
-  [data-theme="dark"] {
-    --bg-primary: #1e1e1e;
-    --text-primary: #d4d4d4;
-    --text-secondary: #858585;
-    --code-bg: #2d2d30;
-    --border-color: #3e3e42;
+  :root {
+    --base-font-size: 16px;
+    --scale-factor: 1;
   }
-
-  [data-theme="light"] {
+  
+  /* Light Theme (Default) */
+  body[data-theme="light"] {
     --bg-primary: #ffffff;
+    --bg-secondary: #f8f8f8;
     --text-primary: #333333;
     --text-secondary: #666666;
+    --border-color: #ddd;
     --code-bg: #f5f5f5;
-    --border-color: #e0e0e0;
+    --control-bg: white;
+    --control-border: #007acc;
+    --control-text: #007acc;
+    --control-hover-bg: #f0f0f0;
+    --control-active-bg: #007acc;
+    --control-active-text: white;
+    --table-header-bg: #f5f5f5;
+    --table-header-text: #333333;
   }
-
+  
+  /* Dark Theme */
+  body[data-theme="dark"] {
+    --bg-primary: #1e1e1e;
+    --bg-secondary: #252526;
+    --text-primary: #d4d4d4;
+    --text-secondary: #858585;
+    --border-color: #2d2d30;
+    --code-bg: #1e1e1e;
+    --control-bg: #2d2d30;
+    --control-border: #0e639c;
+    --control-text: #d4d4d4;
+    --control-hover-bg: #3e3e42;
+    --control-active-bg: #0e639c;
+    --control-active-text: #ffffff;
+    --table-header-bg: #2d2d30;
+    --table-header-text: #d4d4d4;
+  }
+  
   body {
     font-family: Arial, sans-serif;
-    max-width: auto;
-    margin: 10px;
-    padding: 32px;
+    max-width: 100%;
+    margin: 0;
+    padding: 16px;
     line-height: 1.6;
+    font-size: calc(var(--base-font-size) * var(--scale-factor));
+    box-sizing: border-box;
     background-color: var(--bg-primary);
     color: var(--text-primary);
-    transition: background-color 0.3s, color 0.3s;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  * {
+    box-sizing: border-box;
+  }
+  
+  /* Control Panel */
+  #control-panel {
+    background: var(--control-bg);
+    padding: 10px;
+    border-bottom: 2px solid var(--border-color);
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .control-btn {
+    padding: 8px 16px;
+    border: 1px solid var(--control-border);
+    background: var(--control-bg);
+    color: var(--control-text);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    touch-action: manipulation;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  
+  .control-btn:hover {
+    background: var(--control-hover-bg);
+  }
+  
+  .control-btn:active {
+    background: var(--control-active-bg);
+    color: var(--control-active-text);
+  }
+  
+  .control-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  #font-size-display {
+    padding: 8px 12px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border-radius: 4px;
+    font-size: 14px;
+    min-width: 60px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+  }
+  
+  .theme-toggle-btn {
+    padding: 8px 16px;
+    border: 1px solid var(--control-border);
+    background: var(--control-bg);
+    color: var(--control-text);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    touch-action: manipulation;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  
+  .theme-toggle-btn:hover {
+    background: var(--control-hover-bg);
+  }
+  
+  /* Content Area */
+  #content {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
+  
+  #content h1, #content h2, #content h3, #content h4 {
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+  }
+  
+  #content h3 {
+    font-size: 1.3em;
+  }
+  
+  #content h4 {
+    font-size: 1.1em;
+  }
+  
+  #content p {
+    margin: 0.8em 0;
+  }
+  
+  #content ul, #content ol {
+    padding-left: 1.5em;
+  }
+  
+  #content li {
+    margin: 0.5em 0;
   }
   
   pre {
     padding: 12px;
-    background: var(--code-bg);
+    background: #f5f5f5;
     border-radius: 6px;
     overflow-x: auto;
-    border: 1px solid var(--border-color);
+    font-size: 0.9em;
+    max-width: 100%;
   }
   
   code {
-    background: var(--code-bg);
-    padding: 2px 4px;
-    border-radius: 3px;
-    font-family: 'Courier New', monospace;
+    word-wrap: break-word;
+    white-space: pre-wrap;
   }
   
-  pre code {
-    background: transparent;
-    padding: 0;
-  }
-  
-  a {
-    color: ${currentTheme === 'dark' ? '#4fc3f7' : '#0078d4'};
-  }
-  
-  blockquote {
-    border-left: 4px solid var(--border-color);
-    padding-left: 16px;
-    margin-left: 0;
-    color: var(--text-secondary);
-  }
-  
+  /* Table responsiveness */
   table {
-    border-collapse: collapse;
+    display: block;
     width: 100%;
-    margin: 16px 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-collapse: collapse;
+    margin: 1em 0;
   }
   
-  th, td {
-    border: 1px solid var(--border-color);
+  table thead {
+    background: var(--table-header-bg);
+  }
+  
+  table th {
     padding: 8px 12px;
+    border: 1px solid var(--border-color);
     text-align: left;
+    min-width: 80px;
+    font-size: 0.9em;
+    background: var(--table-header-bg);
+    color: var(--table-header-text);
+    font-weight: 600;
   }
   
-  th {
-    background: var(--code-bg);
-    font-weight: bold;
+  table td {
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    text-align: left;
+    min-width: 80px;
+    font-size: 0.9em;
   }
+  
+  /* Math rendering */
+  .katex {
+    font-size: 1em;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  
+  .katex-display {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.5em 0;
+  }
+  
+  /* Mobile optimizations */
+  @media (max-width: 768px) {
+    :root {
+      --base-font-size: 16px;
+    }
+    
+    body {
+      padding: 12px;
+    }
+    
+    #control-panel {
+      margin-bottom: 12px;
+      padding: 8px;
+    }
+    
+    pre {
+      font-size: 0.85em;
+      padding: 8px;
+    }
+    
+    table th, table td {
+      padding: 6px 8px;
+      font-size: 0.85em;
+      min-width: 60px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    :root {
+      --base-font-size: 15px;
+    }
+    
+    .control-btn {
+      padding: 6px 12px;
+      font-size: 13px;
+    }
+    
+    #font-size-display {
+      font-size: 13px;
+      padding: 6px 10px;
+    }
+  }
+  
 </style>
 </head>
 
 <body data-theme="${currentTheme}">
+<div id="control-panel">
+  <button class="control-btn" id="decrease-font" title="Decrease font size">T-</button>
+  <span id="font-size-display">100%</span>
+  <button class="control-btn" id="increase-font" title="Increase font size">T+</button>
+  <button class="control-btn" id="reset-font" title="Reset font size">Reset</button>
+  <button class="theme-toggle-btn" id="theme-toggle" title="Toggle dark/light mode">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" id="theme-icon">
+      <!-- Sun icon (light mode) -->
+      <path d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
+    </svg>
+  </button>
+</div>
 <div id="content"></div>
 
 <script>
+  // Example: Insert Markdown content and render
   const markdownText = '${escapedContent}';
+
   document.getElementById("content").innerHTML = marked.parse(markdownText);
+  
+  // Font size control
+  let scaleFactor = 1;
+  const minScale = 0.7;
+  const maxScale = 2.0;
+  const step = 0.1;
+  
+  function updateFontSize() {
+    document.documentElement.style.setProperty('--scale-factor', scaleFactor);
+    document.getElementById('font-size-display').textContent = Math.round(scaleFactor * 100) + '%';
+    
+    // Save to localStorage
+    try {
+      localStorage.setItem('fontScale', scaleFactor);
+    } catch (e) {
+      console.log('localStorage not available');
+    }
+  }
+  
+  // Load saved font size
+  try {
+    const saved = localStorage.getItem('fontScale');
+    if (saved) {
+      scaleFactor = parseFloat(saved);
+      updateFontSize();
+    }
+  } catch (e) {
+    console.log('localStorage not available');
+  }
+  
+  document.getElementById('increase-font').addEventListener('click', () => {
+    if (scaleFactor < maxScale) {
+      scaleFactor = Math.min(maxScale, scaleFactor + step);
+      updateFontSize();
+    }
+  });
+  
+  document.getElementById('decrease-font').addEventListener('click', () => {
+    if (scaleFactor > minScale) {
+      scaleFactor = Math.max(minScale, scaleFactor - step);
+      updateFontSize();
+    }
+  });
+  
+  document.getElementById('reset-font').addEventListener('click', () => {
+    scaleFactor = 1;
+    updateFontSize();
+  });
+  
+  // Theme toggle functionality
+  const sunIcon = '<path d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>';
+  const moonIcon = '<path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>';
+  
+  // Load saved theme
+  let currentTheme = '${currentTheme}';
+  try {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      currentTheme = savedTheme;
+      document.body.setAttribute('data-theme', currentTheme);
+      updateThemeIcon();
+    }
+  } catch (e) {
+    console.log('localStorage not available');
+  }
+  
+  function updateThemeIcon() {
+    const themeIcon = document.getElementById('theme-icon');
+    const body = document.body;
+    const theme = body.getAttribute('data-theme');
+    
+    if (theme === 'dark') {
+      themeIcon.innerHTML = moonIcon;
+    } else {
+      themeIcon.innerHTML = sunIcon;
+    }
+  }
+  
+  document.getElementById('theme-toggle').addEventListener('click', () => {
+    const body = document.body;
+    const currentTheme = body.getAttribute('data-theme');
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    
+    body.setAttribute('data-theme', newTheme);
+    updateThemeIcon();
+    
+    // Save to localStorage
+    try {
+      localStorage.setItem('theme', newTheme);
+    } catch (e) {
+      console.log('localStorage not available');
+    }
+  });
 </script>
 
 </body>

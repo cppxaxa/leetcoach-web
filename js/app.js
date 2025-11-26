@@ -3296,6 +3296,21 @@ function handlePopOutClick() {
       console.log('localStorage not available');
     }
   });
+  
+  // Force viewport rendering on mobile devices
+  // This ensures the viewport meta tag is properly applied
+  function ensureProperViewport() {
+    // Trigger a reflow to ensure viewport is recognized
+    document.body.style.opacity = '0.99';
+    setTimeout(() => {
+      document.body.style.opacity = '1';
+    }, 10);
+  }
+  
+  // Run on load
+  if (window.innerWidth < 768) {
+    ensureProperViewport();
+  }
 </script>
 
 </body>

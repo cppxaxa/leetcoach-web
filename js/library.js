@@ -707,5 +707,10 @@ window.problemLibrary = {
         "Heap Extra": {
             "Merge k Sorted Lists": "Difficulty: HARD\nFrequency: 67.5\nAcceptance Rate: 0.567741907864408\nLink: https://leetcode.com/problems/merge-k-sorted-lists\nTopics: Linked List, Divide and Conquer, Heap (Priority Queue), Merge Sort"
         }
+    },
+    "Misc": {
+        "Hard": {
+            "Trapping Rain Water II": "Difficulty: HARD\nLink: https://leetcode.com/problems/trapping-rain-water-ii\nTopics: Array, Breadth-First Search, Heap (Priority Queue), Matrix"
+        }
     }
 };

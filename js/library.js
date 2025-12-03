@@ -710,7 +710,7 @@ window.problemLibrary = {
     },
     "Misc": {
         "Hard": {
-            "Trapping Rain Water II": "Difficulty: HARD\nLink: https://leetcode.com/problems/trapping-rain-water-ii\nTopics: Array, Breadth-First Search, Heap (Priority Queue), Matrix"
+            "Trapping Rain Water II ⭐": "Difficulty: HARD\nLink: https://leetcode.com/problems/trapping-rain-water-ii\nTopics: Array, Breadth-First Search, Heap (Priority Queue), Matrix"
         }
     }
 };

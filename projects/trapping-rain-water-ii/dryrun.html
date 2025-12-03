@@ -1,0 +1,851 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trap Rain Water 2D — Dry Run Visualizer</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+  <style>
+    :root {
+      --bg: #071019;
+      --panel: #0b1520;
+      --accent: #7fffd4;
+      --muted: #7a8b94;
+      --mono: 'Fira Mono', 'Courier New', monospace;
+    }
+    
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: linear-gradient(180deg, #041018 0%, #071019 60%);
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+      color: var(--accent);
+      overflow: hidden;
+    }
+    
+    #canvas-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100vh;
+    }
+    
+    @media (max-width: 1400px) or (max-height: 800px) {
+      #canvas-container canvas {
+        max-width: 100% !important;
+        max-height: 100% !important;
+        width: auto !important;
+        height: auto !important;
+      }
+    }
+    
+    .controls-overlay {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      background: rgba(7, 16, 25, 0.9);
+      padding: 16px 24px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+      flex-wrap: wrap;
+      max-width: 90%;
+      justify-content: center;
+    }
+    
+    @media (max-width: 768px) or (orientation: portrait) {
+      .controls-overlay {
+        top: 10px;
+        bottom: auto;
+        left: auto;
+        right: 10px;
+        transform: none;
+        padding: 12px 16px;
+        gap: 8px;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .controls-overlay > div {
+        display: none;
+      }
+      
+      .btn {
+        padding: 8px 12px;
+        font-size: 11px;
+        width: 100%;
+      }
+      
+      input {
+        padding: 8px 10px;
+        font-size: 11px;
+        width: 100%;
+      }
+      
+      label {
+        font-size: 11px;
+      }
+    }
+    
+    .btn {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 10px 16px;
+      border-radius: 8px;
+      color: var(--accent);
+      cursor: pointer;
+      font-family: var(--mono);
+      font-weight: 700;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    
+    .btn.primary {
+      background: #002c2a1a;
+      border: 1px solid rgba(127, 255, 212, 0.12);
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(127, 255, 212, 0.1);
+    }
+    
+    input {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      background: transparent;
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+    
+    input:focus {
+      outline: none;
+      border-color: rgba(127, 255, 212, 0.2);
+    }
+    
+    label {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div id="canvas-container"></div>
+  
+  <div class="controls-overlay">
+    <label>Height Map (rows separated by ;):</label>
+    <input id="inputHeightMap" value="1,4,3,1,3,2;3,2,5,3,2,4;3,5,1,5,2,4;3,2,5,3,2,4;2,3,3,2,3,1" style="width: 300px;" />
+    <button class="btn" id="applyBtn">Apply</button>
+    <div style="width: 1px; height: 30px; background: rgba(255,255,255,0.1); margin: 0 8px;"></div>
+    <button class="btn primary" id="pauseBtn">Pause</button>
+    <button class="btn" id="stepBtn">Step</button>
+    <button class="btn" id="resetBtn">Reset</button>
+  </div>
+
+  <script>
+    // State variables
+    let heightMap = [
+      [1, 4, 3, 1, 3, 2],
+      [3, 2, 5, 3, 2, 4],
+      [3, 5, 1, 5, 2, 4],
+      [3, 2, 5, 3, 2, 4],
+      [2, 3, 3, 2, 3, 1]
+    ];
+    
+    let rows, cols;
+    let visited = [];
+    let priorityQueue = [];
+    let currentCell = null;
+    let checkingNeighbors = [];
+    let waterTrapped = 0;
+    let stepIndex = 0;
+    let running = true;
+    let stepMode = false;
+    let lastStepTime = 0;
+    let stepDelay = 1800;
+    let statusMessage = "Initializing boundary cells...";
+    let currentLine = [0];
+    let completed = false;
+    
+    // Animation phase
+    let animationPhase = 0; // 0: process cell from queue, 1: check neighbors
+    
+    // UI positions
+    let canvasWidth = 1400;
+    let canvasHeight = 800;
+    let isPortrait = false;
+    let scaleFactor = 1;
+    
+    function setup() {
+      updateCanvasSize();
+      let canvas = createCanvas(canvasWidth, canvasHeight);
+      canvas.parent('canvas-container');
+      textFont('monospace');
+      
+      // Setup button handlers
+      document.getElementById('pauseBtn').addEventListener('click', togglePause);
+      document.getElementById('stepBtn').addEventListener('click', doStep);
+      document.getElementById('applyBtn').addEventListener('click', applyInputs);
+      document.getElementById('resetBtn').addEventListener('click', resetState);
+      
+      initializeAlgorithm();
+    }
+    
+    function windowResized() {
+      updateCanvasSize();
+      resizeCanvas(canvasWidth, canvasHeight);
+    }
+    
+    function updateCanvasSize() {
+      let w = windowWidth;
+      let h = windowHeight;
+      
+      isPortrait = h > w;
+      
+      if (isPortrait) {
+        canvasWidth = min(w, 800);
+        canvasHeight = h - 20;
+        scaleFactor = canvasWidth / 800;
+      } else {
+        let targetWidth = 1400;
+        let targetHeight = 800;
+        
+        let scaleW = w / targetWidth;
+        let scaleH = (h - 20) / targetHeight;
+        scaleFactor = min(scaleW, scaleH, 1);
+        
+        canvasWidth = targetWidth * scaleFactor;
+        canvasHeight = targetHeight * scaleFactor;
+      }
+    }
+    
+    function initializeAlgorithm() {
+      rows = heightMap.length;
+      cols = heightMap[0].length;
+      
+      visited = Array(rows).fill(0).map(() => Array(cols).fill(false));
+      priorityQueue = [];
+      waterTrapped = 0;
+      stepIndex = 0;
+      currentCell = null;
+      checkingNeighbors = [];
+      completed = false;
+      
+      // Add all boundary cells to priority queue
+      for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+          if (i === 0 || i === rows - 1 || j === 0 || j === cols - 1) {
+            priorityQueue.push({row: i, col: j, height: heightMap[i][j]});
+            visited[i][j] = true;
+          }
+        }
+      }
+      
+      // Sort priority queue by height (min-heap)
+      priorityQueue.sort((a, b) => a.height - b.height);
+      
+      statusMessage = `Initialized ${priorityQueue.length} boundary cells in priority queue.`;
+      currentLine = [0, 1];
+    }
+    
+    function draw() {
+      background(7, 16, 25);
+      
+      push();
+      scale(scaleFactor);
+      
+      // Auto-step logic
+      if (running && !stepMode && !completed && millis() - lastStepTime > stepDelay) {
+        executeStep();
+        lastStepTime = millis();
+      }
+      
+      if (isPortrait) {
+        drawPortraitLayout();
+      } else {
+        drawLandscapeLayout();
+      }
+      
+      pop();
+    }
+    
+    function drawLandscapeLayout() {
+      drawHeightMap();
+      drawPriorityQueue();
+      drawCode();
+      drawStatus();
+      drawWaterCount();
+    }
+    
+    function drawPortraitLayout() {
+      drawTitlePortrait();
+      drawHeightMapPortrait();
+      drawPriorityQueuePortrait();
+      drawStatusPortrait();
+      drawCodePortrait();
+      drawWaterCountPortrait();
+    }
+    
+    function drawTitle() {
+      fill(127, 255, 212);
+      textSize(24);
+      textAlign(LEFT);
+      text("⌘ Trap Rain Water 2D — Dry run visualizer", 60, 60);
+    }
+    
+    function drawHeightMap() {
+      push();
+      translate(60, 80);
+      
+      fill(122, 139, 148);
+      textSize(13);
+      textAlign(LEFT);
+      text("Height Map", 0, 0);
+      
+      translate(0, 25);
+      
+      let cellSize = min(55, 400 / Math.max(rows, cols));
+      
+      for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+          push();
+          translate(j * (cellSize + 5), i * (cellSize + 5));
+          
+          let isBoundary = i === 0 || i === rows - 1 || j === 0 || j === cols - 1;
+          let isVisited = visited[i][j];
+          let isCurrent = currentCell && currentCell.row === i && currentCell.col === j;
+          let isNeighbor = checkingNeighbors.some(n => n.row === i && n.col === j);
+          
+          // Cell styling
+          if (isCurrent) {
+            fill(0, 91, 69, 200);
+            stroke(127, 255, 212, 255);
+            strokeWeight(2);
+          } else if (isNeighbor) {
+            fill(89, 61, 26, 200);
+            stroke(255, 212, 127, 200);
+            strokeWeight(2);
+          } else if (isBoundary) {
+            fill(61, 26, 89, 150);
+            stroke(212, 127, 255, 100);
+            strokeWeight(1);
+          } else if (isVisited) {
+            fill(26, 61, 89, 150);
+            stroke(127, 191, 255, 100);
+            strokeWeight(1);
+          } else {
+            fill(255, 255, 255, 5);
+            stroke(255, 255, 255, 15);
+            strokeWeight(1);
+          }
+          
+          rect(0, 0, cellSize, cellSize, 4);
+          
+          // Height value
+          fill(127, 255, 212);
+          if (isCurrent || isNeighbor) fill(255, 255, 212);
+          noStroke();
+          textSize(cellSize * 0.35);
+          textAlign(CENTER, CENTER);
+          text(heightMap[i][j], cellSize / 2, cellSize / 2);
+          
+          pop();
+        }
+      }
+      
+      pop();
+    }
+    
+    function drawPriorityQueue() {
+      push();
+      translate(60, 350);
+      
+      fill(122, 139, 148);
+      textSize(13);
+      textAlign(LEFT);
+      text("Priority Queue (min-heap)", 0, 0);
+      
+      translate(0, 25);
+      
+      // Show first 10 items in queue
+      let displayCount = min(10, priorityQueue.length);
+      for (let i = 0; i < displayCount; i++) {
+        push();
+        translate(i * 62, 0);
+        
+        fill(11, 21, 32, 100);
+        stroke(255, 255, 255, 10);
+        strokeWeight(1);
+        rect(0, 0, 57, 50, 6);
+        
+        fill(127, 255, 212);
+        noStroke();
+        textSize(11);
+        textAlign(CENTER, TOP);
+        text(`(${priorityQueue[i].row},${priorityQueue[i].col})`, 28.5, 8);
+        
+        textSize(16);
+        text(`h=${priorityQueue[i].height}`, 28.5, 26);
+        
+        pop();
+      }
+      
+      if (priorityQueue.length > displayCount) {
+        fill(122, 139, 148);
+        textSize(12);
+        textAlign(LEFT, TOP);
+        text(`... +${priorityQueue.length - displayCount} more`, displayCount * 62 + 10, 15);
+      }
+      
+      pop();
+    }
+    
+    function drawCode() {
+      push();
+      translate(700, 80);
+      
+      fill(2, 16, 24);
+      stroke(255, 255, 255, 5);
+      strokeWeight(1);
+      rect(0, 0, 640, 480, 10);
+      
+      let codeLines = [
+        "int TrapRainWater(int[][] heightMap) {",
+        "  while (queue.Count > 0) {",
+        "    var (row, col) = queue.Dequeue();",
+        "    int currentHeight = heightMap[row][col];",
+        "    // Check all 4 neighbors",
+        "    for (each neighbor) {",
+        "      if (in bounds && !visited) {",
+        "        int neighborHeight = heightMap[nr][nc];",
+        "        if (neighborHeight < currentHeight) {",
+        "          waterTrapped += currentHeight - neighborHeight;",
+        "          heightMap[nr][nc] = currentHeight;",
+        "        }",
+        "        visited[nr][nc] = true;",
+        "        queue.Enqueue((nr, nc), heightMap[nr][nc]);",
+        "      }",
+        "    }",
+        "  }",
+        "  return waterTrapped;"
+      ];
+      
+      translate(15, 15);
+      for (let i = 0; i < codeLines.length; i++) {
+        push();
+        
+        if (currentLine.includes(i)) {
+          fill(0, 59, 47, 100);
+          noStroke();
+          rect(-5, i * 22 - 3, 620, 20, 4);
+        }
+        
+        fill(191, 238, 238);
+        if (currentLine.includes(i)) {
+          fill(223, 255, 255);
+        }
+        noStroke();
+        textSize(12);
+        textAlign(LEFT, TOP);
+        text(codeLines[i], 0, i * 22);
+        
+        pop();
+      }
+      
+      pop();
+    }
+    
+    function drawStatus() {
+      push();
+      translate(60, 450);
+      
+      fill(5, 20, 23);
+      stroke(255, 255, 255, 5);
+      strokeWeight(1);
+      rect(0, 0, 620, 130, 8);
+      
+      fill(122, 139, 148);
+      noStroke();
+      textSize(13);
+      textAlign(LEFT, TOP);
+      
+      let words = statusMessage.split(' ');
+      let line = '';
+      let y = 20;
+      for (let word of words) {
+        let testLine = line + word + ' ';
+        if (textWidth(testLine) > 580 && line !== '') {
+          text(line, 20, y);
+          line = word + ' ';
+          y += 20;
+        } else {
+          line = testLine;
+        }
+      }
+      text(line, 20, y);
+      
+      pop();
+    }
+    
+    function drawWaterCount() {
+      push();
+      translate(700, 580);
+      
+      fill(0, 59, 47, 100);
+      stroke(127, 255, 212, 100);
+      strokeWeight(2);
+      rect(0, 0, 200, 80, 8);
+      
+      fill(127, 255, 212);
+      noStroke();
+      textSize(14);
+      textAlign(CENTER, TOP);
+      text("Water Trapped", 100, 15);
+      
+      textSize(32);
+      textAlign(CENTER, CENTER);
+      text(waterTrapped, 100, 50);
+      
+      pop();
+    }
+    
+    // Portrait layout functions
+    function drawTitlePortrait() {
+      // Title removed to save space
+    }
+    
+    function drawHeightMapPortrait() {
+      push();
+      translate(50, 30);
+      
+      fill(122, 139, 148);
+      textSize(12);
+      textAlign(LEFT);
+      text("Height Map", 0, 0);
+      
+      translate(0, 20);
+      
+      let cellSize = min(45, 700 / Math.max(rows, cols));
+      
+      for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+          push();
+          translate(j * (cellSize + 4), i * (cellSize + 4));
+          
+          let isBoundary = i === 0 || i === rows - 1 || j === 0 || j === cols - 1;
+          let isVisited = visited[i][j];
+          let isCurrent = currentCell && currentCell.row === i && currentCell.col === j;
+          let isNeighbor = checkingNeighbors.some(n => n.row === i && n.col === j);
+          
+          if (isCurrent) {
+            fill(0, 91, 69, 200);
+            stroke(127, 255, 212, 255);
+            strokeWeight(2);
+          } else if (isNeighbor) {
+            fill(89, 61, 26, 200);
+            stroke(255, 212, 127, 200);
+            strokeWeight(2);
+          } else if (isBoundary) {
+            fill(61, 26, 89, 150);
+            stroke(212, 127, 255, 100);
+            strokeWeight(1);
+          } else if (isVisited) {
+            fill(26, 61, 89, 150);
+            stroke(127, 191, 255, 100);
+            strokeWeight(1);
+          } else {
+            fill(255, 255, 255, 5);
+            stroke(255, 255, 255, 15);
+            strokeWeight(1);
+          }
+          
+          rect(0, 0, cellSize, cellSize, 4);
+          
+          fill(127, 255, 212);
+          if (isCurrent || isNeighbor) fill(255, 255, 212);
+          noStroke();
+          textSize(cellSize * 0.35);
+          textAlign(CENTER, CENTER);
+          text(heightMap[i][j], cellSize / 2, cellSize / 2);
+          
+          pop();
+        }
+      }
+      
+      pop();
+    }
+    
+    function drawPriorityQueuePortrait() {
+      push();
+      translate(50, 290);
+      
+      fill(122, 139, 148);
+      textSize(12);
+      textAlign(LEFT);
+      text("Priority Queue", 0, 0);
+      
+      translate(0, 20);
+      
+      let displayCount = min(8, priorityQueue.length);
+      for (let i = 0; i < displayCount; i++) {
+        push();
+        translate(i * 55, 0);
+        
+        fill(11, 21, 32, 100);
+        stroke(255, 255, 255, 10);
+        strokeWeight(1);
+        rect(0, 0, 50, 45, 5);
+        
+        fill(127, 255, 212);
+        noStroke();
+        textSize(10);
+        textAlign(CENTER, TOP);
+        text(`(${priorityQueue[i].row},${priorityQueue[i].col})`, 25, 6);
+        
+        textSize(14);
+        text(`h=${priorityQueue[i].height}`, 25, 23);
+        
+        pop();
+      }
+      
+      if (priorityQueue.length > displayCount) {
+        fill(122, 139, 148);
+        textSize(11);
+        textAlign(LEFT, TOP);
+        text(`+${priorityQueue.length - displayCount}`, displayCount * 55 + 5, 15);
+      }
+      
+      pop();
+    }
+    
+    function drawStatusPortrait() {
+      push();
+      translate(50, 360);
+      
+      fill(5, 20, 23);
+      stroke(255, 255, 255, 5);
+      strokeWeight(1);
+      rect(0, 0, 700, 100, 8);
+      
+      fill(122, 139, 148);
+      noStroke();
+      textSize(11);
+      textAlign(LEFT, TOP);
+      
+      let words = statusMessage.split(' ');
+      let line = '';
+      let y = 15;
+      for (let word of words) {
+        let testLine = line + word + ' ';
+        if (textWidth(testLine) > 670 && line !== '') {
+          text(line, 15, y);
+          line = word + ' ';
+          y += 18;
+        } else {
+          line = testLine;
+        }
+      }
+      text(line, 15, y);
+      
+      pop();
+    }
+    
+    function drawCodePortrait() {
+      push();
+      translate(50, 480);
+      
+      fill(2, 16, 24);
+      stroke(255, 255, 255, 5);
+      strokeWeight(1);
+      rect(0, 0, 700, 320, 8);
+      
+      let codeLines = [
+        "int TrapRainWater(int[][] heightMap) {",
+        "  while (queue.Count > 0) {",
+        "    var (row, col) = queue.Dequeue();",
+        "    int h = heightMap[row][col];",
+        "    for (each neighbor) {",
+        "      if (in bounds && !visited) {",
+        "        int nh = heightMap[nr][nc];",
+        "        if (nh < h) {",
+        "          water += h - nh;",
+        "          heightMap[nr][nc] = h;",
+        "        }",
+        "        visited[nr][nc] = true;",
+        "        queue.Enqueue((nr,nc), heightMap[nr][nc]);",
+        "      }",
+        "    }",
+        "  }",
+        "  return water;"
+      ];
+      
+      translate(12, 12);
+      for (let i = 0; i < codeLines.length; i++) {
+        push();
+        
+        if (currentLine.includes(i)) {
+          fill(0, 59, 47, 100);
+          noStroke();
+          rect(-4, i * 16 - 2, 680, 15, 3);
+        }
+        
+        fill(191, 238, 238);
+        if (currentLine.includes(i)) {
+          fill(223, 255, 255);
+        }
+        noStroke();
+        textSize(10);
+        textAlign(LEFT, TOP);
+        text(codeLines[i], 0, i * 16);
+        
+        pop();
+      }
+      
+      pop();
+    }
+    
+    function drawWaterCountPortrait() {
+      push();
+      translate(50, 815);
+      
+      fill(0, 59, 47, 100);
+      stroke(127, 255, 212, 100);
+      strokeWeight(1);
+      rect(0, 0, 150, 60, 6);
+      
+      fill(127, 255, 212);
+      noStroke();
+      textSize(12);
+      textAlign(CENTER, TOP);
+      text("Water Trapped", 75, 10);
+      
+      textSize(24);
+      textAlign(CENTER, CENTER);
+      text(waterTrapped, 75, 38);
+      
+      pop();
+    }
+    
+    function executeStep() {
+      if (completed) return;
+      
+      if (priorityQueue.length === 0) {
+        statusMessage = `Algorithm complete! Total water trapped: ${waterTrapped} units.`;
+        currentLine = [17];
+        completed = true;
+        running = false;
+        currentCell = null;
+        checkingNeighbors = [];
+        return;
+      }
+      
+      // Dequeue cell with minimum height
+      currentCell = priorityQueue.shift();
+      checkingNeighbors = [];
+      statusMessage = `Dequeued cell (${currentCell.row}, ${currentCell.col}) with height ${currentCell.height}. Checking neighbors...`;
+      currentLine = [1, 2, 3, 4, 5];
+      
+      let dx = [-1, 1, 0, 0];
+      let dy = [0, 0, -1, 1];
+      
+      // Check all 4 neighbors
+      for (let i = 0; i < 4; i++) {
+        let newRow = currentCell.row + dx[i];
+        let newCol = currentCell.col + dy[i];
+        
+        if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols && !visited[newRow][newCol]) {
+          checkingNeighbors.push({row: newRow, col: newCol});
+          
+          let neighborHeight = heightMap[newRow][newCol];
+          let currentHeight = currentCell.height;
+          
+          if (neighborHeight < currentHeight) {
+            let trapped = currentHeight - neighborHeight;
+            waterTrapped += trapped;
+            heightMap[newRow][newCol] = currentHeight;
+            statusMessage = `Neighbor (${newRow},${newCol}) height ${neighborHeight} < ${currentHeight}. Trapped ${trapped} units! Total: ${waterTrapped}`;
+            currentLine = [6, 7, 8, 9, 10];
+          } else {
+            statusMessage = `Neighbor (${newRow},${newCol}) height ${neighborHeight} >= ${currentHeight}. No water trapped.`;
+            currentLine = [6, 11, 12, 13];
+          }
+          
+          visited[newRow][newCol] = true;
+          priorityQueue.push({row: newRow, col: newCol, height: heightMap[newRow][newCol]});
+        }
+      }
+      
+      // Re-sort priority queue
+      priorityQueue.sort((a, b) => a.height - b.height);
+      
+      stepIndex++;
+    }
+    
+    function togglePause() {
+      let btn = document.getElementById('pauseBtn');
+      if (running) {
+        running = false;
+        btn.textContent = 'Resume';
+        statusMessage = statusMessage + ' [Paused]';
+      } else {
+        running = true;
+        btn.textContent = 'Pause';
+        statusMessage = statusMessage.replace(' [Paused]', '');
+        lastStepTime = millis();
+      }
+    }
+    
+    function doStep() {
+      if (running) {
+        stepMode = true;
+      }
+      
+      executeStep();
+      
+      if (stepMode) {
+        running = false;
+        stepMode = false;
+        document.getElementById('pauseBtn').textContent = 'Resume';
+      }
+    }
+    
+    function applyInputs() {
+      let input = document.getElementById('inputHeightMap').value;
+      
+      try {
+        let rows = input.split(';').map(row => 
+          row.split(',').map(val => parseInt(val.trim())).filter(x => !isNaN(x))
+        ).filter(row => row.length > 0);
+        
+        if (rows.length === 0 || rows[0].length === 0) {
+          alert('Invalid input format');
+          return;
+        }
+        
+        heightMap = rows;
+        resetState();
+        statusMessage = 'Custom input applied. Starting algorithm...';
+      } catch (e) {
+        alert('Error parsing input: ' + e.message);
+      }
+    }
+    
+    function resetState() {
+      initializeAlgorithm();
+      running = true;
+      stepMode = false;
+      lastStepTime = millis();
+      document.getElementById('pauseBtn').textContent = 'Pause';
+    }
+  </script>
+</body>
+</html>

@@ -698,6 +698,32 @@ function initializeEventListeners() {
             handleCloseLibraryDialog();
         }
     });
+    
+    // Library search functionality
+    const librarySearchInput = document.getElementById('library-search-input');
+    const librarySearchClear = document.getElementById('library-search-clear');
+    
+    if (librarySearchInput) {
+        let searchTimeout;
+        librarySearchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const searchTerm = this.value;
+            
+            searchTimeout = setTimeout(() => {
+                filterLibraryItems(searchTerm);
+            }, 300);
+        });
+    }
+    
+    if (librarySearchClear) {
+        librarySearchClear.addEventListener('click', function() {
+            if (librarySearchInput) {
+                librarySearchInput.value = '';
+                librarySearchInput.dispatchEvent(new Event('input'));
+                librarySearchInput.focus();
+            }
+        });
+    }
 
     // Editor send button
     const editorSendBtn = document.getElementById('editor-send-btn');
@@ -4652,6 +4678,13 @@ function handleCloseLibraryDialog() {
     libraryDialogOverlay.classList.remove('active');
     selectedLibraryItem = null;
     updateLibraryOpenButton();
+    
+    // Clear search when closing
+    const searchInput = document.getElementById('library-search-input');
+    if (searchInput) {
+        searchInput.value = '';
+        filterLibraryItems('');
+    }
 }
 
 // Handle library open button
@@ -4680,6 +4713,71 @@ function handleLibraryOpen() {
 function updateLibraryOpenButton() {
     const openBtn = document.getElementById('library-open-btn');
     openBtn.disabled = !selectedLibraryItem;
+}
+
+// Filter library items based on search term
+function filterLibraryItems(searchTerm) {
+    searchTerm = searchTerm.toLowerCase().trim();
+    
+    const allItems = document.querySelectorAll('.tree-item');
+    
+    if (!searchTerm) {
+        // Show all items and collapse folders
+        allItems.forEach(item => {
+            item.style.display = '';
+        });
+        document.querySelectorAll('.tree-toggle').forEach(toggle => {
+            toggle.classList.remove('expanded');
+        });
+        document.querySelectorAll('.tree-children').forEach(children => {
+            children.classList.remove('expanded');
+        });
+        return;
+    }
+    
+    // First pass: mark items that match
+    allItems.forEach(item => {
+        const node = item.querySelector('.tree-node');
+        const label = node?.querySelector('.tree-label')?.textContent.toLowerCase() || '';
+        
+        // Check if this is a file node (has data-problem attribute after we add it)
+        const isFile = node?.classList.contains('file');
+        
+        if (isFile && label.includes(searchTerm)) {
+            item.setAttribute('data-match', 'true');
+        } else {
+            item.removeAttribute('data-match');
+        }
+    });
+    
+    // Second pass: show/hide items and expand parents of matches
+    allItems.forEach(item => {
+        const hasMatch = item.hasAttribute('data-match');
+        const children = item.querySelector('.tree-children');
+        const hasMatchingDescendants = children ? 
+            children.querySelectorAll('[data-match="true"]').length > 0 : false;
+        
+        if (hasMatch || hasMatchingDescendants) {
+            item.style.display = '';
+            
+            // Expand this item if it has children with matches
+            if (hasMatchingDescendants) {
+                const toggle = item.querySelector('.tree-toggle');
+                const childrenDiv = item.querySelector('.tree-children');
+                if (toggle && childrenDiv) {
+                    toggle.classList.add('expanded');
+                    childrenDiv.classList.add('expanded');
+                }
+            }
+        } else {
+            // Only hide leaf nodes (files) that don't match
+            const node = item.querySelector('.tree-node');
+            const isFile = node?.classList.contains('file');
+            if (isFile) {
+                item.style.display = 'none';
+            }
+        }
+    });
 }
 
 // Build library tree structure

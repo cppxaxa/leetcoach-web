@@ -1808,11 +1808,68 @@ body.mobile-mode .resize-handle:active:before {
     padding: 0;
     max-height: 650px;
     min-height: 500px;
-    overflow: auto;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.library-search-container {
+    position: relative;
+    padding: 12px;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--bg-primary);
+    flex-shrink: 0;
+}
+
+.library-search-input {
+    width: 100%;
+    padding: 8px 32px 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.library-search-input:focus {
+    border-color: var(--accent-color);
+}
+
+.library-search-clear {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 20px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    padding: 0;
+    line-height: 1;
+}
+
+.library-search-clear:hover {
+    background-color: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.library-search-input:not(:placeholder-shown) ~ .library-search-clear {
+    display: flex;
 }
 
 .library-explorer {
     padding: 12px;
+    flex: 1;
+    overflow-y: auto;
 }
 
 /* Tree Explorer Styles */

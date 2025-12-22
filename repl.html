@@ -617,7 +617,8 @@
         const SUPABASE_URL = 'https://gmsijcphuvpfmprjxsbs.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdtc2lqY3BodXZwZm1wcmp4c2JzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIwNzMzNTgsImV4cCI6MjA3NzY0OTM1OH0.0p1zuMeJvpQO2JFyR5IpDSyUJBgf0vaxUprWDlzlGfU';
         
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Create Supabase client using the globally available window.supabase from CDN
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         let accessToken = null;
         let userData = null;
@@ -628,7 +629,7 @@
         
         // Check for existing session on page load
         window.addEventListener('DOMContentLoaded', async () => {
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session } } = await supabaseClient.auth.getSession();
             
             if (session && session.provider_token) {
                 accessToken = session.provider_token;
@@ -637,7 +638,7 @@
         });
 
         // Listen for auth state changes
-        supabase.auth.onAuthStateChange(async (event, session) => {
+        supabaseClient.auth.onAuthStateChange(async (event, session) => {
             if (event === 'SIGNED_IN' && session && session.provider_token) {
                 accessToken = session.provider_token;
                 await initializeGitHubUser();
@@ -649,7 +650,7 @@
         });
 
         async function loginWithGitHub() {
-            const { data, error } = await supabase.auth.signInWithOAuth({
+            const { data, error } = await supabaseClient.auth.signInWithOAuth({
                 provider: 'github',
                 options: {
                     scopes: 'public_repo',
